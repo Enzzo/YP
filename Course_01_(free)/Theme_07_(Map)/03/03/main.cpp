@@ -13,7 +13,7 @@ int main() {
         std::string first_word, second_word;
         std::cin >> first_word >> second_word;
 
-        if (IsAnagram(first_word, second_word)) {
+        if (BuildCharCounter(first_word) == BuildCharCounter(second_word)) {
             std::cout << "YES" << std::endl;
         }
         else {
@@ -22,14 +22,6 @@ int main() {
     }
 
     return 0;
-}
-
-bool IsAnagram(const std::string& lhs, const std::string& rhs) {
-    std::map<char, int>ml = BuildCharCounter(lhs);
-    std::map<char, int>mr = BuildCharCounter(rhs);
-
-
-    return false;
 }
 
 std::map<char, int> BuildCharCounter(const std::string& str) {
