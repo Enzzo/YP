@@ -22,17 +22,10 @@ int main() {
 		}
 		
 		//WORRY i : пометить i - го человека с начала очереди(в нумерации с 0) как беспокоящегося;
-		else if (operation_code == "WORRY") {
+		else if (operation_code == "WORRY" || operation_code == "QUIET") {
 			int i;
 			std::cin >> i;
-			query[i] = true;
-		}
-
-		//QUIET i : пометить i - го человека(в нумерации с 0) как успокоившегося;
-		else if (operation_code == "QUIET") {
-			int i;
-			std::cin >> i;
-			query[i] = false;
+			query[i] = operation_code == "WORRY";
 		}
 
 		//COME k : добавить k спокойных человек в конец очереди;
@@ -43,12 +36,6 @@ int main() {
 			if (k != 0) 
 				query.resize(query.size() + k);
 			
-		}
-		
-		else {
-
-			// обработка остальных запросов
-
 		}
 	}
 	return 0;
