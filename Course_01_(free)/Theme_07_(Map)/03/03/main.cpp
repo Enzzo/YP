@@ -3,6 +3,7 @@
 #include <map>
 
 bool IsAnagram(const std::string&, const std::string&);
+std::map<char, int> BuildCharCounter(const std::string&);
 
 int main() {
     int n;
@@ -24,5 +25,16 @@ int main() {
 }
 
 bool IsAnagram(const std::string& lhs, const std::string& rhs) {
+    std::map<char, int>ml = BuildCharCounter(lhs);
+    std::map<char, int>mr = BuildCharCounter(rhs);
+
+
     return false;
+}
+
+std::map<char, int> BuildCharCounter(const std::string& str) {
+    std::map<char, int> m;
+    for (const char ch : str)
+        m[ch]++;
+    return m;
 }
