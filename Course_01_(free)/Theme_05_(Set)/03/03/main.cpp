@@ -6,11 +6,12 @@ std::set<std::string> SplitIntoWords(const std::string&);
 int CalculateSimilarity(const std::set<std::string>&, const std::set<std::string>&);
 
 int main() {
-	std::string first = "tiny cat";
-	std::string second = "cat without tail";
-	//std::getline(std::cin, first);
-	//std::getline(std::cin, second);
-	std::cout << CalculateSimilarity(SplitIntoWords(first), SplitIntoWords(second));
+	std::string query, description;
+
+	std::getline(std::cin, query);
+	std::getline(std::cin, description);
+
+	std::cout << CalculateSimilarity(SplitIntoWords(query), SplitIntoWords(description));
 	return 0;
 }
 
@@ -26,6 +27,8 @@ std::set<std::string> SplitIntoWords(const std::string& line) {
 		else
 			word += line[i];
 	}
+	s.insert(word);
+
 	return s;
 }
 
