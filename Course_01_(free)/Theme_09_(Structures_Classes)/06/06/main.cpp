@@ -7,6 +7,8 @@
 #include <vector>
 #include <execution>
 
+using namespace std;
+
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
 std::string ReadLine() {
@@ -22,58 +24,28 @@ int ReadLineWithNumber() {
 	return result;
 }
 
-std::vector<std::string> SplitIntoWords(const std::string& text) {
-	std::vector<std::string> words;
-	std::string word;
-	for (const char c : text) {
-		if (c == ' ') {
-			words.push_back(word);
-			word = "";
-		}
-		else {
-			word += c;
-		}
-	}
-	words.push_back(word);
-
-	return words;
-}
-
 struct Document {
 	int id;
 	int relevance;
 };
 
-
-bool HasDocumentGreaterRelevance(const Document& lhs, const Document& rhs) {
-	return lhs.relevance > rhs.relevance;
-}
-
 class SearchServer {
 public:
 	void AddDocument(
-		int document_id,
+		const int document_id,
 		const std::string& document) {
 
 		for (const std::string& word : SplitIntoWordsNoStop(document))
 			word_to_documents_[word].insert(document_id);
 	};
 	void SetStopWords(const std::string& stop_words_joined) {
-		std::string word = "";
-		for (const char ch : stop_words_joined) {
-			if (isspace(ch)) {
-				stop_words_.insert(word);
-				word = "";
-			}
-			else
-				word += ch;
-		}
-		stop_words_.insert(word);
+		for (const std::string& word : SplitIntoWords(stop_words_joined))
+			stop_words_.insert(word);
 	}
-	std::vector<Document> FindTopDocuments(const std::string& query) {
+	std::vector<Document> FindTopDocuments(const std::string& query) const{
 		auto matched_documents = FindAllDocuments(query);
 
-		std::sort(std::execution::par, matched_documents.begin(), matched_documents.end(), HasDocumentGreaterRelevance);
+		std::sort(std::execution::par, matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {return lhs.relevance > rhs.relevance; });
 		if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
 			matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
 		}
@@ -82,9 +54,10 @@ public:
 private:
 	std::map<std::string, std::set<int>> word_to_documents_;
 	std::set<std::string> stop_words_;
-	std::vector<std::string> words_;
+	
 
-	std::vector<std::string> SplitIntoWordsNoStop(const std::string& document) {
+	std::vector<std::string> SplitIntoWordsNoStop(const std::string& document) const {
+		std::vector<std::string> words_;
 		for (const std::string& word : SplitIntoWords(document)) {
 			if (stop_words_.count(word) == 0) {
 				words_.push_back(word);
@@ -92,7 +65,25 @@ private:
 		}
 		return words_;
 	}
-	std::vector<Document>FindAllDocuments(const std::string& query) {
+
+	std::vector<std::string> SplitIntoWords(const std::string& text) const{
+		std::vector<std::string> words;
+		std::string word;
+		for (const char c : text) {
+			if (isspace(c)) {
+				words.push_back(word);
+				word = "";
+			}
+			else {
+				word += c;
+			}
+		}
+		words.push_back(word);
+
+		return words;
+	}
+
+	std::vector<Document>FindAllDocuments(const std::string& query) const {
 		const std::vector<std::string> query_words = SplitIntoWordsNoStop(query);
 		std::map<int, int> document_to_relevance;
 		for (const std::string& word : query_words) {
@@ -125,8 +116,7 @@ SearchServer CreateSearchServer() {
 
 int main() {
 
-	SearchServer search_server = CreateSearchServer();
-	
+	const SearchServer search_server = CreateSearchServer();	
 	for (auto [document_id, relevance] : search_server.FindTopDocuments(ReadLine())) {
 		std::cout << "{ document_id = " << document_id << ", relevance = " << relevance << " }" << std::endl;
 	}
