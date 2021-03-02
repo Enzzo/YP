@@ -41,8 +41,9 @@ public:
 		const int document_id,
 		const std::string& document) {
 
-		for (const std::string& word : SplitIntoWordsNoStop(document))
+		for (const std::string& word : SplitIntoWordsNoStop(document)) {
 			word_to_documents_[word].insert(document_id);
+		}
 	};
 	void SetStopWords(const std::string& stop_words_joined) {
 		for (const std::string& word : SplitIntoWords(stop_words_joined))
@@ -65,7 +66,7 @@ private:
 	std::vector<std::string> SplitIntoWordsNoStop(const std::string& document) const {
 		std::vector<std::string> words_;
 		for (const std::string& word : SplitIntoWords(document)) {
-			if (stop_words_.count(word)) {
+			if (!stop_words_.count(word)) {
 				words_.push_back(word);
 			}
 		}
@@ -106,18 +107,29 @@ private:
 		return q;
 	};
 
-	std::vector<Document>FindAllDocuments(const std::string& query) const {
+	const std::vector<Document>FindAllDocuments(const std::string& query) const {
 
 		Query query_ = ParseQuery(query);
 
-		const std::vector<std::string> query_words = query_.p_words;//SplitIntoWordsNoStop(query);
+		const std::vector<std::string> plus_words = query_.p_words;//SplitIntoWordsNoStop(query);
+		const std::vector<std::string> minus_words = query_.m_words;
+
 		std::map<int, int> document_to_relevance;
-		for (const std::string& word : query_words) {
+		for (const std::string& word : plus_words) {
 			if (word_to_documents_.count(word) == 0) {
 				continue;
 			}
 			for (const int document_id : word_to_documents_.at(word)) {
-				++document_to_relevance[document_id];
+					++document_to_relevance[document_id];
+			}
+		}
+
+		for (const std::string& word : minus_words) {
+			if (word_to_documents_.count(word) == 0) {
+				continue;
+			}
+			for (const int document_id : word_to_documents_.at(word)) {
+				document_to_relevance.erase(document_id);
 			}
 		}
 
@@ -144,10 +156,10 @@ SearchServer CreateSearchServer(std::istream& ist) {
 
 int main() {
 
-	std::ifstream ifs("input.txt");
+	//std::ifstream ifs("input.txt");
 	
-	if (!ifs.is_open()) return -1;
-	std::istream& ist = ifs;
+	//if (!ifs.is_open()) return -1;
+	std::istream& ist = std::cin;
 
 	const SearchServer search_server = CreateSearchServer(ist);
 	for (auto [document_id, relevance] : search_server.FindTopDocuments(ReadLine(ist))) {
