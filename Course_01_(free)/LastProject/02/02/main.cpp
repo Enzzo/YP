@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <map>
 #include <set>
 #include <string>
@@ -11,16 +12,16 @@ using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
-std::string ReadLine() {
+std::string ReadLine(istream& ist) {
 	std::string s;
-	std::getline(std::cin, s);
+	std::getline(ist, s);
 	return s;
 }
 
-int ReadLineWithNumber() {
+int ReadLineWithNumber(istream& ist) {
 	int result;
-	std::cin >> result;
-	ReadLine();
+	ist >> result;
+	ReadLine(ist);
 	return result;
 }
 
@@ -64,7 +65,7 @@ private:
 	std::vector<std::string> SplitIntoWordsNoStop(const std::string& document) const {
 		std::vector<std::string> words_;
 		for (const std::string& word : SplitIntoWords(document)) {
-			if (stop_words_.count(word) == 0 && word[0] != '-') {
+			if (stop_words_.count(word)) {
 				words_.push_back(word);
 			}
 		}
@@ -76,7 +77,7 @@ private:
 		std::vector<std::string> words;
 		std::string word;
 		for (const char c : text) {
-			if (isspace(c)) {
+			if (c == ' ') {
 				words.push_back(word);
 				word = "";
 			}
@@ -89,13 +90,27 @@ private:
 		return words;
 	}
 
-	Query ParseQuery(const std::string& query) {
+	const Query ParseQuery(const std::string& query) const {
 		Query q;
+
+		std::vector<std::string> line = SplitIntoWords(query);
+
+		for (const std::string& s : line) {
+			if (s[0] == '-') {
+				q.m_words.push_back(s.substr(1));
+			}
+			else
+				q.p_words.push_back(s);
+		}
+
 		return q;
 	};
 
 	std::vector<Document>FindAllDocuments(const std::string& query) const {
-		const std::vector<std::string> query_words = SplitIntoWordsNoStop(query);
+
+		Query query_ = ParseQuery(query);
+
+		const std::vector<std::string> query_words = query_.p_words;//SplitIntoWordsNoStop(query);
 		std::map<int, int> document_to_relevance;
 		for (const std::string& word : query_words) {
 			if (word_to_documents_.count(word) == 0) {
@@ -106,6 +121,8 @@ private:
 			}
 		}
 
+		//Если document_to_relevance содержит стоп-слово, то тупо удаляем документ (идентификатор) по стоп-слову (без минуса) содержащемуся в word_to_documents_
+
 		std::vector<Document> matched_documents;
 		for (auto [document_id, relevance] : document_to_relevance) {
 			matched_documents.push_back({ document_id, relevance });
@@ -114,21 +131,26 @@ private:
 	};
 };
 
-SearchServer CreateSearchServer() {
+SearchServer CreateSearchServer(std::istream& ist) {
 	SearchServer search_server;
-	search_server.SetStopWords(ReadLine());
+	search_server.SetStopWords(ReadLine(ist));
 
-	const int document_count = ReadLineWithNumber();
+	const int document_count = ReadLineWithNumber(ist);
 	for (int document_id = 0; document_id < document_count; ++document_id) {
-		search_server.AddDocument(document_id, ReadLine());
+		search_server.AddDocument(document_id, ReadLine(ist));
 	}
 	return search_server;
 }
 
 int main() {
 
-	const SearchServer search_server = CreateSearchServer();
-	for (auto [document_id, relevance] : search_server.FindTopDocuments(ReadLine())) {
+	std::ifstream ifs("input.txt");
+	
+	if (!ifs.is_open()) return -1;
+	std::istream& ist = ifs;
+
+	const SearchServer search_server = CreateSearchServer(ist);
+	for (auto [document_id, relevance] : search_server.FindTopDocuments(ReadLine(ist))) {
 		std::cout << "{ document_id = " << document_id << ", relevance = " << relevance << " }" << std::endl;
 	}
 }
