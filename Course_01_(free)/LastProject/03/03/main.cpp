@@ -31,15 +31,15 @@ struct Document {
 };
 
 struct Query {
-	std::vector<std::string> p_words;
-	std::vector<std::string> m_words;
+	std::set<std::string> p_words;
+	std::set<std::string> m_words;
 };
 
 class SearchServer {
 public:
 
 	/// <summary>
-	/// 
+	/// заполняет список word_to_documents словами, указывающими на множества номеров документов, в которых эти слова находятся
 	/// </summary>
 	/// <param name="document_id"></param>
 	/// <param name="document"></param>
@@ -47,13 +47,17 @@ public:
 		const int document_id,
 		const std::string& document) {
 
-		for (const std::string& word : SplitIntoWordsNoStop(document)) {
-			word_to_documents_[word].insert(document_id);
+		std::vector<std::string> words = SplitIntoWordsNoStop(document);
+
+		//заполним множество словами, исключив стоп-слова и заодно вычислим TF каждого слова в отдельном документе
+		for (const std::string& word : words) {
+			//word_to_documents_[word].insert(document_id);
+			word_to_documents_freqs_[word][document_id] += 1/words.size();
 		}
 	};
 
 	/// <summary>
-	/// 
+	/// заполняет список стоп-слов. Эти слова будут игнорироваться при поиске запроса в документах
 	/// </summary>
 	/// <param name="stop_words_joined"></param>
 	void SetStopWords(const std::string& stop_words_joined) {
@@ -62,7 +66,7 @@ public:
 	}
 
 	/// <summary>
-	/// 
+	/// Сортирует документы по релевантности и урезает количество до MAX_RESULT_DOCUMENT_COUNT
 	/// </summary>
 	/// <param name="query"></param>
 	/// <returns></returns>
@@ -77,9 +81,11 @@ public:
 	}
 private:
 	/// <summary>
-	/// 
+	/// список множеств документов к каждому слову
+	/// заполняется только теми словами, которые не являются стоп-словами
+	/// содержит TF<double> для каждого слова <string> в документе <int>
 	/// </summary>
-	std::map<std::string, std::set<int>> word_to_documents_;
+	std::map<std::string, std::map<int, double>> word_to_documents_freqs_;
 	
 	/// <summary>
 	/// Множество стоп-слов
@@ -140,10 +146,10 @@ private:
 
 		for (const std::string& s : line) {
 			if (s[0] == '-') {
-				q.m_words.push_back(s.substr(1));
+				q.m_words.insert(s.substr(1));
 			}
 			else
-				q.p_words.push_back(s);
+				q.p_words.insert(s);
 		}
 
 		return q;
@@ -158,29 +164,27 @@ private:
 
 		Query query_ = ParseQuery(query);
 
-		const std::vector<std::string> plus_words = query_.p_words;//SplitIntoWordsNoStop(query);
-		const std::vector<std::string> minus_words = query_.m_words;
+		const std::set<std::string> plus_words  = query_.p_words;//SplitIntoWordsNoStop(query);
+		const std::set<std::string> minus_words = query_.m_words;
 
-		std::map<int, int> document_to_relevance;
+		std::map<int, double> document_to_relevance;
 		for (const std::string& word : plus_words) {
-			if (word_to_documents_.count(word) == 0) {
+			if (word_to_documents_freqs_.count(word) == 0) {
 				continue;
 			}
-			for (const int document_id : word_to_documents_.at(word)) {
+			for (const int document_id : word_to_documents_freqs_.at(word)) {
 				++document_to_relevance[document_id];
 			}
 		}
 
 		for (const std::string& word : minus_words) {
-			if (word_to_documents_.count(word) == 0) {
+			if (word_to_documents_freqs_.count(word) == 0) {
 				continue;
 			}
-			for (const int document_id : word_to_documents_.at(word)) {
+			for (const int document_id : word_to_documents_freqs_.at(word)) {
 				document_to_relevance.erase(document_id);
 			}
 		}
-
-		//Если document_to_relevance содержит стоп-слово, то тупо удаляем документ (идентификатор) по стоп-слову (без минуса) содержащемуся в word_to_documents_
 
 		std::vector<Document> matched_documents;
 		for (auto [document_id, relevance] : document_to_relevance) {
