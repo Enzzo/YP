@@ -37,6 +37,12 @@ struct Query {
 
 class SearchServer {
 public:
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="document_id"></param>
+	/// <param name="document"></param>
 	void AddDocument(
 		const int document_id,
 		const std::string& document) {
@@ -45,10 +51,21 @@ public:
 			word_to_documents_[word].insert(document_id);
 		}
 	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="stop_words_joined"></param>
 	void SetStopWords(const std::string& stop_words_joined) {
 		for (const std::string& word : SplitIntoWords(stop_words_joined))
 			stop_words_.insert(word);
 	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="query"></param>
+	/// <returns></returns>
 	std::vector<Document> FindTopDocuments(const std::string& query) const {
 		auto matched_documents = FindAllDocuments(query);
 
@@ -59,10 +76,26 @@ public:
 		return matched_documents;
 	}
 private:
+	/// <summary>
+	/// 
+	/// </summary>
 	std::map<std::string, std::set<int>> word_to_documents_;
+	
+	/// <summary>
+	/// Множество стоп-слов
+	/// </summary>
 	std::set<std::string> stop_words_;
+	
+	/// <summary>
+	/// Общее количество документов
+	/// </summary>
+	int document_count_ = 0;
 
-
+	/// <summary>
+	/// Отделить стоп-слова
+	/// </summary>
+	/// <param name="document"></param>
+	/// <returns>Возвращает вектор строк без стоп-слов</returns>
 	std::vector<std::string> SplitIntoWordsNoStop(const std::string& document) const {
 		std::vector<std::string> words_;
 		for (const std::string& word : SplitIntoWords(document)) {
@@ -73,11 +106,16 @@ private:
 		return words_;
 	}
 
-	std::vector<std::string> SplitIntoWords(const std::string& text) const {
+	/// <summary>
+	/// Преобразовать строку слов в вектор слов
+	/// </summary>
+	/// <param name="query"></param>
+	/// <returns>Вектор слов</returns>
+	std::vector<std::string> SplitIntoWords(const std::string& query) const {
 
 		std::vector<std::string> words;
 		std::string word;
-		for (const char c : text) {
+		for (const char c : query) {
 			if (c == ' ') {
 				words.push_back(word);
 				word = "";
@@ -90,7 +128,11 @@ private:
 
 		return words;
 	}
-
+	/// <summary>
+	/// Ввод поискового запроса от пользователя
+	/// </summary>
+	/// <param name="query - строка поискового запроса"></param>
+	/// <returns>Структуру, содержащую плюс-слова и минус-слова</returns>
 	const Query ParseQuery(const std::string& query) const {
 		Query q;
 
@@ -107,6 +149,11 @@ private:
 		return q;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="query"></param>
+	/// <returns></returns>
 	const std::vector<Document>FindAllDocuments(const std::string& query) const {
 
 		Query query_ = ParseQuery(query);
