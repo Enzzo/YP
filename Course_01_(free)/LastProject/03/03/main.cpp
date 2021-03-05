@@ -7,10 +7,30 @@
 #include <utility>
 #include <vector>
 #include <execution>
+#include <cmath>
 
 using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
+
+/// <summary>
+/// Вспомогательная функция, которая выводит в поток содержание списка документов и статус их элементов
+/// </summary>
+/// <param name="ost"></param>
+/// <param name="map"></param>
+/// <returns></returns>
+std::ostream& operator<<(std::ostream& ostream, const std::map<std::string, std::map<int, double>>& map) {
+	std::ostream& ost = ostream;
+	ost << "DEBUG:\n";
+	for (const auto& [word, doc] : map) {
+		ost << "[WORD]\n" << word;
+		for (const auto& [d, tf] : doc) {
+			ost << "\n" << d << "\t[TF] " << tf << std::endl;
+		}
+	}
+
+	return ost;
+}
 
 std::string ReadLine(istream& ist) {
 	std::string s;
@@ -27,7 +47,7 @@ int ReadLineWithNumber(istream& ist) {
 
 struct Document {
 	int id;
-	int relevance;
+	double relevance;
 };
 
 struct Query {
@@ -46,13 +66,13 @@ public:
 	void AddDocument(
 		const int document_id,
 		const std::string& document) {
-
+		document_count_++;
 		std::vector<std::string> words = SplitIntoWordsNoStop(document);
-
 		//заполним множество словами, исключив стоп-слова и заодно вычислим TF каждого слова в отдельном документе
 		for (const std::string& word : words) {
 			//word_to_documents_[word].insert(document_id);
-			word_to_documents_freqs_[word][document_id] += 1/words.size();
+		
+			word_to_documents_freqs_[word][document_id] += 1.0 / static_cast<double>(words.size());
 		}
 	};
 
@@ -167,13 +187,15 @@ private:
 		const std::set<std::string> plus_words  = query_.p_words;//SplitIntoWordsNoStop(query);
 		const std::set<std::string> minus_words = query_.m_words;
 
+
+
 		std::map<int, double> document_to_relevance;
 		for (const std::string& word : plus_words) {
 			if (word_to_documents_freqs_.count(word) == 0) {
 				continue;
 			}
-			for (const int document_id : word_to_documents_freqs_.at(word)) {
-				++document_to_relevance[document_id];
+			for (const auto& [document_id, tf] : word_to_documents_freqs_.at(word)) {
+				document_to_relevance[document_id] += tf * std::log(document_count_ / static_cast<double>(word_to_documents_freqs_.at(word).size()));
 			}
 		}
 
@@ -181,8 +203,8 @@ private:
 			if (word_to_documents_freqs_.count(word) == 0) {
 				continue;
 			}
-			for (const int document_id : word_to_documents_freqs_.at(word)) {
-				document_to_relevance.erase(document_id);
+			for (const std::pair<int, double>& document_id : word_to_documents_freqs_.at(word)) {
+				document_to_relevance.erase(document_id.first);
 			}
 		}
 
@@ -206,7 +228,6 @@ SearchServer CreateSearchServer(std::istream& ist) {
 }
 
 int main() {
-
 	//std::ifstream ifs("input.txt");
 
 	//if (!ifs.is_open()) return -1;
