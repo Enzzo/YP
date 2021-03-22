@@ -1,296 +1,224 @@
 #include <algorithm>
+#include <cmath>
 #include <iostream>
-#include <fstream>
 #include <map>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
 #include <execution>
-#include <cmath>
-
-using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
-std::string ReadLine(std::istream& ist) {
-	std::string s;
-	std::getline(ist, s);
-	return s;
+std::string ReadLine() {
+    std::string s;
+    getline(std::cin, s);
+    return s;
 }
 
-int ReadLineWithNumber(std::istream& ist) {
-	int result;
-	ist >> result;
-	ReadLine(ist);
-	return result;
+int ReadLineWithNumber() {
+    int result;
+    std::cin >> result;
+    ReadLine();
+    return result;
 }
 
-std::vector<int> FillRating(std::istream& ist) {
-	int n;
-	ist >> n;
-	std::vector<int> v(n);
-	for (int& x : v) {
-		ist >> x;
-	}
-	ReadLine(ist);
-	return v;
+std::vector<std::string> SplitIntoWords(const std::string& text) {
+    std::vector<std::string> words;
+    std::string word;
+    for (const char c : text) {
+        if (c == ' ') {
+            words.push_back(word);
+            word = "";
+        }
+        else {
+            word += c;
+        }
+    }
+    words.push_back(word);
+
+    return words;
 }
-
-enum class DocumentStatus {
-	ACTUAL,
-	IRRELEVANT,
-	BANNED,
-	REMOVED
-};
-
-/// <summary>
-/// Структура хранения информации о документе
-/// </summary>
-struct DocInfo {
-	int rating;
-	DocumentStatus status;
-};
 
 struct Document {
-	int id;
-	double relevance;
-	int rating;
+    int id;
+    double relevance;
+    int rating;
 };
-
-struct Query {
-	std::set<std::string> p_words;
-	std::set<std::string> m_words;
-};
-
-
 
 class SearchServer {
 public:
+    void SetStopWords(const std::string& text) {
+        for (const std::string& word : SplitIntoWords(text)) {
+            stop_words_.insert(word);
+        }
+    }
 
-	/// <summary>
-	/// заполн¤ет список word_to_documents словами, указывающими на множества номеров документов, в которых эти слова наход¤тс¤
-	/// </summary>
-	/// <param name="document_id"></param>
-	/// <param name="document"></param>
-	void AddDocument(
-		const int document_id,
-		const std::string& document,
-		const DocumentStatus status,
-		const std::vector<int>& rating) {
+    void AddDocument(int document_id, const std::string& document, const std::vector<int>& ratings) {
+        const std::vector<std::string> words = SplitIntoWordsNoStop(document);
+        const double inv_word_count = 1.0 / words.size();
+        for (const std::string& word : words) {
+            word_to_document_freqs_[word][document_id] += inv_word_count;
+        }
+        document_ratings_.emplace(document_id, ComputeAverageRating(ratings));
+    }
 
-		++document_count_;
+    std::vector<Document> FindTopDocuments(const std::string& raw_query) const {
+        const Query query = ParseQuery(raw_query);
+        auto matched_documents = FindAllDocuments(query);
 
-		document_info_[document_id] = { ComputeAverageRating(rating), status };
+        std::sort(std::execution::par, matched_documents.begin(), matched_documents.end(),
+            [](const Document& lhs, const Document& rhs) {
+                return lhs.relevance > rhs.relevance;
+            });
+        if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
+            matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
+        }
+        return matched_documents;
+    }
 
-		std::vector<std::string> words = SplitIntoWordsNoStop(document);
-		//заполним множество словами, исключив стоп-слова и заодно вычислим TF каждого слова в отдельном документе
-		for (const std::string& word : words) {
-			//word_to_documents_[word].insert(document_id);
-
-			word_to_documents_freqs_[word][document_id] += 1.0 / static_cast<double>(words.size());
-		}
-	}
-
-	/// <summary>
-	/// заполн¤ет список стоп-слов. Ёти слова будут игнорироватьс¤ при поиске запроса в документах
-	/// </summary>
-	/// <param name="stop_words_joined"></param>
-	void SetStopWords(const std::string& stop_words_joined) {
-		for (const std::string& word : SplitIntoWords(stop_words_joined))
-			stop_words_.insert(word);
-	}
-
-	/// <summary>
-	/// Сортирует документы по релевантности и урезает количество до MAX_RESULT_DOCUMENT_COUNT
-	/// </summary>
-	/// <param name="query"></param>
-	/// <returns></returns>
-	std::vector<Document> FindTopDocuments(const std::string& query, const DocumentStatus status) const {
-		std::vector<Document> matched_documents = FindAllDocuments(query);
-
-		std::sort(std::execution::par, matched_documents.begin(), matched_documents.end(), [status](const Document& lhs, const Document& rhs) {return lhs.relevance > rhs.relevance && lhs.info.status == status; });
-		if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
-			matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
-		}
-		return matched_documents;
-	}
 private:
+    std::set<std::string> stop_words_;
+    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    std::map<int, int> document_ratings_;
 
-	/// <summary>
-	/// список множеств документов к каждому слову
-	/// заполн¤етс¤ только теми словами, которые не ¤вл¤ютс¤ стоп-словами
-	/// содержит TF<double> дл¤ каждого слова <string> в документе <int>
-	/// </summary>
-	std::map<std::string, std::map<int, double>> word_to_documents_freqs_;
+    bool IsStopWord(const std::string& word) const {
+        return stop_words_.count(word) > 0;
+    }
 
-	/// <summary>
-	/// множество стоп-слов
-	/// </summary>
-	std::set<std::string> stop_words_;
+    std::vector<std::string> SplitIntoWordsNoStop(const std::string& text) const {
+        std::vector<std::string> words;
+        for (const std::string& word : SplitIntoWords(text)) {
+            if (!IsStopWord(word)) {
+                words.push_back(word);
+            }
+        }
+        return words;
+    }
 
-	/// <summary>
-	/// Общее количество документов
-	/// </summary>
-	int document_count_ = 0;	
+    static int ComputeAverageRating(const std::vector<int>& ratings) {
+        int rating_sum = 0;
+        for (const int rating : ratings) {
+            rating_sum += rating;
+        }
+        return rating_sum / static_cast<int>(ratings.size());
+    }
 
-	// [document, info]
-	std::map<int, DocInfo> document_info_;	
+    struct QueryWord {
+        std::string data;
+        bool is_minus;
+        bool is_stop;
+    };
 
-	/// <summary>
-	/// Статическая приватная функция, которая расчитывает среднее из получаемого 
-	/// вектора целых чисел
-	/// </summary>
-	/// <param name="rating"></param>
-	/// <returns></returns>
-	static int ComputeAverageRating(const std::vector<int>& rating) {
-		int sum = 0;
-		for (const int r : rating)
-			sum += r;
+    QueryWord ParseQueryWord(std::string text) const {
+        bool is_minus = false;
+        // Word shouldn't be empty
+        if (text[0] == '-') {
+            is_minus = true;
+            text = text.substr(1);
+        }
+        return {
+            text,
+            is_minus,
+            IsStopWord(text)
+        };
+    }
 
-		return sum / static_cast<int>(rating.size());
-	}
+    struct Query {
+        std::set<std::string> plus_words;
+        std::set<std::string> minus_words;
+    };
 
-	/// <summary>
-	/// Отделить стоп-слова
-	/// </summary>
-	/// <param name="document"></param>
-	/// <returns>¬озвращает вектор строк без стоп-слов</returns>
-	std::vector<std::string> SplitIntoWordsNoStop(const std::string& document) const {
-		std::vector<std::string> words_;
-		for (const std::string& word : SplitIntoWords(document)) {
-			if (stop_words_.count(word) == 0) {
-				words_.push_back(word);
-			}
-		}
-		return words_;
-	}
+    Query ParseQuery(const std::string& text) const {
+        Query query;
+        for (const std::string& word : SplitIntoWords(text)) {
+            const QueryWord query_word = ParseQueryWord(word);
+            if (!query_word.is_stop) {
+                if (query_word.is_minus) {
+                    query.minus_words.insert(query_word.data);
+                }
+                else {
+                    query.plus_words.insert(query_word.data);
+                }
+            }
+        }
+        return query;
+    }
 
-	/// <summary>
-	/// Преобразовать строку слов в вектор слов
-	/// </summary>
-	/// <param name="query"></param>
-	/// <returns>¬ектор слов</returns>
-	std::vector<std::string> SplitIntoWords(const std::string& text) const {
-		std::vector<std::string> words;
-		std::string word;
-		for (const char c : text) {
-			if (c == ' ') {
-				words.push_back(word);
-				word = "";
-			}
-			else {
-				word += c;
-			}
-		}
-		words.push_back(word);
+    // Existence required
+    double ComputeWordInverseDocumentFreq(const std::string& word) const {
+        return log(document_ratings_.size() * 1.0 / word_to_document_freqs_.at(word).size());
+    }
 
-		return words;
-	}
+    std::vector<Document> FindAllDocuments(const Query& query) const {
+        std::map<int, double> document_to_relevance;
+        for (const std::string& word : query.plus_words) {
+            if (word_to_document_freqs_.count(word) == 0) {
+                continue;
+            }
+            const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
+            for (const auto [document_id, term_freq] : word_to_document_freqs_.at(word)) {
+                document_to_relevance[document_id] += term_freq * inverse_document_freq;
+            }
+        }
 
-	/// <summary>
-	/// Ввод поискового запроса от пользовател¤
-	/// </summary>
-	/// <param name="query - строка поискового запроса"></param>
-	/// <returns>—труктуру, содержащую плюс-слова и минус-слова</returns>
-	const Query ParseQuery(const std::string& query) const {
-		Query q;
+        for (const std::string& word : query.minus_words) {
+            if (word_to_document_freqs_.count(word) == 0) {
+                continue;
+            }
+            for (const auto [document_id, _] : word_to_document_freqs_.at(word)) {
+                document_to_relevance.erase(document_id);
+            }
+        }
 
-		std::vector<std::string> line = SplitIntoWords(query);
-
-		for (const std::string& s : line) {
-			if (s[0] == '-') {
-				q.m_words.insert(s.substr(1));
-			}
-			else
-				q.p_words.insert(s);
-		}
-
-		return q;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	/// <param name="query"></param>
-	/// <returns></returns>
-	const std::vector<Document>FindAllDocuments(const std::string& query) const {
-
-		Query query_ = ParseQuery(query);
-
-		const std::set<std::string> plus_words = query_.p_words;//SplitIntoWordsNoStop(query);
-		const std::set<std::string> minus_words = query_.m_words;
-
-		std::map<int, double> document_to_relevance;
-		for (const std::string& word : plus_words) {
-			if (word_to_documents_freqs_.count(word) == 0) {
-				continue;
-			}
-			for (const auto& [document_id, tf] : word_to_documents_freqs_.at(word)) {
-				document_to_relevance[document_id] += tf * std::log(document_count_ / static_cast<double>(word_to_documents_freqs_.at(word).size()));
-			}
-		}
-
-		for (const std::string& word : minus_words) {
-			if (word_to_documents_freqs_.count(word) == 0) {
-				continue;
-			}
-			for (const std::pair<int, double>& document_id : word_to_documents_freqs_.at(word)) {
-				document_to_relevance.erase(document_id.first);
-			}
-		}
-
-		std::vector<Document> matched_documents;
-		for (auto [document_id, relevance] : document_to_relevance) {
-			matched_documents.push_back({ document_id, relevance, document_info_.at(document_id) });
-		}
-		return matched_documents;
-	};
+        std::vector<Document> matched_documents;
+        for (const auto [document_id, relevance] : document_to_relevance) {
+            matched_documents.push_back({
+                document_id,
+                relevance,
+                document_ratings_.at(document_id)
+                });
+        }
+        return matched_documents;
+    }
 };
 
-SearchServer CreateSearchServer(std::istream& ist) {
-	SearchServer search_server;
 
-	search_server.SetStopWords(ReadLine(ist));
+SearchServer CreateSearchServer() {
+    SearchServer search_server;
+    search_server.SetStopWords(ReadLine());
 
-	const int document_count = ReadLineWithNumber(ist);
-	for (int document_id = 0; document_id < document_count; ++document_id) {
+    const int document_count = ReadLineWithNumber();
+    for (int document_id = 0; document_id < document_count; ++document_id) {
+        const std::string document = ReadLine();
+        int ratings_size;
+        std::cin >> ratings_size;
 
-		std::string query = ReadLine(ist);
-		std::vector<int> rating = FillRating(ist);
-		search_server.AddDocument(document_id, query, rating);
-	}
-	return search_server;
+        // создали вектор размера ratings_size из нулей
+        std::vector<int> ratings(ratings_size, 0);
+
+        // считали каждый элемент с помощью ссылки
+        for (int& rating : ratings) {
+            std::cin >> rating;
+        }
+
+        search_server.AddDocument(document_id, document, ratings);
+        ReadLine();
+    }
+
+    return search_server;
 }
 
-void PrintDocument(const Document& document) {
-	cout << "{ "s
-		<< "document_id = "s << document.id << ", "s
-		<< "relevance = "s << document.relevance << ", "s
-		<< "rating = "s << document.rating
-		<< " }"s << endl;
-}
 
 int main() {
-	std::ifstream ifst("input.txt");
-	std::istream& ist = ifst;
+    const SearchServer search_server = CreateSearchServer();
 
-	SearchServer search_server;
-	search_server.SetStopWords("и в на"s);
-
-	search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-	search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-	search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-	search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
-
-	cout << "ACTUAL:"s << endl;
-	for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::ACTUAL)) {
-		PrintDocument(document);
-	}
-
-	cout << "BANNED:"s << endl;
-	for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED)) {
-		PrintDocument(document);
-	}
-	return 0;
+    const std::string query = ReadLine();
+    for (const Document& document : search_server.FindTopDocuments(query)) {
+        std::cout << "{ "
+            << "document_id = " << document.id << ", "
+            << "relevance = " << document.relevance << ", "
+            << "rating = " << document.rating
+            << " }" << std::endl;
+    }
 }
