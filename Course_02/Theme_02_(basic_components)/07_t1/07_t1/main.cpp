@@ -51,7 +51,7 @@ struct Document {
     int id;
     double relevance;
     int rating;
-    DocumentStatus status;
+    DocumentStatus status = DocumentStatus::ACTUAL;
 };
 
 class SearchServer {
@@ -78,18 +78,18 @@ public:
         document_status_.emplace(document_id, ds);
     }
 
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, const DocumentStatus& ds) const {
+    std::vector<Document> FindTopDocuments(const std::string& raw_query, const DocumentStatus& ds = DocumentStatus::ACTUAL) const {
         const Query query = ParseQuery(raw_query);
         
         std::vector<Document> all_documents = FindAllDocuments(query);
 
-        std::vector<Document> matched_documents(4);
+        std::vector<Document> matched_documents;
         
-        std::map<int, DocumentStatus> status = document_status_;
 
-        std::copy_if(all_documents.begin(), all_documents.end(), matched_documents.begin(), [ds, status](const Document& d) {
-            return status.at(d.id) == ds;
-            });
+        for (const Document& d : all_documents) {
+            if (document_status_.at(d.id) == ds)
+                matched_documents.push_back(d);
+        }
             
         std::sort(std::execution::par, matched_documents.begin(), matched_documents.end(),
             [](const Document& lhs, const Document& rhs) {
