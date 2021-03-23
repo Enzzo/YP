@@ -30,7 +30,7 @@ enum class DocumentStatus {
     REMOVED
 };
 
-class Info {
+struct Info {
     int rating;
     DocumentStatus status;
 };
@@ -68,16 +68,24 @@ public:
 
     void AddDocument(int document_id, const std::string& document, const DocumentStatus& ds, const std::vector<int>& ratings) {
         const std::vector<std::string> words = SplitIntoWordsNoStop(document);
+        
         const double inv_word_count = 1.0 / words.size();
         for (const std::string& word : words) {
             word_to_document_freqs_[word][document_id] += inv_word_count;
         }
-        document_ratings_.emplace(document_id, ComputeAverageRating(ratings));
+        int averageRating = ComputeAverageRating(ratings);
+        document_ratings_.emplace(document_id, averageRating);
+        
+        const Info& i = { averageRating, ds };
+        document_info_.emplace(document_id, i);
     }
 
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, const DocumentStatus ds) const {
+    std::vector<Document> FindTopDocuments(const std::string& raw_query, const DocumentStatus& ds) const {
         const Query query = ParseQuery(raw_query);
-        auto matched_documents = FindAllDocuments(query);
+        auto all_documents = FindAllDocuments(query);
+        std::vector<Document> matched_documents;
+
+
 
         std::sort(std::execution::par, matched_documents.begin(), matched_documents.end(),
             [](const Document& lhs, const Document& rhs) {
@@ -93,7 +101,8 @@ private:
     std::set<std::string> stop_words_;
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
     std::map<int, int> document_ratings_;
-    Info doc_info_;
+    std::map<int, Info> document_info_;
+
     bool IsStopWord(const std::string& word) const {
         return stop_words_.count(word) > 0;
     }
