@@ -30,11 +30,6 @@ enum class DocumentStatus {
     REMOVED
 };
 
-struct Info {
-    int rating;
-    DocumentStatus status;
-};
-
 std::vector<std::string> SplitIntoWords(const std::string& text) {
     std::vector<std::string> words;
     std::string word;
@@ -56,9 +51,15 @@ struct Document {
     int id;
     double relevance;
     int rating;
+    DocumentStatus status;
 };
 
 class SearchServer {
+    std::set<std::string> stop_words_;
+    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    std::map<int, int> document_ratings_;
+    std::map<int, DocumentStatus> document_status_;
+
 public:
     void SetStopWords(const std::string& text) {
         for (const std::string& word : SplitIntoWords(text)) {
@@ -73,35 +74,35 @@ public:
         for (const std::string& word : words) {
             word_to_document_freqs_[word][document_id] += inv_word_count;
         }
-        int averageRating = ComputeAverageRating(ratings);
-        document_ratings_.emplace(document_id, averageRating);
-        
-        const Info& i = { averageRating, ds };
-        document_info_.emplace(document_id, i);
+        document_ratings_.emplace(document_id, ComputeAverageRating(ratings));
+        document_status_.emplace(document_id, ds);
     }
 
     std::vector<Document> FindTopDocuments(const std::string& raw_query, const DocumentStatus& ds) const {
         const Query query = ParseQuery(raw_query);
-        auto all_documents = FindAllDocuments(query);
-        std::vector<Document> matched_documents;
+        
+        std::vector<Document> all_documents = FindAllDocuments(query);
 
+        std::vector<Document> matched_documents(4);
+        
+        std::map<int, DocumentStatus> status = document_status_;
 
-
+        std::copy_if(all_documents.begin(), all_documents.end(), matched_documents.begin(), [ds, status](const Document& d) {
+            return status.at(d.id) == ds;
+            });
+            
         std::sort(std::execution::par, matched_documents.begin(), matched_documents.end(),
             [](const Document& lhs, const Document& rhs) {
                 return lhs.relevance > rhs.relevance;
             });
+
         if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
             matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
         }
         return matched_documents;
     }
 
-private:
-    std::set<std::string> stop_words_;
-    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
-    std::map<int, int> document_ratings_;
-    std::map<int, Info> document_info_;
+private:    
 
     bool IsStopWord(const std::string& word) const {
         return stop_words_.count(word) > 0;
@@ -197,11 +198,12 @@ private:
             matched_documents.push_back({
                 document_id,
                 relevance,
-                document_ratings_.at(document_id)
+                document_ratings_.at(document_id),
                 });
         }
         return matched_documents;
     }
+    
 };
 
 /*
