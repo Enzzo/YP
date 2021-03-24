@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 #include <tuple>
+#include <execution>
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
@@ -72,9 +73,9 @@ public:
                 ComputeAverageRating(ratings),
                 status
             });
-    }
+    };
 
-    const int GetDocumentCount()const {
+    int GetDocumentCount()const {
         return documents_.size();
     };
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status = DocumentStatus::ACTUAL) const {
@@ -91,12 +92,32 @@ public:
         return matched_documents;
     }
 
-    auto MatchDocument(const std::string& request, const int id) {
-
+    //raw_query - слова запроса.
+    //если слов в документе нет, то нужно вернуть пустой вектор слов
+    //возвращает плюс-слова
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, const int id) {
+        const Query query = ParseQuery(raw_query);
+        const DocumentStatus ds = documents_.at(id).status;
         std::vector<std::string> s;
-        s.push_back(request);
 
-        return std::tuple(s, DocumentStatus::ACTUAL);
+        for (const std::string& p_word : query.plus_words) {
+            if (!word_to_document_freqs_.count(p_word))
+                continue;
+
+            if (word_to_document_freqs_.at(p_word).count(id))
+                s.push_back(p_word);
+            
+        }
+
+        for (const std::string& m_word : query.minus_words) {
+            if (word_to_document_freqs_.count(m_word) > 0)
+                if (word_to_document_freqs_.at(m_word).count(id) > 0)
+                    return std::tuple(s, ds);
+        }
+        
+        
+
+        return std::tuple(s, ds);
     }
 
 private:
@@ -237,7 +258,7 @@ int main() {
 
     const int document_count = search_server.GetDocumentCount();
     for (int document_id = 0; document_id < document_count; ++document_id) {
-        const auto [words, status] = search_server.MatchDocument("пушистый кот", document_id);
+        const auto [words, status] = search_server.MatchDocument("-пушистый кот", document_id);
         PrintMatchDocumentResult(document_id, words, status);
     }
 }
