@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include <numeric>
 
 enum class Status {
     ACTUAL,
@@ -15,8 +16,8 @@ struct Document {
     double relevance;
     int rating;
 
-    std::tuple<Status, int, double> MakeKey() const {
-        return std::tuple(status, rating, relevance);
+    const std::tuple<short, int, double> MakeKey() const {
+        return std::tuple(static_cast<short>(status), -rating, -relevance);
     };
 };
 
