@@ -31,13 +31,12 @@ public:
 	// Обновить статусы по данному количеству задач конкретного разработчика,
 	// подробности см. ниже
 	std::tuple<TasksInfo, TasksInfo> PerformPersonTasks(const std::string& person, int task_count) {
-		
-		
+				
 		TasksInfo untouched;
 		TasksInfo updated;
 
 		if (person_task_status.count(person) == 0)
-			return std::tie(updated, untouched);
+			return std::tuple(updated, untouched);
 		
 		TasksInfo& current = person_task_status.at(person);
 		untouched = current;
@@ -71,7 +70,7 @@ public:
 			}
 		}
 		
-		return tie(updated, untouched);
+		return std::tuple(updated, untouched);
 	}
 
 private:
@@ -83,10 +82,13 @@ private:
 // не меняя при этом исходный словарь
 
 void PrintTasksInfo(TasksInfo tasks_info) {
-	std::cout << tasks_info[TaskStatus::NEW] << " new tasks" <<
-		", " << tasks_info[TaskStatus::IN_PROGRESS] << " tasks in progress" <<
-		", " << tasks_info[TaskStatus::TESTING] << " tasks are being tested" <<
-		", " << tasks_info[TaskStatus::DONE] << " tasks are done" << std::endl;
+
+	TasksInfo t = tasks_info;
+
+	std::cout << t[TaskStatus::NEW] << " new tasks" <<
+		", " << t[TaskStatus::IN_PROGRESS] << " tasks in progress" <<
+		", " << t[TaskStatus::TESTING] << " tasks are being tested" <<
+		", " << t[TaskStatus::DONE] << " tasks are done" << std::endl;
 }
 
 int main() {
@@ -95,6 +97,7 @@ int main() {
 	for (int i = 0; i < 3; ++i) {
 		tasks.AddNewTask("Ivan");
 	}
+
 
 	std::cout << "Ilia's tasks: ";
 	PrintTasksInfo(tasks.GetPersonTasksInfo("Ilia"));
