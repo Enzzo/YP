@@ -47,6 +47,24 @@ public:
 		TasksInfo& current = person_task_status.at(person);
 		untouched = current;
 
+		for (int status = static_cast<int>(TaskStatus::NEW); status < (static_cast<int>(TaskStatus::DONE)-1); ++status) {
+			TaskStatus now = static_cast<TaskStatus>(status);
+			TaskStatus next = static_cast<TaskStatus>(status + 1);
+
+			if (current.at(now)) {
+				current.at(now)--;
+				untouched.at(now)--;
+
+				if (current.at(next)) {
+					current.at(next)++;
+				}
+				else {
+					current.insert({ next,1 });
+				}
+				task_count--;
+			}
+		}
+		/*
 		while (task_count--) {
 			if (current.at(TaskStatus::NEW) > 0) {
 				current[TaskStatus::NEW]--;
@@ -75,7 +93,7 @@ public:
 				continue;
 			}
 		}
-		
+		*/
 		return std::tuple(updated, untouched);
 	}
 };
