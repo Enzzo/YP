@@ -17,6 +17,7 @@ enum class TaskStatus {
 using TasksInfo = std::map<TaskStatus, int>;
 
 class TeamTasks {
+	std::map<std::string, TasksInfo> person_task_status;
 public:
 	// ѕолучить статистику по статусам задач конкретного разработчика
 	const TasksInfo& GetPersonTasksInfo(const std::string& person) const {
@@ -25,7 +26,12 @@ public:
 	
 	// ƒобавить новую задачу (в статусе NEW) дл€ конкретного разработчитка
 	void AddNewTask(const std::string& person) {
-		person_task_status[person][TaskStatus::NEW]++;
+		if(person_task_status.count(person) == 0){
+			//map<int, map<int, int>> i = {1, {1, 1}}
+			person_task_status.insert({ person, {{TaskStatus::NEW, 1}, {TaskStatus::IN_PROGRESS, 0}, {TaskStatus::TESTING, 0},{TaskStatus::DONE, 0} } });
+		}
+		else
+			person_task_status.at(person).at(TaskStatus::NEW)++;
 	}
 
 	// ќбновить статусы по данному количеству задач конкретного разработчика,
@@ -41,7 +47,7 @@ public:
 		TasksInfo& current = person_task_status.at(person);
 		untouched = current;
 
-		while (--task_count >= 0) {
+		while (task_count--) {
 			if (current.at(TaskStatus::NEW) > 0) {
 				current[TaskStatus::NEW]--;
 				current[TaskStatus::IN_PROGRESS]++;
@@ -72,9 +78,6 @@ public:
 		
 		return std::tuple(updated, untouched);
 	}
-
-private:
-	std::map<std::string, std::map<TaskStatus, int>> person_task_status;
 };
 
 // ѕринимаем словарь по значению, чтобы иметь возможность
