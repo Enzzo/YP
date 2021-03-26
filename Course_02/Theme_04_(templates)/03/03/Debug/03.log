@@ -1,0 +1,55 @@
+﻿  main.cpp
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\utility(33,1): error C2664: "bool FindMaxFreqAnimal::<lambda_d0ce0ecfd1c02f85087d6d8acd70a14f>::operator ()(std::pair<T,int> &,std::pair<T,int> &) const": невозможно преобразовать аргумент 1 из "const _Ty" в "std::pair<T,int> &"
+          with
+          [
+              T=std::pair<std::string,int>
+          ]
+          and
+          [
+              _Ty=std::_Tree_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<const std::pair<std::string,int>,int>>>>
+          ]
+          and
+          [
+              T=std::pair<std::string,int>
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\utility(33): message : см. объявление "operator __surrogate_func"
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\utility(32): message : выполняется компиляция ссылки на экземпляр шаблон функции "const _Ty &std::max<std::_Tree_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<const T,int>>>>,FindMaxFreqAnimal::<lambda_d0ce0ecfd1c02f85087d6d8acd70a14f>>(const _Ty &,const _Ty &,_Pr) noexcept(<expr>)"
+          with
+          [
+              _Ty=std::_Tree_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<const std::pair<std::string,int>,int>>>>,
+              T=std::pair<std::string,int>,
+              _Pr=FindMaxFreqAnimal::<lambda_d0ce0ecfd1c02f85087d6d8acd70a14f>
+          ]
+D:\GitHub\yp\Course_02\Theme_04_(templates)\03\03\main.cpp(69): message : выполняется компиляция ссылки на экземпляр шаблон функции "T FindMaxFreqAnimal<std::pair<std::string,int>>(const std::vector<std::pair<std::string,int>,std::allocator<std::pair<std::string,int>>> &)"
+          with
+          [
+              T=std::pair<std::string,int>
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\utility(33,5): error C2056: недопустимое выражение
+D:\GitHub\yp\Course_02\Theme_04_(templates)\03\03\main.cpp(33,10): warning C4834: отмена возвращаемого значения функции с атрибутом "nodiscard"
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\utility(33,1): error C2664: "bool FindMaxFreqAnimal::<lambda_2139c384bbaad7657385a0625a9a3424>::operator ()(std::pair<T,int> &,std::pair<T,int> &) const": невозможно преобразовать аргумент 1 из "const _Ty" в "std::pair<T,int> &"
+          with
+          [
+              T=Animal
+          ]
+          and
+          [
+              _Ty=std::_Tree_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<const Animal,int>>>>
+          ]
+          and
+          [
+              T=Animal
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\utility(33): message : см. объявление "operator __surrogate_func"
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\utility(32): message : выполняется компиляция ссылки на экземпляр шаблон функции "const _Ty &std::max<std::_Tree_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<const T,int>>>>,FindMaxFreqAnimal::<lambda_2139c384bbaad7657385a0625a9a3424>>(const _Ty &,const _Ty &,_Pr) noexcept(<expr>)"
+          with
+          [
+              _Ty=std::_Tree_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<const Animal,int>>>>,
+              T=Animal,
+              _Pr=FindMaxFreqAnimal::<lambda_2139c384bbaad7657385a0625a9a3424>
+          ]
+D:\GitHub\yp\Course_02\Theme_04_(templates)\03\03\main.cpp(72): message : выполняется компиляция ссылки на экземпляр шаблон функции "T FindMaxFreqAnimal<Animal>(const std::vector<Animal,std::allocator<Animal>> &)"
+          with
+          [
+              T=Animal
+          ]
