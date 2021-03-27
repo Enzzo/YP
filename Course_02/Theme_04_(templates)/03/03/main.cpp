@@ -34,14 +34,28 @@ T FindMaxFreqAnimal(const std::vector<T>& animals) {
     
     int count = 0;
     for (const auto& [animal, freq] : map_animals) {
-        if (freq < count)continue;
-
-        if(animal.second < res.second || res.second == 0){
+        if (freq > count){
             res = animal;
             count = freq;
         }
     }
     return res;
+}
+
+pair<string, int> FindMaxFreqAnimal(const vector<pair<string, int>>& animals) {
+    // верните животного с максимальной частотой
+    int max_frequency = 0;
+    auto animal_freq = ComputeTermFreqs(animals);//
+    pair<string, int> our_animal;
+   
+    for (auto& [animal, frequency] : animal_freq) {
+        
+        if (frequency > max_frequency) {
+            max_frequency = animal.second;
+            our_animal = animal;
+        }
+    }
+    return our_animal;
 }
 
 int main() {
