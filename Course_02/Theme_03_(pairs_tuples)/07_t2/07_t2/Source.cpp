@@ -17,6 +17,7 @@ enum class TaskStatus {
 // ќбъ€вл€ем тип-синоним дл€ map<TaskStatus, int>,
 // позвол€ющего хранить количество задач каждого статуса
 using TasksInfo = map<TaskStatus, int>;
+
 void del_zero(TasksInfo& tasks_with_zero) {
     vector<TaskStatus> task_to_del;
     for (auto& tasks : tasks_with_zero) {
