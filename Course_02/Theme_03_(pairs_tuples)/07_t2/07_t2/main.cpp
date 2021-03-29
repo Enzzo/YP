@@ -27,7 +27,7 @@ public:
 
 	// Добавить новую задачу (в статусе NEW) для конкретного разработчитка
 	void AddNewTask(const std::string& person) {
-		team[person][TaskStatus::NEW];
+		team[person][TaskStatus::NEW]++;
 	}
 
 	// Обновить статусы по данному количеству задач конкретного разработчика,
@@ -37,6 +37,7 @@ public:
 
 		//Если разработчика с именем person нет, 
 		//метод PerformPersonTasks должен вернуть кортеж из двух пустых TasksInfo.
+		if(!team.count(person))
 		return std::tie(upd, untch);
 
 		//1 РАССМОТРЕТЬ ВСЕ НЕВЫПОЛНЕННЫЕ ЗАДАЧИ РАЗРАБОТЧИКА
@@ -58,10 +59,11 @@ public:
 			const TaskStatus crnt = static_cast<TaskStatus>(s);
 			const TaskStatus next = static_cast<TaskStatus>(s + 1);
 
-			while (--task_count > 0) {
+			while (task_count > 0) {
 				if (untch[crnt] > 0) {
 					untch[crnt]--;
 					upd[next]++;
+					task_count--;
 				}
 				else {
 					break;
@@ -70,11 +72,27 @@ public:
 			team.at(person)[crnt] = untch[crnt] + upd[crnt];
 		}
 		team.at(person)[TaskStatus::DONE] = upd[TaskStatus::DONE];
+
+		//Почистим списки от пустых задач:
+		WipeZero(team.at(person));
+		WipeZero(upd);
+		WipeZero(untch);
+
+		if (untch.count(TaskStatus::DONE))
+			untch.erase(TaskStatus::DONE);
+
+		return std::tie(upd, untch);
 	}
 private:
 	void WipeZero(TasksInfo& tasks) {
-		for (auto& [status, count] : tasks) {
-			if (!count)tasks.erase(status);
+		std::vector<TaskStatus> empty_task;
+		for (const auto& [status, count] : tasks) {
+			if (count == 0)empty_task.push_back(status);
+		}
+
+		if(empty_task.size()){
+			for (const TaskStatus& status : empty_task)
+				tasks.erase(status);
 		}
 	}
 };
@@ -89,30 +107,39 @@ void PrintTasksInfo(TasksInfo tasks_info) {
 		", "<< tasks_info[TaskStatus::DONE] << " tasks are done" << std::endl;
 }
 
+void ShowTaskInfo(const TasksInfo& ti, const std::string& name) {
+	std::cout << name << std::endl;
+	for (const auto& [status, count] : ti) {
+		std::cout << " [ " << static_cast<int>(status) << " ] " << count << std::endl;
+	}
+}
+
 int main() {
 	TeamTasks tasks;
 	tasks.AddNewTask("Ilia");
 	for (int i = 0; i < 3; ++i) {
 		tasks.AddNewTask("Ivan");
 	}
-	std::cout << "Ilia's tasks: ";
-	PrintTasksInfo(tasks.GetPersonTasksInfo("Ilia"));
+	//std::cout << "Ilia's tasks: ";
+	//PrintTasksInfo(tasks.GetPersonTasksInfo("Ilia"));
 	std::cout << "Ivan's tasks: ";
 	PrintTasksInfo(tasks.GetPersonTasksInfo("Ivan"));
 
 	TasksInfo updated_tasks, untouched_tasks;
 
 	tie(updated_tasks, untouched_tasks) = tasks.PerformPersonTasks("Ivan", 2);
-	std::cout << "Updated Ivan's tasks: ";
+	std::cout << std::endl << "Updated Ivan's tasks: ";
 	PrintTasksInfo(updated_tasks);
 	std::cout << "Untouched Ivan's tasks: ";
 	PrintTasksInfo(untouched_tasks);
-
+	ShowTaskInfo(updated_tasks, "updated");
+	ShowTaskInfo(untouched_tasks, "untouched");
 	tie(updated_tasks, untouched_tasks) = tasks.PerformPersonTasks("Ivan", 2);
-	std::cout << "Updated Ivan's tasks: ";
+	std::cout << std::endl << "Updated Ivan's tasks: ";
 	PrintTasksInfo(updated_tasks);
 	std::cout << "Untouched Ivan's tasks: ";
 	PrintTasksInfo(untouched_tasks);
-
+	ShowTaskInfo(updated_tasks, "updated");
+	ShowTaskInfo(untouched_tasks, "untouched");
 	return 0;
 }
