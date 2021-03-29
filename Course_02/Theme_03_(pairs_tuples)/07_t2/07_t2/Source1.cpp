@@ -3,7 +3,7 @@
 #include <tuple>
 #include <vector>
 #include <iostream>
- 
+
 // ѕеречислимый тип дл€ статуса задачи
 enum class TaskStatus {
     NEW,          // нова€
@@ -11,11 +11,11 @@ enum class TaskStatus {
     TESTING,      // на тестировании
     DONE          // завершена
 };
- 
+
 // ќбъ€вл€ем тип-синоним дл€ map<TaskStatus, int>,
 // позвол€ющего хранить количество задач каждого статуса
 using TasksInfo = std::map<TaskStatus, int>;
- 
+
 class TeamTasks {
 public:
     std::map<std::string, TasksInfo> developers;
@@ -27,32 +27,30 @@ public:
     void AddNewTask(const std::string& person) {
         ++developers[person][TaskStatus::NEW];
     }
-    TaskStatus UpdateStatus(const TaskStatus &status) const {
+    TaskStatus UpdateStatus(const TaskStatus& status) const {
         TaskStatus upd = TaskStatus::NEW;
         switch (status) {
-            case TaskStatus::NEW:
-                upd = TaskStatus::IN_PROGRESS;
-                break;
-            case TaskStatus::IN_PROGRESS:
-                upd = TaskStatus::TESTING;
-                break;
-            case TaskStatus::TESTING:
-                upd = TaskStatus::DONE;
-                break;
-            case TaskStatus::DONE:
-                upd = TaskStatus::NEW;
-                break;
+        case TaskStatus::NEW:
+            upd = TaskStatus::IN_PROGRESS;
+            break;
+        case TaskStatus::IN_PROGRESS:
+            upd = TaskStatus::TESTING;
+            break;
+        case TaskStatus::TESTING:
+            upd = TaskStatus::DONE;
+            break;
+        case TaskStatus::DONE:
+            upd = TaskStatus::NEW;
+            break;
         }
         return upd;
     }
-    void CheckForZeroes(TasksInfo &tasks) {
-        TasksInfo tmp;
-        for (const auto &[status, num] : tasks) {
-            if (num > 0) {
-                tmp[status] = num;
+    void CheckForZeroes(TasksInfo& tasks) {
+        for (const auto& [status, num] : tasks) {
+            if (num == 0) {
+                tasks.erase(status);
             }
         }
-        tasks = tmp;
     }
     // ќбновить статусы по данному количеству задач конкретного разработчика,
     // подробности см. ниже
@@ -64,11 +62,12 @@ public:
         }
         CheckForZeroes(developers.at(person));
         int not_done_tasks = 0;
-        for (const auto &[status, num] : developers.at(person)) {
+        for (const auto& [status, num] : developers.at(person)) {
             not_done_tasks = status != TaskStatus::DONE ? not_done_tasks + num : not_done_tasks;
         }
         task_count = task_count > not_done_tasks ? not_done_tasks : task_count;
-        for (const auto &[status, num] : developers.at(person)) {
+        int done_tasks = 0;
+        for (const auto& [status, num] : developers.at(person)) {
             if (task_count == 0) {
                 break;
             }
@@ -79,17 +78,21 @@ public:
                 if (num - update > 0) {
                     untouched_tasks[status] = num - update;
                 }
-            } else {
+            }
+            else {
                 if (num > 0) {
-                    untouched_tasks[status] = num;
+                    done_tasks = num;
                 }
             }
         }
         developers.erase(person);
-        for (const auto &[status, num] : untouched_tasks) {
+        for (const auto& [status, num] : untouched_tasks) {
             developers[person][status] = num;
         }
-        for (const auto &[status, num] : updated_tasks) {
+        if (done_tasks > 0) {
+            developers[person][TaskStatus::DONE] = done_tasks;
+        }
+        for (const auto& [status, num] : updated_tasks) {
             developers[person][status] += num;
         }
         return make_tuple(updated_tasks, untouched_tasks);
