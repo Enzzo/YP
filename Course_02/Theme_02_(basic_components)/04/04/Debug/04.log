@@ -1,3 +1,0 @@
-﻿  main.cpp
-D:\github\yp\Course_02\Theme_02_(basic_components)\04\04\main.cpp(12,7): error C4308: отрицательная целая константа преобразована в тип без знака
-D:\github\yp\Course_02\Theme_02_(basic_components)\04\04\main.cpp(13,7): warning C4307: "*": переполнение целой константы со знаком
