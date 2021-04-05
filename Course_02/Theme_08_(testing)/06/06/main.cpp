@@ -40,6 +40,16 @@ struct BusesForStopResponse {
 
 std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
     // Реализуйте эту функцию
+
+    if (r.buses.size() == 0) {
+        os << "No stop";
+    }
+    else {
+        os << "Stop " << r.stop << ":";
+        for (const std::string bus : r.buses) {
+            os << " " << bus;
+        }
+    }
     return os;
 }
 
@@ -90,6 +100,10 @@ public:
 
     BusesForStopResponse GetBusesForStop(const std::string& stop) const {
         // Реализуйте этот метод
+        if (buses_for_stops.count(stop) == 0) {
+            std::vector<std::string>empty;
+            return { stop,empty };
+        }
         return { stop, buses_for_stops.at(stop) };
     }
 
@@ -112,6 +126,7 @@ void TestAllBuses() {
     left << bm.GetAllBuses();
     right << "No buses";
     assert(left.str() == right.str());
+
     left.str("");
     right.str("");
 
@@ -120,29 +135,67 @@ void TestAllBuses() {
     left << bm.GetAllBuses();
     right << "Bus 777: one two three" << std::endl;
     assert(left.str() == right.str());
+
     left.str("");
     right.str("");
 
     bm.AddBus("333", { "four"});
+
     left << bm.GetAllBuses();
-    right << "Bus 333: four" << std::endl << "Bus 777: one two three" << std::endl ;
-    
-    std::cout << left.str() << std::endl;
-    std::cout << right.str();
+    right << "Bus 333: four" << std::endl << "Bus 777: one two three" << std::endl;
     assert(left.str() == right.str());
+
     left.str("");
     right.str("");
 
     std::cout << "TestAllBuses OK\n";
 }
 
+void TestBusesForStops() {
+    BusManager bm;
+    std::ostringstream left;
+    std::ostringstream right;
+    left << bm.GetBusesForStop("STOP");
+    right << "No stop";
+
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+
+    bm.AddBus("777", { "first","second", "third" });
+    bm.AddBus("888", { "fourth", "second", "six" });
+    //несуществующая остановка
+    left << bm.GetBusesForStop("none");
+    right << "No stop";
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+    
+    //существующая остановка для одного автобуса
+    left << bm.GetBusesForStop("first");
+    right << "Stop first: 777";
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+
+    //существующая остановка для двух автобусов
+    left << bm.GetBusesForStop("second");
+    right << "Stop second: 777 888";
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+
+    std::cout << "TestBusesForStops OK\n";
+}
+
 void Testing() {
     TestAllBuses();
+    TestBusesForStops();
 }
 // Не меняя тела функции main, реализуйте функции и классы выше
 int main() {
     Testing();
-    /*
+    
     int query_count;
     Query q;
 
@@ -166,6 +219,6 @@ int main() {
             break;
         }
     }
-    */
+    
     return 0;
 }
