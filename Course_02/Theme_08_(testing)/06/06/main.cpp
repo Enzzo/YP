@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 enum class QueryType {
     NewBus,
@@ -113,11 +114,24 @@ class BusManager {
 public:
     void AddBus(const std::string& bus, const std::vector<std::string>& stops) {
         // Реализуйте этот метод DONE
-        stops_for_bus[bus] = stops;
+        //Если автобуса не существует, то создаём его, поместив в список
+        if (stops_for_bus.count(bus) == 0) {
+            stops_for_bus.emplace(bus, stops);
+        }
+            
+        std::vector<std::string>& _bus = stops_for_bus.at(bus);
 
-        for (const std::string& stop : stops) {     
-            if(buses_for_stop.count(stop) == 0)
-                buses_for_stop[stop].push_back(bus);
+        for (const std::string& stop : stops) {
+            if (std::count(_bus.begin(), _bus.end(), stop) == 0) {
+                _bus.push_back(stop);
+            }
+            if (buses_for_stop.count(stop) == 0) {
+                buses_for_stop.emplace(stop, _bus.at(stop));
+            }
+            std::vector<std::string>& _stop = buses_for_stop.at(stop);
+            if (std::count(_stop.begin(), _stop.end(), bus) == 0)
+                _stop.push_back(bus);
+            
         }
     }
 
@@ -160,17 +174,25 @@ void TestAllBuses() {
     right.str("");
 
     Query q;
-    input.str("NEW_BUS 777 3 one two three");
+    input.str("NEW_BUS 777 4 one two three ten");
     input >> q;
     bm.AddBus(q.bus, q.stops);
 
     left << bm.GetAllBuses();
-    right << "Bus 777: one two three" << std::endl;
+    right << "Bus 777: one two three ten" << std::endl;
     assert(left.str() == right.str());
 
     left.str("");
     right.str("");
 
+    input.clear();
+    input.str("NEW_BUS 777 3 one two three");
+    input >> q;
+    bm.AddBus(q.bus, q.stops);
+    left << bm.GetAllBuses();
+    right << "Bus 777: one two three ten" << std::endl;
+    assert(left.str() == right.str());
+    
     input.clear();
     input.str("NEW_BUS 333 1 four");
     input >> q;
