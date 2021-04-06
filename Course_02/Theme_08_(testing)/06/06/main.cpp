@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 enum class QueryType {
     NewBus,
@@ -28,7 +29,7 @@ std::istream& operator>>(std::istream& is, Query& q) {
     if (command == "NEW_BUS") q.type = QueryType::NewBus;
     else if (command == "BUSES_FOR_STOP") q.type = QueryType::BusesForStop;
     else if (command == "STOPS_FOR_BUS") q.type = QueryType::StopsForBus;
-    else q.type = QueryType::AllBuses;
+    else if (command == "ALL_BUSES") q.type = QueryType::AllBuses;
 
     switch (q.type) {
     case QueryType::NewBus: {
@@ -44,6 +45,7 @@ std::istream& operator>>(std::istream& is, Query& q) {
     }
     case QueryType::BusesForStop: is >> q.stop; break;
     case QueryType::StopsForBus: is >> q.bus; break;
+    case QueryType::AllBuses:break;
     }
     return is;
 }
@@ -61,9 +63,11 @@ std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
         os << "No stop";
     }
     else {
-        os << "Stop " << r.stop << ":";
+        bool first = true;
         for (const std::string bus : r.buses) {
-            os << " " << bus;
+            if (!first) os << " ";
+            else first = false;
+            os << bus;
         }
     }
     return os;
@@ -71,18 +75,41 @@ std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
 
 struct StopsForBusResponse {
     // Õ‡ÔÓÎÌËÚÂ ÔÓÎˇÏË ˝ÚÛ ÒÚÛÍÚÛÛ
+<<<<<<< HEAD
     std::vector<std::string> buses;
     std::vector<std::string> stops;
+=======
+    const std::string& bus;
+    const std::map<std::string, std::vector<std::string>>& stops_for_buses;
+>>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
 };
 
 std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
     // –Â‡ÎËÁÛÈÚÂ ˝ÚÛ ÙÛÌÍˆË˛
-
-    if (r.stops.size() == 0) {
+    
+    if (r.stops_for_buses.count(r.bus) == 0) {
         os << "No bus";
     }
     else {
-
+        //ŒÒÚ‡ÌÓ‚ÍË Á‡Ô‡¯Ë‚‡ÂÏÓ„Ó ‡‚ÚÓ·ÛÒ‡
+        const std::vector<std::string>& stops_for_bus = r.stops_for_buses.at(r.bus);
+        bool first = true;
+        for (const std::string& stop : stops_for_bus) {
+            int count = 0;
+            if (!first) os << std::endl;
+            else first = false;
+            os << "Stop " << stop << ":";
+            for (const auto& [bus, stops] : r.stops_for_buses) {
+                if (bus == r.bus)continue;
+                if (std::count(stops.begin(), stops.end(), stop) > 0) {
+                    count++;
+                    os << " " << bus;
+                }
+            }
+            if (count == 0) {
+                os << " no interchange";
+            }
+        }
     }
     return os;
 }
@@ -96,12 +123,14 @@ std::ostream& operator<<(std::ostream& os, const AllBusesResponse& r) {
     // –Â‡ÎËÁÛÈÚÂ ˝ÚÛ ÙÛÌÍˆË˛
     if (r.buses.size() == 0) os << "No buses";
     else {
+        bool first = true;
         for (auto& [bus, stops] : r.buses) {
+            if (!first) os << std::endl;
+            else first = false;
             os << "Bus " << bus<<":";
             for (const std::string& stop : stops) {               
                 os << " " << stop;
             }
-            os << std::endl;
         }        
     }
     return os;
@@ -158,12 +187,16 @@ public:
         */
         // –Â‡ÎËÁÛÈÚÂ ˝ÚÓÚ ÏÂÚÓ‰
 
+<<<<<<< HEAD
 
 
         if (stops_for_bus.count(bus) == 0) {
             return { std::vector<std::string>(), std::vector<std::string>()};
         }
         return { bus, stops_for_bus.at(bus) };
+=======
+        return { bus, stops_for_bus };
+>>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
     }
 
     AllBusesResponse GetAllBuses() const {
@@ -171,41 +204,55 @@ public:
         return{ stops_for_bus };
     }
 };
+std::ostringstream Foo(BusManager&, Query&, const std::string&);
 
 void TestAllBuses() {
     BusManager bm;
-    std::ostringstream left;
-    std::ostringstream right;
+    Query q;
+    std::string left;
+    std::string right;
     std::istringstream input;
     
+    left = Foo(bm, q, "ALL_BUSES").str();
+    right = "No buses";
+    assert(left == right);
+    /*
+    //œ”—“Œ…  À¿——
+    input.str("ALL_BUSES");
+    input >> q;
     left << bm.GetAllBuses();
     right << "No buses";
     assert(left.str() == right.str());
-
     left.str("");
     right.str("");
-
-    Query q;
-    input.str("NEW_BUS 777 4 one two three ten");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-
-    left << bm.GetAllBuses();
-    right << "Bus 777: one two three ten" << std::endl;
-    assert(left.str() == right.str());
-
-    left.str("");
-    right.str("");
-
     input.clear();
-    input.str("NEW_BUS 777 3 one two three");
+    //-œ”—“Œ…  À¿——
+
+    //Œƒ»Õ ¿¬“Œ¡”— — Œ—“¿ÕŒ¬ ¿Ã»
+    input.str("NEW_BUS b1 4 s1 s2 s3 s4");
     input >> q;
     bm.AddBus(q.bus, q.stops);
     left << bm.GetAllBuses();
-    right << "Bus 777: one two three ten" << std::endl;
+    right << "Bus b1: s1 s2 s3 s4" << std::endl;
     assert(left.str() == right.str());
-    
+    left.str("");
+    right.str("");
     input.clear();
+    //-Œƒ»Õ ¿¬“Œ¡”— — Œ—“¿ÕŒ¬ ¿Ã»
+
+    //¬“Œ–Œ… ÕŒ¬€… ¿¬“Œ¡”— — Œ—“¿ÕŒ¬ ¿Ã»
+    input.str("NEW_BUS b2 3 s1 s2 s3");
+    input >> q;
+    bm.AddBus(q.bus, q.stops);
+    left << bm.GetAllBuses();
+    right << "Bus b1: s1 s2 s3 s4\nBus b2: s1 s2 s3" << std::endl;
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+    input.clear();
+    //¬“Œ–Œ… ÕŒ¬€… ¿¬“Œ¡”— — Œ—“¿ÕŒ¬ ¿Ã»
+
+
     input.str("NEW_BUS 333 1 four");
     input >> q;
     bm.AddBus(q.bus, q.stops);
@@ -218,7 +265,7 @@ void TestAllBuses() {
 
     left.str("");
     right.str("");
-
+    */
     std::cout << "TestAllBuses OK\n";
 }
 
@@ -283,6 +330,7 @@ void TestStopsForBus() {
     std::ostringstream left;
     std::ostringstream right;
     std::istringstream input;
+<<<<<<< HEAD
 
     //œ”—“Œ…  À¿——
     input.str("STOPS_FOR_BUS no_bus");
@@ -294,6 +342,19 @@ void TestStopsForBus() {
     right.str("");
     input.clear();
 
+=======
+
+    //œ”—“Œ…  À¿——
+    input.str("STOPS_FOR_BUS no_bus");
+    input >> q;
+    left << bm.GetStopsForBus(q.bus);
+    right.str("No bus");
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+    input.clear();
+
+>>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
     //Õ≈ œ”—“Œ…  À¿——
     
     input.str("NEW_BUS bus1 3 stop1 stop2 stop3");
@@ -325,14 +386,24 @@ void TestStopsForBus() {
     input.str("STOPS_FOR_BUS bus1");
     input >> q;
     left << bm.GetStopsForBus(q.bus);
+<<<<<<< HEAD
     right.str("No bus");
+=======
+    
+    //‚˚‚ÂÒÚË ‚ÒÂ ÓÒÚ‡ÌÓ‚ÍË ‡‚ÚÓ·ÛÒ‡ bus1
+    right.str("Stop stop1: bus3\nStop stop2: bus2 bus3\nStop stop3: no interchange\n");
+>>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
     assert(left.str() == right.str());
     left.str("");
     right.str("");
     input.clear();
         //»Ã≈≈“—ﬂ ” Õ≈— ŒÀ‹ »’ ¿¬“Œ¡”—Œ¬
     std::cout << "TestsStopForBus OK\n";
+<<<<<<< HEAD
 };
+=======
+}
+>>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
 
 void Testing() {
     TestAllBuses();
@@ -341,16 +412,18 @@ void Testing() {
 }
 // ÕÂ ÏÂÌˇˇ ÚÂÎ‡ ÙÛÌÍˆËË main, Â‡ÎËÁÛÈÚÂ ÙÛÌÍˆËË Ë ÍÎ‡ÒÒ˚ ‚˚¯Â
 int main() {
-    Testing();
+    //Testing();
     
     int query_count;
     Query q;
 
-    std::cin >> query_count;
+    std::ifstream ist("input.txt");
+    std::istream& is = std::cin;
+    is >> query_count;
 
     BusManager bm;
     for (int i = 0; i < query_count; ++i) {
-        std::cin >> q;
+        is >> q;
         switch (q.type) {
         case QueryType::NewBus:
             bm.AddBus(q.bus, q.stops);
@@ -367,4 +440,25 @@ int main() {
         }
     }    
     return 0;
+}
+
+std::ostringstream Foo(BusManager& bm, Query& q, const std::string& line) {
+    std::istringstream command(line);
+    std::ostringstream out;
+    command >> q;
+    switch (q.type) {
+    case QueryType::NewBus:
+        bm.AddBus(q.bus, q.stops);
+        break;
+    case QueryType::BusesForStop:
+        out << bm.GetBusesForStop(q.stop);
+        break;
+    case QueryType::StopsForBus:
+        out << bm.GetStopsForBus(q.bus);
+        break;
+    case QueryType::AllBuses:
+        out << bm.GetAllBuses();
+        break;
+    }
+    return out;
 }
