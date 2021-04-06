@@ -71,7 +71,7 @@ std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
 
 struct StopsForBusResponse {
     // Наполните полями эту структуру
-    std::string bus;
+    std::vector<std::string> buses;
     std::vector<std::string> stops;
 };
 
@@ -114,26 +114,29 @@ class BusManager {
 public:
     void AddBus(const std::string& bus, const std::vector<std::string>& stops) {
         // Реализуйте этот метод DONE
+
         //Если автобуса не существует, то создаём его, поместив в список
         if (stops_for_bus.count(bus) == 0) {
             stops_for_bus.emplace(bus, stops);
         }
-            
+
         std::vector<std::string>& _bus = stops_for_bus.at(bus);
 
         for (const std::string& stop : stops) {
             if (std::count(_bus.begin(), _bus.end(), stop) == 0) {
                 _bus.push_back(stop);
             }
+            //Если в списке остановок не существует остановки stop, то помещаем её в список и присваиваем номер автобуса
             if (buses_for_stop.count(stop) == 0) {
-                buses_for_stop.emplace(stop, _bus.at(stop));
+                buses_for_stop.emplace(stop, std::vector<std::string>({ bus }));
             }
+            //Если к остановке не привязан автобус, то привязываем его к этой остановке
             std::vector<std::string>& _stop = buses_for_stop.at(stop);
             if (std::count(_stop.begin(), _stop.end(), bus) == 0)
                 _stop.push_back(bus);
-            
+
         }
-    }
+    };
 
     BusesForStopResponse GetBusesForStop(const std::string& stop) const {
         // Реализуйте этот метод
@@ -145,11 +148,20 @@ public:
     }
 
     StopsForBusResponse GetStopsForBus(const std::string& bus) const {
+        /*
+        На запрос STOPS_FOR_BUS bus выведите описания остановок маршрута bus в отдельных строках в том порядке, 
+        в котором они были заданы в соответствующей команде NEW_BUS.Описание каждой остановки stop должно иметь вид 
+        Stop stop : bus1 bus2 ..., где bus1 bus2 ... — список автобусов, проезжающих через остановку stop.
+        Список должен быть в том порядке, в каком автобусы создавались командами NEW_BUS, за исключением исходного маршрута bus.
+        Если через остановку stop не проезжает ни один автобус кроме bus, вместо списка автобусов для неё выведите "no interchange".
+        Если маршрут bus не существует, выведите No bus.
+        */
         // Реализуйте этот метод
 
+
+
         if (stops_for_bus.count(bus) == 0) {
-            std::vector<std::string> empty;
-            return { bus, empty};
+            return { std::vector<std::string>(), std::vector<std::string>()};
         }
         return { bus, stops_for_bus.at(bus) };
     }
@@ -198,8 +210,10 @@ void TestAllBuses() {
     input >> q;
     bm.AddBus(q.bus, q.stops);
 
+    left.str("");
+    right.str("");
     left << bm.GetAllBuses();
-    right << "Bus 333: four" << std::endl << "Bus 777: one two three" << std::endl;
+    right << "Bus 333: four" << std::endl << "Bus 777: one two three ten" << std::endl;
     assert(left.str() == right.str());
 
     left.str("");
@@ -221,32 +235,41 @@ void TestBusesForStop() {
     right.str("");
 
     Query q;
-    input.str("NEW_BUS 777 3 first second third");
+    input.str("NEW_BUS bus1 3 stop1 stop2 stop3");
     input >> q;
     bm.AddBus(q.bus, q.stops);
-    input.str("NEW_BUS 888 3 fourth second six");
+    input.clear();
+
+    input.str("NEW_BUS bus2 3 stop4 stop2 stop5");
+    input >> q;
     bm.AddBus(q.bus, q.stops);
+    input.clear();
 
     //несуществующая остановка
-    input.clear();
-    input.str("BUSES_FOR_STOP none");
+    input.str("BUSES_FOR_STOP no_stop");
+    input >> q;
     left << bm.GetBusesForStop(q.stop);
     right << "No stop";
     assert(left.str() == right.str());
     left.str("");
     right.str("");
-    
-    //существующая остановка для одного автобуса
-    left << bm.GetBusesForStop("first");
-    right << "Stop first: 777";
+    input.clear();
 
+    input.str("BUSES_FOR_STOP stop1");
+    input >> q;
+    //существующая остановка для одного автобуса
+    left << bm.GetBusesForStop(q.stop);
+    right << "Stop stop1: bus1";
     assert(left.str() == right.str());
     left.str("");
     right.str("");
+    input.clear();
 
     //существующая остановка для двух автобусов
-    left << bm.GetBusesForStop("second");
-    right << "Stop second: 777 888";
+    input.str("BUSES_FOR_STOP stop2");
+    input >> q;
+    left << bm.GetBusesForStop(q.stop);
+    right << "Stop stop2: bus1 bus2";
     assert(left.str() == right.str());
     left.str("");
     right.str("");
@@ -256,11 +279,59 @@ void TestBusesForStop() {
 
 void TestStopsForBus() {
     BusManager bm;
-
+    Query q;
     std::ostringstream left;
     std::ostringstream right;
+    std::istringstream input;
 
-    //bm.AddBus("777",{""})
+    //ПУСТОЙ КЛАСС
+    input.str("STOPS_FOR_BUS no_bus");
+    input >> q;
+    left << bm.GetStopsForBus(q.bus);
+    right.str("No bus");
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+    input.clear();
+
+    //НЕ ПУСТОЙ КЛАСС
+    
+    input.str("NEW_BUS bus1 3 stop1 stop2 stop3");
+    input >> q;
+    bm.AddBus(q.bus, q.stops);
+    input.clear();
+
+    input.str("NEW_BUS bus2 3 stop4 stop2 stop5");
+    input >> q;
+    bm.AddBus(q.bus, q.stops);
+    input.clear();
+    
+    input.str("NEW_BUS bus3 5 stop6 stop2 stop7 stop8 stop1");
+    input >> q;
+    bm.AddBus(q.bus, q.stops);
+    input.clear();
+
+        //НЕ ИМЕЕТСЯ СОВПАДЕНИЙ
+    input.str("STOPS_FOR_BUS no_bus");
+    input >> q;
+    left << bm.GetStopsForBus(q.bus);
+    right.str("No bus");
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+    input.clear();
+
+        //ИМЕЕТСЯ ОДНО СОВПАДЕНИЕ (ОДНА ОСТАНОВКА У ОДНОГО АВТОБУСА)
+    input.str("STOPS_FOR_BUS bus1");
+    input >> q;
+    left << bm.GetStopsForBus(q.bus);
+    right.str("No bus");
+    assert(left.str() == right.str());
+    left.str("");
+    right.str("");
+    input.clear();
+        //ИМЕЕТСЯ У НЕСКОЛЬКИХ АВТОБУСОВ
+    std::cout << "TestsStopForBus OK\n";
 };
 
 void Testing() {
