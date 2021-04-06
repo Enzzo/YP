@@ -20,12 +20,27 @@ struct Query {
 };
 
 std::istream& operator>>(std::istream& is, Query& q) {
-    // Реализуйте эту функцию DONE
-    int t;
-    is >> t;
-    q.type = static_cast<QueryType>(t);
+    // Реализуйте эту функцию
+    std::string command;
+    is >> command;
+    
+    if (command == "NEW_BUS") q.type = QueryType::NewBus;
+    else if (command == "BUSES_FOR_STOP") q.type = QueryType::BusesForStop;
+    else if (command == "STOPS_FOR_BUS") q.type = QueryType::StopsForBus;
+    else q.type = QueryType::AllBuses;
+
     switch (q.type) {
-    case QueryType::NewBus: is >> q.bus >> q.stop; break;
+    case QueryType::NewBus: {
+        int stop_count;
+        q.stops.clear();
+        is >> q.bus >> stop_count;
+        while (stop_count-- > 0) {
+            std::string stop;
+            is >> stop;
+            q.stops.push_back(stop);
+        }
+        break;
+    }
     case QueryType::BusesForStop: is >> q.stop; break;
     case QueryType::StopsForBus: is >> q.bus; break;
     }
@@ -61,6 +76,13 @@ struct StopsForBusResponse {
 
 std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
     // Реализуйте эту функцию
+
+    if (r.stops.size() == 0) {
+        os << "No bus";
+    }
+    else {
+
+    }
     return os;
 }
 
@@ -85,36 +107,42 @@ std::ostream& operator<<(std::ostream& os, const AllBusesResponse& r) {
 }
 
 class BusManager {
-    std::map<std::string, std::vector<std::string>> buses_for_stops;
-    std::map<std::string, std::vector<std::string>> stops_for_buses;
+    std::map<std::string, std::vector<std::string>> buses_for_stop;
+    std::map<std::string, std::vector<std::string>> stops_for_bus;
 
 public:
     void AddBus(const std::string& bus, const std::vector<std::string>& stops) {
         // Реализуйте этот метод DONE
-        stops_for_buses[bus] = stops;
+        stops_for_bus[bus] = stops;
 
-        for (const std::string& stop : stops) {
-            buses_for_stops[stop].push_back(bus);
+        for (const std::string& stop : stops) {     
+            if(buses_for_stop.count(stop) == 0)
+                buses_for_stop[stop].push_back(bus);
         }
     }
 
     BusesForStopResponse GetBusesForStop(const std::string& stop) const {
         // Реализуйте этот метод
-        if (buses_for_stops.count(stop) == 0) {
+        if (buses_for_stop.count(stop) == 0) {
             std::vector<std::string>empty;
-            return { stop,empty };
+            return { stop, empty};
         }
-        return { stop, buses_for_stops.at(stop) };
+        return { stop, buses_for_stop.at(stop) };
     }
 
     StopsForBusResponse GetStopsForBus(const std::string& bus) const {
         // Реализуйте этот метод
-        return { bus, stops_for_buses.at(bus) };
+
+        if (stops_for_bus.count(bus) == 0) {
+            std::vector<std::string> empty;
+            return { bus, empty};
+        }
+        return { bus, stops_for_bus.at(bus) };
     }
 
     AllBusesResponse GetAllBuses() const {
         // Реализуйте этот метод
-        return{ stops_for_buses };
+        return{ stops_for_bus };
     }
 };
 
@@ -122,7 +150,8 @@ void TestAllBuses() {
     BusManager bm;
     std::ostringstream left;
     std::ostringstream right;
-
+    std::istringstream input;
+    
     left << bm.GetAllBuses();
     right << "No buses";
     assert(left.str() == right.str());
@@ -130,7 +159,10 @@ void TestAllBuses() {
     left.str("");
     right.str("");
 
-    bm.AddBus("777", { "one", "two", "three" });
+    Query q;
+    input.str("NEW_BUS 777 3 one two three");
+    input >> q;
+    bm.AddBus(q.bus, q.stops);
 
     left << bm.GetAllBuses();
     right << "Bus 777: one two three" << std::endl;
@@ -139,7 +171,10 @@ void TestAllBuses() {
     left.str("");
     right.str("");
 
-    bm.AddBus("333", { "four"});
+    input.clear();
+    input.str("NEW_BUS 333 1 four");
+    input >> q;
+    bm.AddBus(q.bus, q.stops);
 
     left << bm.GetAllBuses();
     right << "Bus 333: four" << std::endl << "Bus 777: one two three" << std::endl;
@@ -151,10 +186,11 @@ void TestAllBuses() {
     std::cout << "TestAllBuses OK\n";
 }
 
-void TestBusesForStops() {
+void TestBusesForStop() {
     BusManager bm;
     std::ostringstream left;
     std::ostringstream right;
+    std::istringstream input;
     left << bm.GetBusesForStop("STOP");
     right << "No stop";
 
@@ -162,10 +198,17 @@ void TestBusesForStops() {
     left.str("");
     right.str("");
 
-    bm.AddBus("777", { "first","second", "third" });
-    bm.AddBus("888", { "fourth", "second", "six" });
+    Query q;
+    input.str("NEW_BUS 777 3 first second third");
+    input >> q;
+    bm.AddBus(q.bus, q.stops);
+    input.str("NEW_BUS 888 3 fourth second six");
+    bm.AddBus(q.bus, q.stops);
+
     //несуществующая остановка
-    left << bm.GetBusesForStop("none");
+    input.clear();
+    input.str("BUSES_FOR_STOP none");
+    left << bm.GetBusesForStop(q.stop);
     right << "No stop";
     assert(left.str() == right.str());
     left.str("");
@@ -174,6 +217,7 @@ void TestBusesForStops() {
     //существующая остановка для одного автобуса
     left << bm.GetBusesForStop("first");
     right << "Stop first: 777";
+
     assert(left.str() == right.str());
     left.str("");
     right.str("");
@@ -188,9 +232,19 @@ void TestBusesForStops() {
     std::cout << "TestBusesForStops OK\n";
 }
 
+void TestStopsForBus() {
+    BusManager bm;
+
+    std::ostringstream left;
+    std::ostringstream right;
+
+    //bm.AddBus("777",{""})
+};
+
 void Testing() {
     TestAllBuses();
-    TestBusesForStops();
+    TestBusesForStop();
+    TestStopsForBus();
 }
 // Не меняя тела функции main, реализуйте функции и классы выше
 int main() {
@@ -218,7 +272,6 @@ int main() {
             std::cout << bm.GetAllBuses() << std::endl;
             break;
         }
-    }
-    
+    }    
     return 0;
 }
