@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 enum class QueryType {
     NewBus,
@@ -62,9 +63,11 @@ std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
         os << "No stop";
     }
     else {
-        os << "Stop " << r.stop << ":";
+        bool first = true;
         for (const std::string bus : r.buses) {
-            os << " " << bus;
+            if (!first) os << " ";
+            else first = false;
+            os << bus;
         }
     }
     return os;
@@ -72,8 +75,6 @@ std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
 
 struct StopsForBusResponse {
     // Наполните полями эту структуру
-    //std::vector<std::string> buses;
-    //std::vector<std::string> stops;
     const std::string& bus;
     const std::map<std::string, std::vector<std::string>>& stops_for_buses;
 };
@@ -87,8 +88,11 @@ std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
     else {
         //Остановки запрашиваемого автобуса
         const std::vector<std::string>& stops_for_bus = r.stops_for_buses.at(r.bus);
+        bool first = true;
         for (const std::string& stop : stops_for_bus) {
             int count = 0;
+            if (!first) os << std::endl;
+            else first = false;
             os << "Stop " << stop << ":";
             for (const auto& [bus, stops] : r.stops_for_buses) {
                 if (bus == r.bus)continue;
@@ -100,7 +104,6 @@ std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
             if (count == 0) {
                 os << " no interchange";
             }
-            os << std::endl;;
         }
     }
     return os;
@@ -115,12 +118,14 @@ std::ostream& operator<<(std::ostream& os, const AllBusesResponse& r) {
     // Реализуйте эту функцию
     if (r.buses.size() == 0) os << "No buses";
     else {
+        bool first = true;
         for (auto& [bus, stops] : r.buses) {
+            if (!first) os << std::endl;
+            else first = false;
             os << "Bus " << bus<<":";
             for (const std::string& stop : stops) {               
                 os << " " << stop;
             }
-            os << std::endl;
         }        
     }
     return os;
@@ -371,16 +376,18 @@ void Testing() {
 }
 // Не меняя тела функции main, реализуйте функции и классы выше
 int main() {
-    Testing();
+    //Testing();
     
     int query_count;
     Query q;
 
-    std::cin >> query_count;
+    std::ifstream ist("input.txt");
+    std::istream& is = std::cin;
+    is >> query_count;
 
     BusManager bm;
     for (int i = 0; i < query_count; ++i) {
-        std::cin >> q;
+        is >> q;
         switch (q.type) {
         case QueryType::NewBus:
             bm.AddBus(q.bus, q.stops);
