@@ -75,13 +75,8 @@ std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
 
 struct StopsForBusResponse {
     // Õ‡ÔÓÎÌËÚÂ ÔÓÎˇÏË ˝ÚÛ ÒÚÛÍÚÛÛ
-<<<<<<< HEAD
-    std::vector<std::string> buses;
-    std::vector<std::string> stops;
-=======
     const std::string& bus;
     const std::map<std::string, std::vector<std::string>>& stops_for_buses;
->>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
 };
 
 std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
@@ -187,16 +182,7 @@ public:
         */
         // –Â‡ÎËÁÛÈÚÂ ˝ÚÓÚ ÏÂÚÓ‰
 
-<<<<<<< HEAD
-
-
-        if (stops_for_bus.count(bus) == 0) {
-            return { std::vector<std::string>(), std::vector<std::string>()};
-        }
-        return { bus, stops_for_bus.at(bus) };
-=======
         return { bus, stops_for_bus };
->>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
     }
 
     AllBusesResponse GetAllBuses() const {
@@ -330,7 +316,6 @@ void TestStopsForBus() {
     std::ostringstream left;
     std::ostringstream right;
     std::istringstream input;
-<<<<<<< HEAD
 
     //œ”—“Œ…  À¿——
     input.str("STOPS_FOR_BUS no_bus");
@@ -342,19 +327,6 @@ void TestStopsForBus() {
     right.str("");
     input.clear();
 
-=======
-
-    //œ”—“Œ…  À¿——
-    input.str("STOPS_FOR_BUS no_bus");
-    input >> q;
-    left << bm.GetStopsForBus(q.bus);
-    right.str("No bus");
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-
->>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
     //Õ≈ œ”—“Œ…  À¿——
     
     input.str("NEW_BUS bus1 3 stop1 stop2 stop3");
@@ -386,24 +358,16 @@ void TestStopsForBus() {
     input.str("STOPS_FOR_BUS bus1");
     input >> q;
     left << bm.GetStopsForBus(q.bus);
-<<<<<<< HEAD
-    right.str("No bus");
-=======
     
     //‚˚‚ÂÒÚË ‚ÒÂ ÓÒÚ‡ÌÓ‚ÍË ‡‚ÚÓ·ÛÒ‡ bus1
     right.str("Stop stop1: bus3\nStop stop2: bus2 bus3\nStop stop3: no interchange\n");
->>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
     assert(left.str() == right.str());
     left.str("");
     right.str("");
     input.clear();
         //»Ã≈≈“—ﬂ ” Õ≈— ŒÀ‹ »’ ¿¬“Œ¡”—Œ¬
     std::cout << "TestsStopForBus OK\n";
-<<<<<<< HEAD
-};
-=======
 }
->>>>>>> 5c96b9ce77473b2cb36ddde9ecd207868162d412
 
 void Testing() {
     TestAllBuses();
