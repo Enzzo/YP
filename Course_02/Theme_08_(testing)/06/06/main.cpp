@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <fstream>
 
+using namespace std;
+
 enum class QueryType {
     NewBus,
     BusesForStop,
@@ -134,8 +136,11 @@ std::ostream& operator<<(std::ostream& os, const AllBusesResponse& r) {
 class BusManager {
     std::map<std::string, std::vector<std::string>> buses_for_stop;
     std::map<std::string, std::vector<std::string>> stops_for_bus;
+    
 
 public:
+    Query query;
+
     void AddBus(const std::string& bus, const std::vector<std::string>& stops) {
         // Реализуйте этот метод DONE
 
@@ -190,7 +195,24 @@ public:
         return{ stops_for_bus };
     }
 };
-std::ostringstream Foo(BusManager&, Query&, const std::string&);
+std::istream& operator>>(std::istream& is, BusManager& bm) {
+    is >> bm.query;
+    
+    if (bm.query.type == QueryType::NewBus) {
+        bm.AddBus(bm.query.bus, bm.query.stops);
+    }
+    return is;
+}
+
+std::ostream& operator<<(std::ostream& os, const BusManager& bm) {
+    switch (bm.query.type) {
+    case QueryType::NewBus: break;
+    case QueryType::BusesForStop: os << bm.GetBusesForStop(bm.query.stop) << std::endl; break;
+    case QueryType::StopsForBus: os << bm.GetStopsForBus(bm.query.bus) << std::endl; break;
+    case QueryType::AllBuses: os << bm.GetAllBuses() << std::endl; break;
+    }
+    return os;
+}
 
 void TestAllBuses() {
     BusManager bm;
@@ -199,7 +221,7 @@ void TestAllBuses() {
     std::string right;
     std::istringstream input;
     
-    left = Foo(bm, q, "ALL_BUSES").str();
+    //left = Foo(bm, q, "ALL_BUSES").str();
     right = "No buses";
     assert(left == right);
     /*
@@ -375,54 +397,29 @@ void Testing() {
     TestStopsForBus();
 }
 // Не меняя тела функции main, реализуйте функции и классы выше
+
 int main() {
-    //Testing();
-    
     int query_count;
     Query q;
 
-    std::ifstream ist("input.txt");
-    std::istream& is = std::cin;
-    is >> query_count;
+    cin >> query_count;
 
     BusManager bm;
     for (int i = 0; i < query_count; ++i) {
-        is >> q;
+        cin >> q;
         switch (q.type) {
         case QueryType::NewBus:
             bm.AddBus(q.bus, q.stops);
             break;
         case QueryType::BusesForStop:
-            std::cout << bm.GetBusesForStop(q.stop) << std::endl;
+            cout << bm.GetBusesForStop(q.stop) << endl;
             break;
         case QueryType::StopsForBus:
-            std::cout << bm.GetStopsForBus(q.bus) << std::endl;
+            cout << bm.GetStopsForBus(q.bus) << endl;
             break;
         case QueryType::AllBuses:
-            std::cout << bm.GetAllBuses() << std::endl;
+            cout << bm.GetAllBuses() << endl;
             break;
         }
-    }    
-    return 0;
-}
-
-std::ostringstream Foo(BusManager& bm, Query& q, const std::string& line) {
-    std::istringstream command(line);
-    std::ostringstream out;
-    command >> q;
-    switch (q.type) {
-    case QueryType::NewBus:
-        bm.AddBus(q.bus, q.stops);
-        break;
-    case QueryType::BusesForStop:
-        out << bm.GetBusesForStop(q.stop);
-        break;
-    case QueryType::StopsForBus:
-        out << bm.GetStopsForBus(q.bus);
-        break;
-    case QueryType::AllBuses:
-        out << bm.GetAllBuses();
-        break;
     }
-    return out;
 }
