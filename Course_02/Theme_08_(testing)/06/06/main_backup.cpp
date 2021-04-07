@@ -27,7 +27,7 @@ std::istream& operator>>(std::istream& is, Query& q) {
     // Реализуйте эту функцию
     std::string command;
     is >> command;
-
+    
     if (command == "NEW_BUS") q.type = QueryType::NewBus;
     else if (command == "BUSES_FOR_STOP") q.type = QueryType::BusesForStop;
     else if (command == "STOPS_FOR_BUS") q.type = QueryType::StopsForBus;
@@ -61,12 +61,15 @@ struct BusesForStopResponse {
 std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
     // Реализуйте эту функцию
 
-    if (r.buses.empty()) {
+    if (r.buses.size() == 0) {
         os << "No stop";
     }
     else {
-        for (const std::string& bus : r.buses) {
-            os << bus<<" ";
+        bool first = true;
+        for (const std::string bus : r.buses) {
+            if (!first) os << " ";
+            else first = false;
+            os << bus;
         }
     }
     return os;
@@ -80,7 +83,7 @@ struct StopsForBusResponse {
 
 std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
     // Реализуйте эту функцию
-
+    
     if (r.stops_for_buses.count(r.bus) == 0) {
         os << "No bus";
     }
@@ -93,9 +96,6 @@ std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
             if (!first) os << std::endl;
             else first = false;
             os << "Stop " << stop << ":";
-            
-            //TODO: В ЭТОМ МЕСТЕ АВТОБУСЫ ДОЛЖНЫ ВЫВОДИТЬСЯ В ТОМ ПОРЯДКЕ, 
-            //В КОТОРОМ ВВОДИЛИСЬ ЧЕРЕЗ NEW_BUS!!!
             for (const auto& [bus, stops] : r.stops_for_buses) {
                 if (bus == r.bus)continue;
                 if (std::count(stops.begin(), stops.end(), stop) > 0) {
@@ -124,11 +124,11 @@ std::ostream& operator<<(std::ostream& os, const AllBusesResponse& r) {
         for (auto& [bus, stops] : r.buses) {
             if (!first) os << std::endl;
             else first = false;
-            os << "Bus " << bus << ":";
-            for (const std::string& stop : stops) {
+            os << "Bus " << bus<<":";
+            for (const std::string& stop : stops) {               
                 os << " " << stop;
             }
-        }
+        }        
     }
     return os;
 }
@@ -136,13 +136,19 @@ std::ostream& operator<<(std::ostream& os, const AllBusesResponse& r) {
 class BusManager {
     std::map<std::string, std::vector<std::string>> buses_for_stop;
     std::map<std::string, std::vector<std::string>> stops_for_bus;
+    
+
 public:
     Query query;
 
     void AddBus(const std::string& bus, const std::vector<std::string>& stops) {
         // Реализуйте этот метод DONE
 
-        stops_for_bus[bus] = stops;
+        //Если автобуса не существует, то создаём его, поместив в список
+        if (stops_for_bus.count(bus) == 0) {
+            stops_for_bus.emplace(bus, stops);
+        }
+
         std::vector<std::string>& _bus = stops_for_bus.at(bus);
 
         for (const std::string& stop : stops) {
@@ -165,12 +171,22 @@ public:
         // Реализуйте этот метод
         if (buses_for_stop.count(stop) == 0) {
             std::vector<std::string>empty;
-            return { stop, empty };
+            return { stop, empty};
         }
         return { stop, buses_for_stop.at(stop) };
     }
 
     StopsForBusResponse GetStopsForBus(const std::string& bus) const {
+        /*
+        На запрос STOPS_FOR_BUS bus выведите описания остановок маршрута bus в отдельных строках в том порядке, 
+        в котором они были заданы в соответствующей команде NEW_BUS.Описание каждой остановки stop должно иметь вид 
+        Stop stop : bus1 bus2 ..., где bus1 bus2 ... — список автобусов, проезжающих через остановку stop.
+        Список должен быть в том порядке, в каком автобусы создавались командами NEW_BUS, за исключением исходного маршрута bus.
+        Если через остановку stop не проезжает ни один автобус кроме bus, вместо списка автобусов для неё выведите "no interchange".
+        Если маршрут bus не существует, выведите No bus.
+        */
+        // Реализуйте этот метод
+
         return { bus, stops_for_bus };
     }
 
@@ -179,7 +195,6 @@ public:
         return{ stops_for_bus };
     }
 };
-<<<<<<< HEAD
 std::istream& operator>>(std::istream& is, BusManager& bm) {
     is >> bm.query;
     
@@ -198,7 +213,7 @@ std::ostream& operator<<(std::ostream& os, const BusManager& bm) {
     }
     return os;
 }
-/*
+
 void TestAllBuses() {
     BusManager bm;
     Query q;
@@ -209,7 +224,7 @@ void TestAllBuses() {
     //left = Foo(bm, q, "ALL_BUSES").str();
     right = "No buses";
     assert(left == right);
-    
+    /*
     //ПУСТОЙ КЛАСС
     input.str("ALL_BUSES");
     input >> q;
@@ -258,7 +273,7 @@ void TestAllBuses() {
 
     left.str("");
     right.str("");
-    
+    */
     std::cout << "TestAllBuses OK\n";
 }
 
@@ -381,41 +396,30 @@ void Testing() {
     TestBusesForStop();
     TestStopsForBus();
 }
-*/
 // Не меняя тела функции main, реализуйте функции и классы выше
 
-=======
->>>>>>> 819bfc6a56fef2070f410d4a1ef06fcec1a35dd7
 int main() {
     int query_count;
-    //Query q;
+    Query q;
 
-    std::ifstream ifs("input.txt");
-    std::istream& is = ifs;
-
-    is >> query_count;
+    cin >> query_count;
 
     BusManager bm;
     for (int i = 0; i < query_count; ++i) {
-<<<<<<< HEAD
-        std::cin >> bm;
-        std::cout << bm;
-=======
-        is >> q;
+        cin >> q;
         switch (q.type) {
         case QueryType::NewBus:
             bm.AddBus(q.bus, q.stops);
             break;
         case QueryType::BusesForStop:
-            cout << bm.GetBusesForStop(q.stop) << std::endl;
+            cout << bm.GetBusesForStop(q.stop) << endl;
             break;
         case QueryType::StopsForBus:
-            cout << bm.GetStopsForBus(q.bus) << std::endl;
+            cout << bm.GetStopsForBus(q.bus) << endl;
             break;
         case QueryType::AllBuses:
-            cout << bm.GetAllBuses() << std::endl;
+            cout << bm.GetAllBuses() << endl;
             break;
         }
->>>>>>> 819bfc6a56fef2070f410d4a1ef06fcec1a35dd7
     }
 }
