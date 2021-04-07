@@ -213,7 +213,7 @@ std::ostream& operator<<(std::ostream& os, const BusManager& bm) {
     }
     return os;
 }
-
+/*
 void TestAllBuses() {
     BusManager bm;
     Query q;
@@ -224,7 +224,7 @@ void TestAllBuses() {
     //left = Foo(bm, q, "ALL_BUSES").str();
     right = "No buses";
     assert(left == right);
-    /*
+    
     //ÏÓÑÒÎÉ ÊËÀÑÑ
     input.str("ALL_BUSES");
     input >> q;
@@ -273,7 +273,7 @@ void TestAllBuses() {
 
     left.str("");
     right.str("");
-    */
+    
     std::cout << "TestAllBuses OK\n";
 }
 
@@ -396,30 +396,18 @@ void Testing() {
     TestBusesForStop();
     TestStopsForBus();
 }
+*/
 // Íå ìåíÿÿ òåëà ôóíêöèè main, ðåàëèçóéòå ôóíêöèè è êëàññû âûøå
 
 int main() {
     int query_count;
-    Query q;
+    //Query q;
 
     cin >> query_count;
 
     BusManager bm;
     for (int i = 0; i < query_count; ++i) {
-        cin >> q;
-        switch (q.type) {
-        case QueryType::NewBus:
-            bm.AddBus(q.bus, q.stops);
-            break;
-        case QueryType::BusesForStop:
-            cout << bm.GetBusesForStop(q.stop) << endl;
-            break;
-        case QueryType::StopsForBus:
-            cout << bm.GetStopsForBus(q.bus) << endl;
-            break;
-        case QueryType::AllBuses:
-            cout << bm.GetAllBuses() << endl;
-            break;
-        }
+        std::cin >> bm;
+        std::cout << bm;
     }
 }
