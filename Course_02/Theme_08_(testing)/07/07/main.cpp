@@ -85,13 +85,17 @@ public:
                 status
             });
     }
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus ds = DocumentStatus::ACTUAL) const {
-        return FindTopDocuments(raw_query, [ds](const int doument_id, const DocumentStatus status, const int rating) {return status == ds; });
+    std::vector<Document> FindTopDocuments(const std::string& raw_query) const{
+        return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
     }
-    template<typename Filter>
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, const Filter& filter) const {
+
+    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
+        return FindTopDocuments(raw_query, [status](const int doument_id, const DocumentStatus ds, const int rating) {return status == ds; });
+    }
+    template<typename DocumentPredicate>
+    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
         const Query query = ParseQuery(raw_query);
-        auto matched_documents = FindAllDocuments(query, filter);
+        auto matched_documents = FindAllDocuments(query, document_predicate);
 
         std::sort(matched_documents.begin(), matched_documents.end(),
             [](const Document& lhs, const Document& rhs) {
