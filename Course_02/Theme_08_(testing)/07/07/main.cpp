@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -52,6 +53,8 @@ enum class DocumentStatus {
     BANNED,
     REMOVED,
 };
+
+/* ѕодставьте вашу реализацию класса SearchServer сюда */
 
 class SearchServer {
     struct DocumentData {
@@ -240,37 +243,49 @@ private:
     }
 };
 
-void PrintDocument(const Document& document) {
-    std::cout << "{ "
-        << "document_id = " << document.id << ", "
-        << "relevance = " << document.relevance << ", "
-        << "rating = " << document.rating
-        << " }" << std::endl;
+// -------- Ќачало модульных тестов поисковой системы ----------
+
+// “ест провер€ет, что поискова€ система исключает стоп-слова при добавлении документов
+void TestExcludeStopWordsFromAddedDocumentContent() {
+    const int doc_id = 42;
+    const string content = "cat in the city"s;
+    const vector<int> ratings = { 1, 2, 3 };
+    // —начала убеждаемс€, что поиск слова, не вход€щего в список стоп-слов,
+    // находит нужный документ
+    {
+        SearchServer server;
+        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
+        const auto found_docs = server.FindTopDocuments("in"s);
+        assert(found_docs.size() == 1);
+        const Document& doc0 = found_docs[0];
+        assert(doc0.id == doc_id);
+    }
+
+    // «атем убеждаемс€, что поиск этого же слова, вход€щего в список стоп-слов,
+    // возвращает пустой результат
+    {
+        SearchServer server;
+        server.SetStopWords("in the"s);
+        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
+        assert(server.FindTopDocuments("in"s).empty());
+    }
 }
 
+/*
+–азместите код остальных тестов здесь
+*/
+
+// ‘ункци€ TestSearchServer €вл€етс€ точкой входа дл€ запуска тестов
+void TestSearchServer() {
+    TestExcludeStopWordsFromAddedDocumentContent();
+    // Ќе забудьте вызывать остальные тесты здесь
+}
+
+// --------- ќкончание модульных тестов поисковой системы -----------
+
 int main() {
-    SearchServer search_server;
-    search_server.SetStopWords("и в на");
-
-    search_server.AddDocument(0, "белый кот и модный ошейник", DocumentStatus::ACTUAL, { 8, -3 });
-    search_server.AddDocument(1, "пушистый кот пушистый хвост", DocumentStatus::ACTUAL, { 7, 2, 7 });
-    search_server.AddDocument(2, "ухоженный пЄс выразительные глаза", DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-    search_server.AddDocument(3, "ухоженный скворец евгений", DocumentStatus::BANNED, { 9 });
-
-    std::cout << "ACTUAL by default:" << std::endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот")) {
-        PrintDocument(document);
-    }
-
-    std::cout << "BANNED:" << std::endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот", DocumentStatus::BANNED)) {
-        PrintDocument(document);
-    }
-
-    std::cout << "Even ids:" << std::endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот", [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; })) {
-        PrintDocument(document);
-    }
-
+    TestSearchServer();
+    // ≈сли вы видите эту строку, значит все тесты прошли успешно
+    cout << "Search server testing finished"s << endl;
     return 0;
 }

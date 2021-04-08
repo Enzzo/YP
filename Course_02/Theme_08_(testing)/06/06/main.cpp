@@ -66,7 +66,7 @@ std::ostream& operator<<(std::ostream& os, const BusesForStopResponse& r) {
     }
     else {
         for (const std::string& bus : r.buses) {
-            os << bus<<" ";
+            os << bus << " ";
         }
     }
     return os;
@@ -76,6 +76,7 @@ struct StopsForBusResponse {
     // Íàïîëíèòå ïîëÿìè ıòó ñòğóêòóğó
     const std::string& bus;
     const std::map<std::string, std::vector<std::string>>& stops_for_buses;
+    const std::vector<std::string> buses;
 };
 
 std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
@@ -85,24 +86,28 @@ std::ostream& operator<<(std::ostream& os, const StopsForBusResponse& r) {
         os << "No bus";
     }
     else {
-        //Îñòàíîâêè çàïğàøèâàåìîãî àâòîáóñà
+        
         const std::vector<std::string>& stops_for_bus = r.stops_for_buses.at(r.bus);
+        const std::vector<std::string>& all_buses = r.buses;
+
         bool first = true;
-        for (const std::string& stop : stops_for_bus) {
-            int count = 0;
+        for (const std::string& stop : stops_for_bus) {            
             if (!first) os << std::endl;
             else first = false;
             os << "Stop " << stop << ":";
-            
-            //TODO: Â İÒÎÌ ÌÅÑÒÅ ÀÂÒÎÁÓÑÛ ÄÎËÆÍÛ ÂÛÂÎÄÈÒÜÑß Â ÒÎÌ ÏÎĞßÄÊÅ, 
-            //Â ÊÎÒÎĞÎÌ ÂÂÎÄÈËÈÑÜ ×ÅĞÅÇ NEW_BUS!!!
-            for (const auto& [bus, stops] : r.stops_for_buses) {
+            int count = 0;
+
+            //TODO:             
+            for (const std::string& bus : all_buses){                
                 if (bus == r.bus)continue;
-                if (std::count(stops.begin(), stops.end(), stop) > 0) {
-                    count++;
-                    os << " " << bus;
-                }
+                for (const std::string& stops : r.stops_for_buses.at(bus)) {
+                    if(stop == stops) {
+                        count++;
+                        os << " " << bus;
+                    }                   
+                }             
             }
+            
             if (count == 0) {
                 os << " no interchange";
             }
@@ -136,11 +141,15 @@ std::ostream& operator<<(std::ostream& os, const AllBusesResponse& r) {
 class BusManager {
     std::map<std::string, std::vector<std::string>> buses_for_stop;
     std::map<std::string, std::vector<std::string>> stops_for_bus;
+    std::vector<std::string> all_buses;
 public:
     Query query;
 
     void AddBus(const std::string& bus, const std::vector<std::string>& stops) {
         // Ğåàëèçóéòå ıòîò ìåòîä DONE
+
+        if (std::count(all_buses.begin(), all_buses.end(), bus) == 0)
+            all_buses.push_back(bus);
 
         stops_for_bus[bus] = stops;
         std::vector<std::string>& _bus = stops_for_bus.at(bus);
@@ -171,7 +180,7 @@ public:
     }
 
     StopsForBusResponse GetStopsForBus(const std::string& bus) const {
-        return { bus, stops_for_bus };
+        return { bus, stops_for_bus, all_buses };
     }
 
     AllBusesResponse GetAllBuses() const {
@@ -179,216 +188,9 @@ public:
         return{ stops_for_bus };
     }
 };
-<<<<<<< HEAD
-std::istream& operator>>(std::istream& is, BusManager& bm) {
-    is >> bm.query;
-    
-    if (bm.query.type == QueryType::NewBus) {
-        bm.AddBus(bm.query.bus, bm.query.stops);
-    }
-    return is;
-}
-
-std::ostream& operator<<(std::ostream& os, const BusManager& bm) {
-    switch (bm.query.type) {
-    case QueryType::NewBus: break;
-    case QueryType::BusesForStop: os << bm.GetBusesForStop(bm.query.stop) << std::endl; break;
-    case QueryType::StopsForBus: os << bm.GetStopsForBus(bm.query.bus) << std::endl; break;
-    case QueryType::AllBuses: os << bm.GetAllBuses() << std::endl; break;
-    }
-    return os;
-}
-/*
-void TestAllBuses() {
-    BusManager bm;
-    Query q;
-    std::string left;
-    std::string right;
-    std::istringstream input;
-    
-    //left = Foo(bm, q, "ALL_BUSES").str();
-    right = "No buses";
-    assert(left == right);
-    
-    //ÏÓÑÒÎÉ ÊËÀÑÑ
-    input.str("ALL_BUSES");
-    input >> q;
-    left << bm.GetAllBuses();
-    right << "No buses";
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-    //-ÏÓÑÒÎÉ ÊËÀÑÑ
-
-    //ÎÄÈÍ ÀÂÒÎÁÓÑ Ñ ÎÑÒÀÍÎÂÊÀÌÈ
-    input.str("NEW_BUS b1 4 s1 s2 s3 s4");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-    left << bm.GetAllBuses();
-    right << "Bus b1: s1 s2 s3 s4" << std::endl;
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-    //-ÎÄÈÍ ÀÂÒÎÁÓÑ Ñ ÎÑÒÀÍÎÂÊÀÌÈ
-
-    //ÂÒÎĞÎÉ ÍÎÂÛÉ ÀÂÒÎÁÓÑ Ñ ÎÑÒÀÍÎÂÊÀÌÈ
-    input.str("NEW_BUS b2 3 s1 s2 s3");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-    left << bm.GetAllBuses();
-    right << "Bus b1: s1 s2 s3 s4\nBus b2: s1 s2 s3" << std::endl;
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-    //ÂÒÎĞÎÉ ÍÎÂÛÉ ÀÂÒÎÁÓÑ Ñ ÎÑÒÀÍÎÂÊÀÌÈ
-
-
-    input.str("NEW_BUS 333 1 four");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-
-    left.str("");
-    right.str("");
-    left << bm.GetAllBuses();
-    right << "Bus 333: four" << std::endl << "Bus 777: one two three ten" << std::endl;
-    assert(left.str() == right.str());
-
-    left.str("");
-    right.str("");
-    
-    std::cout << "TestAllBuses OK\n";
-}
-
-void TestBusesForStop() {
-    BusManager bm;
-    std::ostringstream left;
-    std::ostringstream right;
-    std::istringstream input;
-    left << bm.GetBusesForStop("STOP");
-    right << "No stop";
-
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-
-    Query q;
-    input.str("NEW_BUS bus1 3 stop1 stop2 stop3");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-    input.clear();
-
-    input.str("NEW_BUS bus2 3 stop4 stop2 stop5");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-    input.clear();
-
-    //íåñóùåñòâóşùàÿ îñòàíîâêà
-    input.str("BUSES_FOR_STOP no_stop");
-    input >> q;
-    left << bm.GetBusesForStop(q.stop);
-    right << "No stop";
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-
-    input.str("BUSES_FOR_STOP stop1");
-    input >> q;
-    //ñóùåñòâóşùàÿ îñòàíîâêà äëÿ îäíîãî àâòîáóñà
-    left << bm.GetBusesForStop(q.stop);
-    right << "Stop stop1: bus1";
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-
-    //ñóùåñòâóşùàÿ îñòàíîâêà äëÿ äâóõ àâòîáóñîâ
-    input.str("BUSES_FOR_STOP stop2");
-    input >> q;
-    left << bm.GetBusesForStop(q.stop);
-    right << "Stop stop2: bus1 bus2";
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-
-    std::cout << "TestBusesForStops OK\n";
-}
-
-void TestStopsForBus() {
-    BusManager bm;
-    Query q;
-    std::ostringstream left;
-    std::ostringstream right;
-    std::istringstream input;
-
-    //ÏÓÑÒÎÉ ÊËÀÑÑ
-    input.str("STOPS_FOR_BUS no_bus");
-    input >> q;
-    left << bm.GetStopsForBus(q.bus);
-    right.str("No bus");
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-
-    //ÍÅ ÏÓÑÒÎÉ ÊËÀÑÑ
-    
-    input.str("NEW_BUS bus1 3 stop1 stop2 stop3");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-    input.clear();
-
-    input.str("NEW_BUS bus2 3 stop4 stop2 stop5");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-    input.clear();
-    
-    input.str("NEW_BUS bus3 5 stop6 stop2 stop7 stop8 stop1");
-    input >> q;
-    bm.AddBus(q.bus, q.stops);
-    input.clear();
-
-        //ÍÅ ÈÌÅÅÒÑß ÑÎÂÏÀÄÅÍÈÉ
-    input.str("STOPS_FOR_BUS no_bus");
-    input >> q;
-    left << bm.GetStopsForBus(q.bus);
-    right.str("No bus");
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-
-        //ÈÌÅÅÒÑß ÎÄÍÎ ÑÎÂÏÀÄÅÍÈÅ (ÎÄÍÀ ÎÑÒÀÍÎÂÊÀ Ó ÎÄÍÎÃÎ ÀÂÒÎÁÓÑÀ)
-    input.str("STOPS_FOR_BUS bus1");
-    input >> q;
-    left << bm.GetStopsForBus(q.bus);
-    
-    //âûâåñòè âñå îñòàíîâêè àâòîáóñà bus1
-    right.str("Stop stop1: bus3\nStop stop2: bus2 bus3\nStop stop3: no interchange\n");
-    assert(left.str() == right.str());
-    left.str("");
-    right.str("");
-    input.clear();
-        //ÈÌÅÅÒÑß Ó ÍÅÑÊÎËÜÊÈÕ ÀÂÒÎÁÓÑÎÂ
-    std::cout << "TestsStopForBus OK\n";
-}
-
-void Testing() {
-    TestAllBuses();
-    TestBusesForStop();
-    TestStopsForBus();
-}
-*/
-// Íå ìåíÿÿ òåëà ôóíêöèè main, ğåàëèçóéòå ôóíêöèè è êëàññû âûøå
-
-=======
->>>>>>> 819bfc6a56fef2070f410d4a1ef06fcec1a35dd7
 int main() {
     int query_count;
-    //Query q;
+    Query q;
 
     std::ifstream ifs("input.txt");
     std::istream& is = ifs;
@@ -397,10 +199,7 @@ int main() {
 
     BusManager bm;
     for (int i = 0; i < query_count; ++i) {
-<<<<<<< HEAD
-        std::cin >> bm;
-        std::cout << bm;
-=======
+
         is >> q;
         switch (q.type) {
         case QueryType::NewBus:
@@ -416,6 +215,5 @@ int main() {
             cout << bm.GetAllBuses() << std::endl;
             break;
         }
->>>>>>> 819bfc6a56fef2070f410d4a1ef06fcec1a35dd7
     }
 }
