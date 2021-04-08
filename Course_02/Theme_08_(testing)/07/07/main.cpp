@@ -275,13 +275,46 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
     }
 }
 
-/*
-Разместите код остальных тестов здесь
-*/
+void AddingDocuments() {
+    {
+        //EMPTY SERVER
+    }
+    {
+
+    }
+}
 
 // Функция TestSearchServer является точкой входа для запуска тестов
 void TestSearchServer() {
+    //ADD DOCUMENT:
+        //ID
+        //CONTENT
+        //STATUS
+        //RATINGS
+
+    //SET STOP WORDS
+        //STOP WORDS
+
     TestExcludeStopWordsFromAddedDocumentContent();
+
+
+    //void SetStopWords(const std::string & text) 
+
+    //void AddDocument(int document_id, const std::string & document, DocumentStatus status, const std::vector<int> & ratings)
+
+    //std::vector<Document> FindTopDocuments(const std::string & raw_query)
+
+    //std::vector<Document> FindTopDocuments(const std::string & raw_query, DocumentStatus status)
+
+    //template<typename DocumentPredicate>
+    //std::vector<Document> FindTopDocuments(const std::string & raw_query, DocumentPredicate document_predicate) 
+
+    //int GetDocumentCount()
+
+    //std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string & raw_query, int document_id)
+    
+    
+    
     // Не забудьте вызывать остальные тесты здесь
 }
 
