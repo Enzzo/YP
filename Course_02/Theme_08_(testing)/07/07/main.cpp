@@ -90,7 +90,7 @@ public:
     }
 
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
-        return FindTopDocuments(raw_query, [status](const int doument_id, const DocumentStatus ds, const int rating) {return status == ds; });
+        return FindTopDocuments(raw_query, [status](const int document_id, const DocumentStatus ds, const int rating) { return status == ds; });
     }
     template<typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
@@ -219,9 +219,7 @@ private:
             }
             const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
             for (const auto [document_id, term_freq] : word_to_document_freqs_.at(word)) {
-                //if (documents_.at(document_id).status == status) {
                 document_to_relevance[document_id] += term_freq * inverse_document_freq;
-                //}
             }
         }
 
@@ -235,7 +233,7 @@ private:
         }
 
         std::vector<Document> matched_documents;
-        for (const auto [document_id, relevance] : document_to_relevance) {
+        for (const auto& [document_id, relevance] : document_to_relevance) {
             if (filter(document_id, documents_.at(document_id).status, documents_.at(document_id).rating))
                 matched_documents.push_back({
                     document_id,
@@ -276,27 +274,101 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
 }
 
 void AddingDocuments() {
+    const int doc_id1 = 0;
+    const int doc_id2 = 1;
+    const int doc_id3 = 2;
+    const int doc_id4 = 3;
+
+    const std::string content1 = "1word1 1word2 1word3 1word4";
+    const std::string content2 = "2word1 2word2 2word3 2word4";
+    const std::string content3 = "3word1 3word2 3word3 3word4 3word3 3word4";
+    const std::string content4 = "4word1 4word2 4word3 4word4";
+
+    const std::vector<int> ratings = { 1, 2, 3 };
+    //œ”—“€≈ ƒŒ ”Ã≈Õ“€
     {
-        //EMPTY SERVER
+        SearchServer server;
+        const std::vector<Document>& found_documents = server.FindTopDocuments("word1");
+        assert(found_documents.empty());
     }
+
+    //«¿ƒ¿Õ€ —“Œœ-—ÀŒ¬¿. ƒŒ ”Ã≈Õ“€ œ”—“€≈
     {
+        SearchServer server;
+        server.SetStopWords("stop1 stop2 stop3");
+        const std::vector<Document>& fd = server.FindTopDocuments("word2");
+        const std::vector<Document>& fds = server.FindTopDocuments("word2", DocumentStatus::BANNED);
+        const std::vector<Document>& fdsp = server.FindTopDocuments("word2", [](const int id, const DocumentStatus ds, int rating) {return rating > 1; });
+        assert(fd.empty());
+        assert(fds.empty());
+        assert(fdsp.empty());
+        assert(server.GetDocumentCount() == 0);
+    }
+
+    //«¿ƒ¿Õ€ —“Œœ-—ÀŒ¬¿. ƒŒ ”Ã≈Õ“€ «¿œŒÀÕ≈Õ€
+    {
+        SearchServer server;
+        server.SetStopWords("1word1 2word2 2word3");
+        server.AddDocument(doc_id1, content1, DocumentStatus::ACTUAL, { 1, 2, 3 });
+        server.AddDocument(doc_id2, content2, DocumentStatus::BANNED, { 4, 5, 6, 7, 8 });
+        server.AddDocument(doc_id3, content3, DocumentStatus::IRRELEVANT, { 1, 3, 4, 5, 6, 7, 8 });
+        server.AddDocument(doc_id4, content4, DocumentStatus::REMOVED, { 4, 5, 6, 7, 8, 20, 9 });
+        
+        //œŒ»—  Õ≈ —“Œœ-—ÀŒ¬¿:
+        {
+            const std::vector<Document>& fd = server.FindTopDocuments("1word2");
+            assert(fd[0].id == doc_id1);
+        }
+
+        //œŒœ»—  —“Œœ-—ÀŒ¬¿:
+        {
+            const std::vector<Document>& fd = server.FindTopDocuments("2word2");
+            assert(fd.empty());
+        }
+        
+        //œŒ»—  Ã»Õ”—-—ÀŒ¬¿:
+        {
+            const std::vector<Document>& fd1 = server.FindTopDocuments("1word2 -1word3");
+            assert(fd1.empty());
+            const std::vector<Document>& fd2 = server.FindTopDocuments("2word1 -1word3", DocumentStatus::BANNED);
+            assert(fd2[0].id == doc_id2);
+        }
+
+        //Ã¿“◊»Õ√ ƒŒ ”Ã≈Õ“Œ¬:
+        {
+            const auto& [w1, ds1] = server.MatchDocument("1word1 1word2 2word1 2word2", doc_id1);
+            const auto& [w2, ds2] = server.MatchDocument("1word1 1word2 2word1 2word2", doc_id2);
+            const auto& [w3, ds3] = server.MatchDocument("1word1 1word2 -2word1 2word2", doc_id1);
+            const auto& [w4, ds4] = server.MatchDocument("-1word2 -2word1 2word2", doc_id1);
+            assert(w1[0] == "1word2"); assert(ds1 == DocumentStatus::ACTUAL);
+            assert(w2[0] == "2word1"); assert(ds2 == DocumentStatus::BANNED);
+            assert(w3[0] == "1word2"); assert(ds3 == DocumentStatus::ACTUAL);
+            assert(w4.empty());
+        }      
+        
+    }
+
+    //œ–Œ¬≈– ¿ –≈À≈¬¿Õ“ÕŒ—“» (Œƒ»Õ¿ Œ¬€≈ —“¿“”—€):
+    {
+        SearchServer server;
+        server.SetStopWords("1word1 2word2 2word3");
+        server.AddDocument(doc_id1, content1, DocumentStatus::ACTUAL, { 1, 2, 3 });
+        server.AddDocument(doc_id2, content2, DocumentStatus::ACTUAL, { 4, 5, 6, 7, 8 });
+        server.AddDocument(doc_id3, content3, DocumentStatus::ACTUAL, { 1, 3, 4, 5, 6, 7, 8 });
+        server.AddDocument(doc_id4, content4, DocumentStatus::ACTUAL, { 4, 5, 6, 7, 8, 20, 9 });
+
+        const std::vector<Document>& fd = server.FindTopDocuments("1word2 -2word1 3word1 3word2 3word3 4word1");
+        assert(fd[1].relevance < fd[0].relevance); assert(fd[0].rating < fd[2].rating);
+        assert(fd[2].relevance < fd[1].relevance); assert(fd[1].rating < fd[0].rating);
+        assert(fd[0].relevance == 0.92419624074659368); assert(fd[0].rating == 4);
 
     }
 }
 
 // ‘ÛÌÍˆËˇ TestSearchServer ˇ‚ÎˇÂÚÒˇ ÚÓ˜ÍÓÈ ‚ıÓ‰‡ ‰Îˇ Á‡ÔÛÒÍ‡ ÚÂÒÚÓ‚
 void TestSearchServer() {
-    //ADD DOCUMENT:
-        //ID
-        //CONTENT
-        //STATUS
-        //RATINGS
-
-    //SET STOP WORDS
-        //STOP WORDS
-
     TestExcludeStopWordsFromAddedDocumentContent();
-
+    AddingDocuments();
 
     //void SetStopWords(const std::string & text) 
 
