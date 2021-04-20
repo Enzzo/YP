@@ -58,8 +58,6 @@ enum class DocumentStatus {
     REMOVED,
 };
 
-/* Подставьте вашу реализацию класса SearchServer сюда */
-
 class SearchServer {
     struct DocumentData {
         int rating;
