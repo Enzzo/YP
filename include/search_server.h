@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <optional>
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
@@ -89,7 +90,6 @@ public:
         }
     }
 
-    //TODO
     [[nodiscard]] bool AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings) {
         
         if (documents_.count(document_id) > 0 || document_id < 0) return false;
@@ -109,7 +109,7 @@ public:
         return true;
     }
 
-    [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, std::vector<Document>& result) const {
+    std::optional<std::vector<Document>> FindTopDocuments(const std::string& raw_query, std::vector<Document>& result) const {
         return FindTopDocuments(raw_query, DocumentStatus::ACTUAL, result);
     }
 
