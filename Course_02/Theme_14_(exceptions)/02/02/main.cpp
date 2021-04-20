@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include "search_server.h"
 
 using namespace std;
@@ -12,6 +11,7 @@ void PrintDocument(const Document& document) {
 }
 
 int main() {
+    setlocale(LC_ALL, "rus");
     SearchServer search_server("и в на"s);
 
     // Явно игнорируем результат метода AddDocument, чтобы избежать предупреждения
@@ -31,7 +31,7 @@ int main() {
     }
 
     std::vector<Document> documents;
-    if (search_server.FindTopDocuments("--пушистый", documents)) {
+    if (search_server.FindTopDocuments("\x12шистый", documents)) {
         for (const Document& document : documents) {
             PrintDocument(document);
         }

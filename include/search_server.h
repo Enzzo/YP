@@ -91,9 +91,14 @@ public:
 
     //TODO
     [[nodiscard]] bool AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings) {
+        
+        if (documents_.count(document_id) > 0 || document_id < 0) return false;
+        
         const std::vector<std::string> words = SplitIntoWordsNoStop(document);
         const double inv_word_count = 1.0 / words.size();
+        
         for (const std::string& word : words) {
+            if (!IsValidWord(word)) return false;
             word_to_document_freqs_[word][document_id] += inv_word_count;
         }
         documents_.emplace(document_id,
@@ -104,12 +109,10 @@ public:
         return true;
     }
 
-    //TODO
     [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, std::vector<Document>& result) const {
         return FindTopDocuments(raw_query, DocumentStatus::ACTUAL, result);
     }
 
-    //TODO
     [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, DocumentStatus status, std::vector<Document>& result) const {
         return FindTopDocuments(raw_query, [status](const int document_id, const DocumentStatus ds, const int rating) { return status == ds; }, result);
     }
@@ -117,7 +120,10 @@ public:
     //TODO +
     template<typename DocumentPredicate>
     [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate, std::vector<Document>& result) const {
-        const Query query = ParseQuery(raw_query);
+        
+        Query query;
+        if (!ParseQuery(raw_query, query)) return false;
+
         result = FindAllDocuments(query, document_predicate);
 
         std::sort(result.begin(), result.end(),
@@ -141,7 +147,7 @@ public:
         return documents_.size();
     }
 
-    //TODO +
+    //TODO
     int GetDocumentId(int index) const {
         if (documents_.count(index)) {
             return index;
@@ -149,9 +155,10 @@ public:
         return INVALID_DOCUMENT_ID;
     }
 
-    //TODO +
      [[nodiscard]] bool MatchDocument(const std::string& raw_query, int document_id, std::tuple<std::vector<std::string>, DocumentStatus>& result) const {
-        const Query query = ParseQuery(raw_query);
+        Query query;
+        if (!ParseQuery(raw_query, query))
+             return false;
         std::vector<std::string> matched_words;
         for (const std::string& word : query.plus_words) {
             if (word_to_document_freqs_.count(word) == 0) {
@@ -212,18 +219,21 @@ private:
         bool is_stop;
     };
 
-    QueryWord ParseQueryWord(std::string text) const {
+    [[nodiscard]]bool ParseQueryWord(std::string text, QueryWord& query_word) const {
         bool is_minus = false;
         // Word shouldn't be empty
         if (text[0] == '-') {
-            is_minus = true;
             text = text.substr(1);
+            is_minus = true;
         }
-        return {
+        if (text.empty()) return false;
+        if (text[0] == '-' || !IsValidWord(text)) return false;
+        query_word = {
             text,
             is_minus,
             IsStopWord(text)
         };
+        return true;
     }
 
     struct Query {
@@ -231,10 +241,15 @@ private:
         std::set<std::string> minus_words;
     };
 
-    Query ParseQuery(const std::string& text) const {
-        Query query;
+    [[nodiscard]] bool ParseQuery(const std::string& text, Query& query) const {
+
+        //TODO: Первое условие: Слово не должно содержать двух минусов.
+        //1 вариант: обрабатывать два минуса в разделителе слов
+        //2 вариант: обрабатывать два минуса в парсере слов
         for (const std::string& word : SplitIntoWords(text)) {
-            const QueryWord query_word = ParseQueryWord(word);
+            QueryWord query_word;
+            if (!ParseQueryWord(word, query_word))
+                return false;
             if (!query_word.is_stop) {
                 if (query_word.is_minus) {
                     query.minus_words.insert(query_word.data);
@@ -244,7 +259,7 @@ private:
                 }
             }
         }
-        return query;
+        return true;
     }
 
     // Existence required
