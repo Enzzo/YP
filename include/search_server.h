@@ -70,6 +70,8 @@ class SearchServer {
 
 public:
 
+    inline static constexpr int INVALID_DOCUMENT_ID = -1;
+
     SearchServer() = default;
 
     explicit SearchServer(const std::string& inp_stop_words):SearchServer(SplitIntoWords(inp_stop_words)) {}
@@ -87,7 +89,8 @@ public:
         }
     }
 
-    void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings) {
+    //TODO
+    [[nodiscard]] bool AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings) {
         const std::vector<std::string> words = SplitIntoWordsNoStop(document);
         const double inv_word_count = 1.0 / words.size();
         for (const std::string& word : words) {
@@ -100,16 +103,19 @@ public:
             });
     }
 
-    std::vector<Document> FindTopDocuments(const std::string& raw_query) const {
+    //TODO
+    [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, std::vector<Document>& result) const {
         return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
     }
 
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
+    //TODO
+    [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, DocumentStatus status, std::vector<Document>& result) const {
         return FindTopDocuments(raw_query, [status](const int document_id, const DocumentStatus ds, const int rating) { return status == ds; });
     }
 
+    //TODO
     template<typename DocumentPredicate>
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
+    [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate, std::vector<Document>& result) const {
         const Query query = ParseQuery(raw_query);
         auto matched_documents = FindAllDocuments(query, document_predicate);
 
@@ -133,7 +139,13 @@ public:
         return documents_.size();
     }
 
-    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const {
+    //TODO
+    int GetDocumentId(int index) const {
+
+    }
+
+    //TODO
+     [[nodiscard]] bool MatchDocument(const std::string& raw_query, int document_id, std::tuple<std::vector<std::string>, DocumentStatus>& result) const {
         const Query query = ParseQuery(raw_query);
         std::vector<std::string> matched_words;
         for (const std::string& word : query.plus_words) {
@@ -157,6 +169,13 @@ public:
     }
 
 private:
+
+    static bool IsValidWord(const std::string& word) {
+        //A valid word must not contain special characters
+        return std::none_of(word.begin(), word.end(), [](const char c) {
+            return c >= '\0' && c < ' ';
+            });
+    }
 
     bool IsStopWord(const std::string& word) const {
         return stop_words_.count(word) > 0;
