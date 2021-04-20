@@ -1,4 +1,3 @@
-
 #include <iomanip>
 
 template <typename Func>
