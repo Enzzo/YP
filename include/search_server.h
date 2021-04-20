@@ -101,25 +101,26 @@ public:
                 ComputeAverageRating(ratings),
                 status
             });
+        return true;
     }
 
     //TODO
     [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, std::vector<Document>& result) const {
-        return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
+        return FindTopDocuments(raw_query, DocumentStatus::ACTUAL, result);
     }
 
     //TODO
     [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, DocumentStatus status, std::vector<Document>& result) const {
-        return FindTopDocuments(raw_query, [status](const int document_id, const DocumentStatus ds, const int rating) { return status == ds; });
+        return FindTopDocuments(raw_query, [status](const int document_id, const DocumentStatus ds, const int rating) { return status == ds; }, result);
     }
 
-    //TODO
+    //TODO +
     template<typename DocumentPredicate>
     [[nodiscard]] bool FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate, std::vector<Document>& result) const {
         const Query query = ParseQuery(raw_query);
-        auto matched_documents = FindAllDocuments(query, document_predicate);
+        result = FindAllDocuments(query, document_predicate);
 
-        std::sort(matched_documents.begin(), matched_documents.end(),
+        std::sort(result.begin(), result.end(),
             [](const Document& lhs, const Document& rhs) {
                 if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
                     return lhs.rating > rhs.rating;
@@ -129,22 +130,26 @@ public:
                 }
             });
 
-        if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
-            matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
+        if (result.size() > MAX_RESULT_DOCUMENT_COUNT) {
+            result.resize(MAX_RESULT_DOCUMENT_COUNT);
         }
-        return matched_documents;
+        //return matched_documents;
+        return true;
     }
 
     int GetDocumentCount() const {
         return documents_.size();
     }
 
-    //TODO
+    //TODO +
     int GetDocumentId(int index) const {
-
+        if (documents_.count(index)) {
+            return index;
+        }
+        return INVALID_DOCUMENT_ID;
     }
 
-    //TODO
+    //TODO +
      [[nodiscard]] bool MatchDocument(const std::string& raw_query, int document_id, std::tuple<std::vector<std::string>, DocumentStatus>& result) const {
         const Query query = ParseQuery(raw_query);
         std::vector<std::string> matched_words;
@@ -165,7 +170,9 @@ public:
                 break;
             }
         }
-        return { matched_words, documents_.at(document_id).status };
+        result = { matched_words, documents_.at(document_id).status };
+        //return { matched_words, documents_.at(document_id).status };
+        return true;
     }
 
 private:

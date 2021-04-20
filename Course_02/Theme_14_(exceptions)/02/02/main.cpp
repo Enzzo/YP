@@ -1,7 +1,8 @@
 #include <iostream>
 
 #include "search_server.h"
-#include "test_framework.h"
+
+using namespace std;
 
 void PrintDocument(const Document& document) {
     std::cout << "{ "
@@ -11,7 +12,7 @@ void PrintDocument(const Document& document) {
 }
 
 int main() {
-    SearchServer search_server("и в на");
+    SearchServer search_server("и в на"s);
 
     // явно игнорируем результат метода AddDocument, чтобы избежать предупреждени€
     // о неиспользуемом результате его вызова
