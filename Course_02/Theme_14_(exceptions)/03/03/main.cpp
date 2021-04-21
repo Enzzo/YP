@@ -2,6 +2,7 @@
 
 #include "search_server.h"
 
+using namespace std;
 
 void PrintDocument(const Document& document) {
     std::cout << "{ "
@@ -11,7 +12,7 @@ void PrintDocument(const Document& document) {
 }
 
 int main() {
-    SearchServer search_server("и в на");
+    SearchServer search_server("и в на"s);
 
     // явно игнорируем результат метода AddDocument, чтобы избежать предупреждени€
     // о неиспользуемом результате его вызова
@@ -35,6 +36,6 @@ int main() {
         }
     }
     else {
-        std::cout << "ќшибка в поисковом запросе"s << std::endl;
+        std::cout << "ќшибка в поисковом запросе" << std::endl;
     }
 }
