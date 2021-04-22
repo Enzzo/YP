@@ -58,17 +58,6 @@ struct Document {
     int rating = 0;
 };
 
-template <typename StringContainer>
-std::set<std::string> MakeUniqueNonEmptyStrings(const StringContainer& strings) {
-    std::set<std::string> non_empty_strings;
-    for (const std::string& str : strings) {
-        if (!str.empty()) {
-            non_empty_strings.insert(str);
-        }
-    }
-    return non_empty_strings;
-}
-
 enum class DocumentStatus {
     ACTUAL,
     IRRELEVANT,
@@ -77,6 +66,31 @@ enum class DocumentStatus {
 };
 
 class SearchServer {
+    
+    struct DocumentData {
+        int rating;
+        DocumentStatus status;
+    };
+
+    struct QueryWord {
+        std::string data;
+        bool is_minus;
+        bool is_stop;
+    };
+
+    struct Query {
+        std::set<std::string> plus_words;
+        std::set<std::string> minus_words;
+    };
+
+    const std::set<std::string> stop_words_;
+    
+    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    
+    std::map<int, DocumentData> documents_;
+    
+    std::vector<int> document_ids_;
+
 public:
     // Defines an invalid document id
     // You can refer this constant as SearchServer::INVALID_DOCUMENT_ID
@@ -84,18 +98,10 @@ public:
 
     template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words)
-        : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
-        for (const std::string& word : stop_words_) {
-            if (!IsValidWord(word)) {
-                throw std::invalid_argument("invalid stop-words in constructor");
-            }
-        }
-    }
+        : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {}
 
     explicit SearchServer(const std::string& stop_words_text)
-        : SearchServer(SplitIntoWords(stop_words_text))  // Invoke delegating constructor from string container
-    {
-    }
+        : SearchServer(SplitIntoWords(stop_words_text)) {}
 
     void AddDocument(int document_id, const std::string& document, DocumentStatus status,
         const std::vector<int>& ratings) {
@@ -116,6 +122,18 @@ public:
         }
         documents_.emplace(document_id, DocumentData{ ComputeAverageRating(ratings), status });
         document_ids_.push_back(document_id);
+    }
+
+    int GetDocumentCount() const {
+        return documents_.size();
+    }
+
+    int GetDocumentId(int index)const {
+
+        if (GetDocumentCount() < index || index < 0) {
+            throw std::out_of_range("non-existend ID");
+        }
+        return document_ids_.at(index);
     }
 
     template <typename DocumentPredicate>
@@ -155,19 +173,7 @@ public:
 
     std::vector<Document> FindTopDocuments(const std::string& raw_query) const {
         return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
-    }
-
-    int GetDocumentCount() const {
-        return documents_.size();
-    }
-
-    int GetDocumentId(int index)const {
-        
-        if (GetDocumentCount() < index || index < 0) {
-            throw std::out_of_range("non-existend ID");
-        }
-        return document_ids_.at(index);
-    }
+    }    
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const {
 
@@ -198,24 +204,27 @@ public:
     }
 
 private:
-    struct DocumentData {
-        int rating;
-        DocumentStatus status;
-    };
-    const std::set<std::string> stop_words_;
-    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
-    std::map<int, DocumentData> documents_;
-    std::vector<int> document_ids_;
-
-    bool IsStopWord(const std::string& word) const {
-        return stop_words_.count(word) > 0;
-    }
 
     static bool IsValidWord(const std::string& word) {
         // A valid word must not contain special characters
         return none_of(word.begin(), word.end(), [](char c) {
             return c >= '\0' && c < ' ';
             });
+    }
+
+    static int ComputeAverageRating(const std::vector<int>& ratings) {
+        if (ratings.empty()) {
+            return 0;
+        }
+        int rating_sum = 0;
+        for (const int rating : ratings) {
+            rating_sum += rating;
+        }
+        return rating_sum / static_cast<int>(ratings.size());
+    }
+
+    bool IsStopWord(const std::string& word) const {
+        return stop_words_.count(word) > 0;
     }
 
     [[nodiscard]] bool SplitIntoWordsNoStop(const std::string& text, std::vector<std::string>& result) const {
@@ -233,23 +242,6 @@ private:
         return true;
     }
 
-    static int ComputeAverageRating(const std::vector<int>& ratings) {
-        if (ratings.empty()) {
-            return 0;
-        }
-        int rating_sum = 0;
-        for (const int rating : ratings) {
-            rating_sum += rating;
-        }
-        return rating_sum / static_cast<int>(ratings.size());
-    }
-
-    struct QueryWord {
-        std::string data;
-        bool is_minus;
-        bool is_stop;
-    };
-
     [[nodiscard]] bool ParseQueryWord(std::string text, QueryWord& result) const {
         // Empty result by initializing it with default constructed QueryWord
         result = {};
@@ -262,7 +254,7 @@ private:
             is_minus = true;
             text = text.substr(1);
         }
-        
+
         if (text.empty() || text[0] == '-' || !IsValidWord(text)) {
             return false;
         }
@@ -270,11 +262,6 @@ private:
         result = QueryWord{ text, is_minus, IsStopWord(text) };
         return true;
     }
-
-    struct Query {
-        std::set<std::string> plus_words;
-        std::set<std::string> minus_words;
-    };
 
     [[nodiscard]] bool ParseQuery(const std::string& text, Query& result) const {
         // Empty result by initializing it with default constructed Query
@@ -294,7 +281,7 @@ private:
             }
         }
         return true;
-    }
+    }              
 
     // Existence required
     double ComputeWordInverseDocumentFreq(const std::string& word) const {
@@ -331,5 +318,19 @@ private:
             matched_documents.push_back({ document_id, relevance, documents_.at(document_id).rating });
         }
         return matched_documents;
+    }
+
+    template <typename StringContainer>
+    std::set<std::string> MakeUniqueNonEmptyStrings(const StringContainer& strings) {
+        std::set<std::string> non_empty_strings;
+        for (const std::string& str : strings) {
+            if (!str.empty()) {
+                if (!IsValidWord(str)) {
+                    throw std::invalid_argument("invalid stop-words in constructor");
+                }
+                non_empty_strings.insert(str);
+            }
+        }
+        return non_empty_strings;
     }
 };
