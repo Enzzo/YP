@@ -83,7 +83,7 @@ class SearchServer {
         std::set<std::string> minus_words;
     };
 
-    const std::set<std::string> stop_words_;
+    std::set<std::string> stop_words_;
     
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
     
@@ -97,8 +97,10 @@ public:
     inline static constexpr int INVALID_DOCUMENT_ID = -1;
 
     template <typename StringContainer>
-    explicit SearchServer(const StringContainer& stop_words)
-        : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {}
+    explicit SearchServer(const StringContainer& stop_words){
+        CheckValidity(stop_words);
+        stop_words_ = MakeUniqueNonEmptyStrings(stop_words);
+    }
 
     explicit SearchServer(const std::string& stop_words_text)
         : SearchServer(SplitIntoWords(stop_words_text)) {}
@@ -321,13 +323,19 @@ private:
     }
 
     template <typename StringContainer>
+    void CheckValidity(const StringContainer& strings) {
+        for (const std::string& str : strings) {
+            if (!IsValidWord(str)) {
+                throw std::invalid_argument("invalid stop-words in constructor");
+            }
+        }
+    }
+
+    template <typename StringContainer>
     std::set<std::string> MakeUniqueNonEmptyStrings(const StringContainer& strings) {
         std::set<std::string> non_empty_strings;
         for (const std::string& str : strings) {
             if (!str.empty()) {
-                if (!IsValidWord(str)) {
-                    throw std::invalid_argument("invalid stop-words in constructor");
-                }
                 non_empty_strings.insert(str);
             }
         }
