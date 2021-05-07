@@ -5,23 +5,23 @@ std::set<int>::const_iterator FindNearestElement(const std::set<int>& numbers, i
     if (numbers.begin() == numbers.end()) return numbers.end();
 
     std::set<int>::const_iterator it = numbers.lower_bound(border);
-
-    if (*it > border || it == numbers.end()) {
-        it = numbers.begin();
-        while (*it < border) {
-            if (*next(it) > border || next(it) == numbers.end())
-                return it;
-            it++;
-        }
+    if (it == numbers.end()) {
+        return prev(numbers.end());
     }
+    
+    if (border < *it && prev(it) != numbers.end()) {
+        if((*it - border) >= (border - *prev(it)))
+            it = prev(it);
+    }
+    
     return it;
 }
 
 int main() {
     std::set<int> numbers = { 1, 4, 6 };
     std::cout << *FindNearestElement(numbers, 0) << " " << *FindNearestElement(numbers, 3) << " "
-        << *FindNearestElement(numbers, 5) << " " << *FindNearestElement(numbers, 6) << " ";
-        //<< *FindNearestElement(numbers, 100) << std::endl;
+        << *FindNearestElement(numbers, 5) << " " << *FindNearestElement(numbers, 6) << " "
+        << *FindNearestElement(numbers, 100) << std::endl;
 
     std::set<int> empty_set;
 
