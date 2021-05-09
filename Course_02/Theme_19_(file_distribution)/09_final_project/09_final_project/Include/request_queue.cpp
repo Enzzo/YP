@@ -1,15 +1,6 @@
 #include "request_queue.h"
 
-template <typename DocumentPredicate>
-std::vector<Document>RequestQueue::AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
-    if (requests_.size() >= sec_in_day_) {
-        requests_.pop_front();
-    }
 
-    //fill queue by all requests
-    requests_.push_back({ search_server_.FindTopDocuments(raw_query, document_predicate) });
-    return requests_.back().request;
-}
 
 std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentStatus status) {
     return AddFindRequest(raw_query, [status](int document_id, DocumentStatus document_status, int rating) {

@@ -98,6 +98,11 @@ private:
     std::set<std::string> MakeUniqueNonEmptyStrings(const StringContainer&);
 };
 
+template <typename StringContainer>
+SearchServer::SearchServer(const StringContainer& stop_words) {
+    CheckValidity(stop_words);
+    stop_words_ = MakeUniqueNonEmptyStrings(stop_words);
+}
 
 template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
@@ -155,4 +160,24 @@ std::vector<Document> SearchServer::FindAllDocuments(const Query& query, Documen
         matched_documents.push_back({ document_id, relevance, documents_.at(document_id).rating });
     }
     return matched_documents;
+}
+
+template <typename StringContainer>
+void SearchServer::CheckValidity(const StringContainer& strings) {
+    for (const std::string& str : strings) {
+        if (!IsValidWord(str)) {
+            throw std::invalid_argument("invalid stop-words in constructor");
+        }
+    }
+}
+
+template <typename StringContainer>
+std::set<std::string> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
+    std::set<std::string> non_empty_strings;
+    for (const std::string& str : strings) {
+        if (!str.empty()) {
+            non_empty_strings.insert(str);
+        }
+    }
+    return non_empty_strings;
 }

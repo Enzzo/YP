@@ -7,8 +7,8 @@ class IteratorRange {
 
 public:
     IteratorRange(const It begin, const It end) : begin_(begin), end_(end) {};
-    It begin() const { return begin_; }
-    It end() const { return end_; }
+    It begin() const noexcept{ return begin_; }
+    It end() const noexcept{ return end_; }
 };
 
 template<typename It>
