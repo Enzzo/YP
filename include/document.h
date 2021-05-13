@@ -3,7 +3,7 @@
 #include <iostream>
 
 struct Document {
-    Document();
+    Document() = default;
     Document(int, double, int);
 
     int id = 0;

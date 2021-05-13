@@ -2,13 +2,13 @@
 
 template<typename It>
 class IteratorRange {
-    It _begin;
-    It _end;
+    It begin_;
+    It end_;
 
 public:
-    IteratorRange(const It begin, const It end) : _begin(begin), _end(end) {};
-    It begin() const { return _begin; }
-    It end() const { return _end; }
+    IteratorRange(const It begin, const It end) : begin_(begin), end_(end) {};
+    It begin() const noexcept{ return begin_; }
+    It end() const noexcept{ return end_; }
 };
 
 template<typename It>
@@ -22,26 +22,26 @@ std::ostream& operator<<(std::ostream& os, const IteratorRange<It>& ir) {
 template <typename It>
 class Paginator {
     std::vector<IteratorRange<It>> _range;
-    It _begin;
-    It _end;
+    It begin_;
+    It end_;
 
 public:
-    Paginator(const It begin, const It end, const size_t size) :_begin(begin), _end(end) {
-        while (_begin != _end) {
-            int distance = std::distance(_begin, _end);
+    Paginator(const It begin, const It end, const size_t size) :begin_(begin), end_(end) {
+        while (begin_ != end_) {
+            int distance = std::distance(begin_, end_);
 
             if (distance > static_cast<int>(size)) {
                 distance = size;
             }
-            _range.push_back({ _begin, _begin + distance });
-            std::advance(_begin, distance);
+            _range.push_back({ begin_, begin_ + distance });
+            std::advance(begin_, distance);
         }
     };
 
-    auto begin()const {
+    auto begin()const noexcept{
         return _range.begin();
     }
-    auto end()const {
+    auto end()const noexcept{
         return _range.end();
     }
 };

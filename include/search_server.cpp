@@ -1,4 +1,3 @@
-#include <math.h>
 #include "search_server.h"
 
 SearchServer::SearchServer(const std::string& stop_words_text)
@@ -23,18 +22,6 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
     }
     documents_.emplace(document_id, DocumentData{ ComputeAverageRating(ratings), status });
     document_ids_.push_back(document_id);
-}
-
-int SearchServer::GetDocumentCount() const {
-    return documents_.size();
-}
-
-int SearchServer::GetDocumentId(int index)const {
-
-    if (GetDocumentCount() < index || index < 0) {
-        throw std::out_of_range("non-existend ID");
-    }
-    return document_ids_.at(index);
 }
 
 std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
@@ -94,10 +81,6 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
         rating_sum += rating;
     }
     return rating_sum / static_cast<int>(ratings.size());
-}
-
-bool SearchServer::IsStopWord(const std::string& word) const {
-    return stop_words_.count(word) > 0;
 }
 
 [[nodiscard]] bool SearchServer::SplitIntoWordsNoStop(const std::string& text, std::vector<std::string>& result) const {
@@ -160,3 +143,5 @@ bool SearchServer::IsStopWord(const std::string& word) const {
 double SearchServer::ComputeWordInverseDocumentFreq(const std::string& word) const {
     return log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
 }
+
+
