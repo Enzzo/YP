@@ -8,6 +8,7 @@
 #define PROFILE_CONCAT(X, Y) PROFILE_CONCAT_INTERNAL(X, Y)
 #define UNIQUE_VAR_NAME_PROFILE PROFILE_CONCAT(profileGuard, __LINE__)
 #define LOG_DURATION(x) LogDuration UNIQUE_VAR_NAME_PROFILE(x)
+#define LOG_DURATION_STREAM(x, y) LogDuration UNIQUE_VAR_NAME_PROFILE(x, y)
 
 using namespace std::literals;
 
@@ -16,15 +17,18 @@ class LogDuration {
 
 	Clock::time_point begin_time_ = Clock::now();
 	const std::string operation_;
+	std::ostream& out_;
 
 public:	
 
-	LogDuration() : operation_(""s){};
+	LogDuration() : LogDuration(""s){};
 	
-	LogDuration(const std::string& operation) : operation_(operation + ": "s) {};
+	LogDuration(const std::string& operation) : LogDuration(operation, std::cout) {};
+
+	LogDuration(const std::string& operation, std::ostream& out) : operation_(operation + ": "s), out_(out) {};
 	
 	~LogDuration() {
-		std::cerr << this->Duration() << std::endl;
+		out_ << this->Duration() << std::endl;
 	}
 
 	inline const std::string Duration()const;
@@ -35,4 +39,4 @@ inline const std::string LogDuration::Duration()const {
 	Clock::duration dur_ = end_time_ - begin_time_;
 
 	return operation_ + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(dur_).count()) + " ms"s;
-}
+};
