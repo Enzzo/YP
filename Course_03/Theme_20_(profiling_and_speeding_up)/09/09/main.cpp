@@ -12,17 +12,20 @@ using namespace std::literals;
 std::vector<float> ComputeAvgTemp(const std::vector<std::vector<float>>& vs) {
     // место для вашего решения
 
-    std::vector<float> res(vs.size());
+    std::vector<float> res;
 
-    for (size_t i = 0; i < vs.size(); ++i) {
+    if (vs.empty()) return res;
+
+    for (size_t i = 0; i < vs[0].size(); ++i) {
         
         float sum = .0f;
         int cnt = 0;
-        for (size_t j = 0; j < vs[i].size(); ++j) {
-            sum += (vs[j][i] > 0) ? vs[j][i] : 0;
-            cnt += (vs[j][i] > 0) ? 1 : 0;
+        for (size_t j = 0; j < vs.size(); ++j) {
+            const float t = vs[j][i];
+            sum += (t > 0) ? t: 0;
+            cnt += (t > 0) ? 1 : 0;
         }
-        res.push_back(sum / cnt);
+        res.push_back((cnt > 0)?sum / cnt:0);
     }
     return res;
 }
@@ -55,7 +58,7 @@ void test() {
     assert(ComputeAvgTemp(v) == std::vector<float>({ 2, 3.5f, 0 }));
 }
 
-int main() {/*
+int main() {
     std::vector<std::vector<float>> data;
     data.reserve(5000);
 
@@ -70,7 +73,7 @@ int main() {/*
     }
 
     std::cout << "Total mean: "s << accumulate(avg.begin(), avg.end(), 0.f) / avg.size() << std::endl;
-    */
+    
     test();
     return 0;
 }
