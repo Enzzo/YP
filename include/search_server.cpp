@@ -39,8 +39,6 @@ std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_quer
 
 std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query, int document_id) const {
 
-    LOG_DURATION_STREAM("Operation time", std::cout);
-
     Query query;
     if (!ParseQuery(raw_query, query)) {
         throw std::invalid_argument("invalid request");
