@@ -1,5 +1,7 @@
 #include <iomanip>
 
+#define TEST TestSearchServer();
+
 template <typename Func>
 void RunTestImpl(Func f, const std::string& s) {
     f();
@@ -53,9 +55,8 @@ void AssertEqualImpl(const T& t, const U& u, const std::string& t_str, const std
 
 SearchServer TestServer() {
 
-    SearchServer server;
+    SearchServer server("1word1 2word2 3word3"s);
 
-    server.SetStopWords("1word1 2word2 3word3");
     server.AddDocument(0, "1word1 1word2 1word3 1word4", DocumentStatus::ACTUAL, { 1, 2, 3 });
     server.AddDocument(1, "2word1 2word2 2word3 2word4", DocumentStatus::BANNED, { 4, 5, 6, 7, 8 });
     server.AddDocument(2, "3word1 3word2 3word3 3word4 3word3 3word4", DocumentStatus::IRRELEVANT, { 1, 3, 4, 5, 6, 7, 8 });
@@ -66,6 +67,7 @@ SearchServer TestServer() {
     return server;
 }
 
+
 void TestExcludeStopWordsFromAddedDocumentContent() {
     const int doc_id = 42;
     const std::string content = "cat in the city";
@@ -73,7 +75,7 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
     // —начала убеждаемс¤, что поиск слова, не вход¤щего в список стоп-слов,
     // находит нужный документ
     {
-        SearchServer server;
+        SearchServer server(""s);
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
         const auto found_docs = server.FindTopDocuments("in");
         ASSERT_EQUAL_HINT(found_docs.size(), 1, " 1 document found");
@@ -84,12 +86,12 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
     // «атем убеждаемс¤, что поиск этого же слова, вход¤щего в список стоп-слов,
     // возвращает пустой результат
     {
-        SearchServer server;
-        server.SetStopWords("in the");
+        SearchServer server("in the"s);
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
         ASSERT_HINT(server.FindTopDocuments("in").empty(), " empty");
     }
 }
+
 
 void TestAddingDocuments() {
     SearchServer server = TestServer();
@@ -195,6 +197,20 @@ void TestDocumentFields() {
     ASSERT_EQUAL(d1.rating, d2.rating);
 }
 
+void TestIterators() {
+    SearchServer server = TestServer();
+    int i = 0;
+    for (const int d : server) {
+        ASSERT_EQUAL(d, i++);
+    }
+}
+
+void TestGetWordFrequencies() {
+    SearchServer server = TestServer();
+    auto m = server.GetWordFrequencies(1);
+    int x = 2;
+}
+
 void TestSearchServer() {
     RUN_TEST(TestOfRelevance);
     RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
@@ -207,4 +223,6 @@ void TestSearchServer() {
     RUN_TEST(TestSortingByPredicate);
     RUN_TEST(TestByStatus);    
     RUN_TEST(TestDocumentFields);
+    RUN_TEST(TestIterators);
+    RUN_TEST(TestGetWordFrequencies);
 }

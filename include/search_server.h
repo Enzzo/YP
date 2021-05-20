@@ -31,7 +31,8 @@ class SearchServer {
 
     std::set<std::string> stop_words_;
 
-    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    //std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    std::map<int, std::map<std::string, double>> doc_to_word_freqs_;
 
     std::map<int, DocumentData> documents_;
 
@@ -53,12 +54,14 @@ public:
         return documents_.size();
     }
 
-    int GetDocumentId(int index)const {
+    //O(1)
+    inline std::vector<int>::const_iterator begin() const noexcept {
+        return document_ids_.begin();
+    }
 
-        if (GetDocumentCount() < index || index < 0) {
-            throw std::out_of_range("non-existend ID");
-        }
-        return document_ids_.at(index);
+    //O(1)
+    inline std::vector<int>::const_iterator end() const noexcept {
+        return document_ids_.end();
     }
 
     template <typename DocumentPredicate>
@@ -69,6 +72,9 @@ public:
     std::vector<Document> FindTopDocuments(const std::string&) const;
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string&, int) const;
+
+    //O(log N)
+    const std::map<std::string, double>& GetWordFrequencies(const int) const;
 
 private:
 
@@ -168,7 +174,7 @@ template <typename StringContainer>
 void SearchServer::CheckValidity(const StringContainer& strings) {
     for (const std::string& str : strings) {
         if (!IsValidWord(str)) {
-            throw std::invalid_argument("invalid stop-words in constructor");
+            throw std::invalid_argument("invalid stop-words in constructor"s);
         }
     }
 }

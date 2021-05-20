@@ -6,20 +6,21 @@ SearchServer::SearchServer(const std::string& stop_words_text)
 void SearchServer::AddDocument(int document_id, const std::string& document, DocumentStatus status,
     const std::vector<int>& ratings) {
     if ((document_id < 0)) {
-        throw std::invalid_argument("ID can't be less than zero");
+        throw std::invalid_argument("ID can't be less than zero"s);
     }
     if (documents_.count(document_id) > 0) {
-        throw std::invalid_argument("ID already exists");
+        throw std::invalid_argument("ID already exists"s);
     }
     std::vector<std::string> words;
     if (!SplitIntoWordsNoStop(document, words)) {
-        throw std::invalid_argument("invalid character(s) in word");
+        throw std::invalid_argument("invalid character(s) in word"s);
     }
 
     const double inv_word_count = 1.0 / words.size();
     for (const std::string& word : words) {
-        word_to_document_freqs_[word][document_id] += inv_word_count;
+        doc_to_word_freqs_[document_id][word] += inv_word_count; //= word_to_document_freqs_[word][document_id] += inv_word_count;
     }
+
     documents_.emplace(document_id, DocumentData{ ComputeAverageRating(ratings), status });
     document_ids_.push_back(document_id);
 }
@@ -64,6 +65,15 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
 
     return { matched_words, documents_.at(document_id).status };
 }
+
+//O(log N)
+
+const std::map<std::string, double>& SearchServer::GetWordFrequencies(const int document_id) const {
+    
+    //binary_search    
+    return doc_to_word_freqs_.at(document_id);
+};
+
 
 bool SearchServer::IsValidWord(const std::string& word) {
     // A valid word must not contain special characters
@@ -143,5 +153,3 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
 double SearchServer::ComputeWordInverseDocumentFreq(const std::string& word) const {
     return log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
 }
-
-
