@@ -31,12 +31,10 @@ class SearchServer {
 
     std::set<std::string> stop_words_;
 
-    //std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
     std::map<int, std::map<std::string, double>> doc_to_word_freqs_;
 
     std::map<int, DocumentData> documents_;
-
-    std::vector<int> document_ids_;
 
 public:
     // Defines an invalid document id
@@ -56,12 +54,13 @@ public:
 
     //O(1)
     inline std::vector<int>::const_iterator begin() const noexcept {
-        return document_ids_.begin();
+        const int* begin = &documents_;
+        return begin;
     }
 
     //O(1)
     inline std::vector<int>::const_iterator end() const noexcept {
-        return document_ids_.end();
+        return documents_.end();
     }
 
     template <typename DocumentPredicate>
@@ -74,7 +73,10 @@ public:
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string&, int) const;
 
     //O(log N)
-    const std::map<std::string, double>& GetWordFrequencies(const int) const;
+    const std::map<std::string, double>& GetWordFrequencies(const int) const noexcept;
+
+    //O(W log N)
+    void RemoveDocument(int document_id);
 
 private:
 

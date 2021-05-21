@@ -1,7 +1,5 @@
 #include <iomanip>
 
-#define TEST TestSearchServer();
-
 template <typename Func>
 void RunTestImpl(Func f, const std::string& s) {
     f();
@@ -41,7 +39,7 @@ void AssertEqualImpl(const T& t, const U& u, const std::string& t_str, const std
     }
 }
 
-//макросы дл¤ тестировани¤
+//macros for testing
 #define ASSERT_HINT(expr, hint) AssertImpl((expr), #expr, __FILE__, __FUNCTION__, __LINE__,  hint)
 #define ASSERT(expr)  AssertImpl((expr), #expr, __FILE__, __FUNCTION__, __LINE__,  "")
 
@@ -50,10 +48,17 @@ void AssertEqualImpl(const T& t, const U& u, const std::string& t_str, const std
 
 #define RUN_TEST(func)  RunTestImpl((func), #func)
 
+#define TEST TestSearchServer();
 
-// -------- Ќачало модульных тестов поисковой системы ----------
+bool is_equal(const double l, const double r) {
+    const double EPSILON = 1e-6;
+    return (std::abs(l - r) < EPSILON);
+}
 
-SearchServer TestServer() {
+// -------- Start of search engine unit tests ----------
+
+//creating an instance of a search server that covers all the tests
+SearchServer GetTestServer() {
 
     SearchServer server("1word1 2word2 3word3"s);
 
@@ -67,67 +72,78 @@ SearchServer TestServer() {
     return server;
 }
 
+void SearchServer_AddDocument_CheckSize_SizeChange() {
 
-void TestExcludeStopWordsFromAddedDocumentContent() {
-    const int doc_id = 42;
-    const std::string content = "cat in the city";
-    const std::vector<int> ratings = { 1, 2, 3 };
-    // —начала убеждаемс¤, что поиск слова, не вход¤щего в список стоп-слов,
-    // находит нужный документ
-    {
-        SearchServer server(""s);
-        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        const auto found_docs = server.FindTopDocuments("in");
-        ASSERT_EQUAL_HINT(found_docs.size(), 1, " 1 document found");
-        const Document& doc0 = found_docs[0];
-        ASSERT_EQUAL(doc0.id, doc_id);
-    }
+    //empty server
+    SearchServer server(""s);
 
-    // «атем убеждаемс¤, что поиск этого же слова, вход¤щего в список стоп-слов,
-    // возвращает пустой результат
-    {
-        SearchServer server("in the"s);
-        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        ASSERT_HINT(server.FindTopDocuments("in").empty(), " empty");
-    }
-}
+    //search for a non-existent word
+    std::vector<Document> fd = server.FindTopDocuments("1word1");
+    ASSERT_HINT(fd.empty(), "word doesn't exist");
 
+    //fill server by data
+    server = GetTestServer();
 
-void TestAddingDocuments() {
-    SearchServer server = TestServer();
+    fd = server.FindTopDocuments("1word2");
 
-    //поиск несуществующего слова
-    const std::vector<Document>& fd0 = server.FindTopDocuments("word1");
-    ASSERT_HINT(fd0.empty(), "word doesn't exist");
-
-    const std::vector<Document>& fd1 = server.FindTopDocuments("1word2");
-    const std::vector<Document>& fd2 = server.FindTopDocuments("2word2", DocumentStatus::BANNED);
-    const std::vector<Document>& fd3 = server.FindTopDocuments("1word2");
-
-    ASSERT(fd1.size() == 1);
-    ASSERT(fd2.empty());
-    ASSERT_EQUAL(fd3[0].id, 0);
+    ASSERT(fd.size() == 1);
     ASSERT_EQUAL_HINT(server.GetDocumentCount(), 6, "Documents count == 6");
 }
 
+void SearchServer_AddDocument_CheckSize_SizeEmpty() {
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fd = server.FindTopDocuments("2word2", DocumentStatus::BANNED);
+
+    ASSERT(fd.empty());
+}
+
+void SearchServer_AddDocument_CheckId_IdFound() {
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fd = server.FindTopDocuments("1word2");
+
+    ASSERT_EQUAL(fd[0].id, 0);
+}
+
+void SearchServer_AddDocument_CheckDocumentsCount_Equal() {
+    SearchServer server(""s);
+
+    std::vector<Document> fd = server.FindTopDocuments("1word2");
+
+    ASSERT_EQUAL(fd.size(), 0);
+
+    server.AddDocument(0, "1word2", DocumentStatus::ACTUAL, { 1, 2, 3 });
+    server.AddDocument(1, "2word2", DocumentStatus::ACTUAL, { 1, 2, 3 });
+
+    fd = server.FindTopDocuments("1word2 2word2");
+
+    ASSERT_EQUAL(fd.size(), 2);
+}
+
 void TestStopWords() {
-    SearchServer server = TestServer();
+    SearchServer server = GetTestServer();
 
     const std::vector<Document>& fd = server.FindTopDocuments("2word2");
-    ASSERT_HINT(fd.empty(), "vector must be empty");
 
+    ASSERT_HINT(fd.empty(), "vector must be empty");
 }
+
 void TestMinusWords() {
-    SearchServer server = TestServer();
+    SearchServer server = GetTestServer();
 
     const std::vector<Document>& fd1 = server.FindTopDocuments("1word2 -1word3");
+
     ASSERT(fd1.empty());
+
     const std::vector<Document>& fd2 = server.FindTopDocuments("2word1 -1word3", DocumentStatus::BANNED);
+
     ASSERT_EQUAL(fd2[0].id, 1);
 
 }
+
 void TestMatchingDocuments() {
-    SearchServer server = TestServer();
+    SearchServer server = GetTestServer();
 
     const auto& [w1, ds1] = server.MatchDocument("1word1 1word2 2word1 2word2", 0);
     const auto& [w2, ds2] = server.MatchDocument("1word1 1word2 2word1 2word2", 1);
@@ -140,65 +156,84 @@ void TestMatchingDocuments() {
     ASSERT(w4.empty());
 
 }
-void TestSortByRelevance() {
-    SearchServer server = TestServer();
-    const std::string query = "1word2 2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1";
-    const std::vector<Document>& fd = server.FindTopDocuments(query);
-    ASSERT(fd[1].relevance < fd[0].relevance);
-    ASSERT(fd[2].relevance < fd[1].relevance);
-    ASSERT(fd[1].relevance < fd[0].relevance);
-    ASSERT(fd[2].relevance < fd[1].relevance);
+
+void TestByRelevance() {
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fd1 = server.FindTopDocuments("1word2 2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1");
+
+    ASSERT(!is_equal(fd1[1].relevance, fd1[0].relevance));
+    ASSERT(!is_equal(fd1[2].relevance, fd1[1].relevance));
 }
+
+void TestByRelevance_MinusWords() {
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fd2 = server.FindTopDocuments("-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1");
+
+    ASSERT_EQUAL(is_equal(fd2[0].relevance, 0.895879), true);
+    ASSERT_EQUAL(is_equal(fd2[1].relevance, 0.298626), true);
+}
+
 void TestOfRating() {
-    SearchServer server = TestServer();
-    const std::string query = "-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1";
-    const std::vector<Document>& fd = server.FindTopDocuments(query);
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fd = server.FindTopDocuments("-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1");
 
     ASSERT_EQUAL(fd[0].rating, 8);
     ASSERT_HINT(fd[1].rating < fd[0].rating, "");
 }
-void TestSortingByPredicate() {
-    SearchServer server = TestServer();
-    const std::string query = "-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1";
 
-    //поиск документов с условием: рейтинг не больше 8 и не меньше 2
-    const std::vector<Document>& fdsp = server.FindTopDocuments(query, [](const int id, const DocumentStatus ds, int rating) {return rating < 8 && 2 < rating; });
+void TestSortingByPredicate() {
+    SearchServer server = GetTestServer();
+
+    //search for documents with the condition: rating no more than 8 and no less than 2
+    const std::vector<Document>& fdsp = server.FindTopDocuments("-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1",
+        [](const int id, const DocumentStatus ds, int rating) {return rating < 8 && 2 < rating; });
 
     ASSERT_EQUAL_HINT(fdsp.size(), 2, "docs with rating 4");
 }
 
-void TestByStatus() {
-    SearchServer server = TestServer();
-    const std::string query = "-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1";
-    const std::vector<Document>& fdA = server.FindTopDocuments(query, DocumentStatus::ACTUAL);
-    const std::vector<Document>& fdB = server.FindTopDocuments(query, DocumentStatus::BANNED);
-    const std::vector<Document>& fdI = server.FindTopDocuments(query, DocumentStatus::IRRELEVANT);
-    const std::vector<Document>& fdR = server.FindTopDocuments(query, DocumentStatus::REMOVED);
+void SearchServer_Status_CheckSize_SizeChange() {
+
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fdA = server.FindTopDocuments("-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1", DocumentStatus::ACTUAL);
+    const std::vector<Document>& fdB = server.FindTopDocuments("1word2 2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1", DocumentStatus::IRRELEVANT);
 
     ASSERT_EQUAL(fdA.size(), 2);
-    ASSERT(fdB.empty());
-    ASSERT_EQUAL(fdI.size(), 1);
-    ASSERT_EQUAL(fdR.size(), 1);
+    ASSERT_EQUAL(fdB.size(), 1);
 }
 
-void TestOfRelevance() {
-    SearchServer server = TestServer();
-    const std::vector<Document>& fd = server.FindTopDocuments("-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1");
-    ASSERT_EQUAL(fd[0].relevance, 0.89587973461402748);
-    ASSERT_EQUAL(fd[1].relevance, 0.29862657820467581);
+void SearchServer_Status_CheckSize_SizeEmpty() {
+
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fd = server.FindTopDocuments("-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1", DocumentStatus::BANNED);
+
+    ASSERT(fd.empty());
 }
 
-void TestDocumentFields() {
-    Document d1;
-    Document d2{ 0, 0.0, 0 };
+void SearchServer_Status_CheckId_IdFound() {
 
-    ASSERT_EQUAL(d1.id, d2.id);
-    ASSERT_EQUAL(d1.relevance, d2.relevance);
-    ASSERT_EQUAL(d1.rating, d2.rating);
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fd = server.FindTopDocuments("-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1", DocumentStatus::REMOVED);
+
+    ASSERT_EQUAL(fd[0].id, 3);
+}
+
+void SearchServer_Status_CheckDocumentsCount_Equal() {
+
+    SearchServer server = GetTestServer();
+
+    const std::vector<Document>& fd = server.FindTopDocuments("-1word2 -2word1 3word1 3word2 3word3 4word1 5word5 5word2 6word3 6word1", DocumentStatus::IRRELEVANT);
+
+    ASSERT_EQUAL(fd.size(), 1);
 }
 
 void TestIterators() {
-    SearchServer server = TestServer();
+    SearchServer server = GetTestServer();
     int i = 0;
     for (const int d : server) {
         ASSERT_EQUAL(d, i++);
@@ -206,23 +241,51 @@ void TestIterators() {
 }
 
 void TestGetWordFrequencies() {
-    SearchServer server = TestServer();
-    auto m = server.GetWordFrequencies(1);
-    int x = 2;
+    SearchServer server = GetTestServer();
+    const std::map<std::string, double>& result1 = server.GetWordFrequencies(1);
+    const std::map<std::string, double>& result5 = server.GetWordFrequencies(5);
+    const std::map<std::string, double>& result8 = server.GetWordFrequencies(8);
+
+    ASSERT_EQUAL(result1.size(), 3);
+
+    ASSERT_EQUAL(is_equal(result1.at("2word1"), 0.33333333333333331), true);
+
+    ASSERT_EQUAL(is_equal(result5.at("6word1"), 0.5), true);
+    ASSERT_EQUAL(is_equal(result5.at("6word2"), 0.6), false);   
+
+    ASSERT_EQUAL(result8.size(), 0);
 }
 
+void TestRemoveDocuments() {
+    SearchServer server = GetTestServer();
+
+    //ASSERT_EQUAL(server.)
+}
+
+// The TestSearchServer function is the entry point for running tests
 void TestSearchServer() {
-    RUN_TEST(TestOfRelevance);
-    RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
-    RUN_TEST(TestAddingDocuments);
+
     RUN_TEST(TestStopWords);
+
+    RUN_TEST(SearchServer_AddDocument_CheckSize_SizeChange);
+    RUN_TEST(SearchServer_AddDocument_CheckSize_SizeEmpty);
+    RUN_TEST(SearchServer_AddDocument_CheckId_IdFound);
+    RUN_TEST(SearchServer_AddDocument_CheckDocumentsCount_Equal);
+
     RUN_TEST(TestMinusWords);
     RUN_TEST(TestMatchingDocuments);
-    RUN_TEST(TestSortByRelevance);
+    RUN_TEST(TestByRelevance);
+    RUN_TEST(TestByRelevance_MinusWords);
     RUN_TEST(TestOfRating);
     RUN_TEST(TestSortingByPredicate);
-    RUN_TEST(TestByStatus);    
-    RUN_TEST(TestDocumentFields);
+
+    RUN_TEST(SearchServer_Status_CheckSize_SizeChange);
+    RUN_TEST(SearchServer_Status_CheckSize_SizeEmpty);
+    RUN_TEST(SearchServer_Status_CheckId_IdFound);
+    RUN_TEST(SearchServer_Status_CheckDocumentsCount_Equal);
+
     RUN_TEST(TestIterators);
     RUN_TEST(TestGetWordFrequencies);
+    RUN_TEST(TestRemoveDocuments);
+
 }
