@@ -18,10 +18,12 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
 
     const double inv_word_count = 1.0 / words.size();
     for (const std::string& word : words) {
-       doc_to_word_freqs_[document_id][word] = word_to_document_freqs_[word][document_id] += inv_word_count;
+       //word_to_document_freqs_[word][document_id] += inv_word_count;
+       doc_to_word_freqs_[document_id][word] += inv_word_count;
     }
 
     documents_.emplace(document_id, DocumentData{ ComputeAverageRating(ratings), status });
+    document_id_.emplace(document_id);
 }
 
 std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
@@ -45,58 +47,56 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
     }
     std::vector<std::string> matched_words;
     for (const std::string& word : query.plus_words) {
-        
-        if (word_to_document_freqs_.count(word) == 0) {
-            continue;
-        }
-        
-        if (word_to_document_freqs_.at(word).count(document_id)) {
-            matched_words.push_back(word);
-        }/*
+
         if (doc_to_word_freqs_.at(document_id).count(word)) {
             matched_words.push_back(word);
         }
-        */
+        
     }
     for (const std::string& word : query.minus_words) {
         
-        if (word_to_document_freqs_.count(word) == 0) {
-            continue;
-        }
-        
-        if (word_to_document_freqs_.at(word).count(document_id)) {
-            matched_words.clear();
-            break;
-        }
-        
-        /*
         if (doc_to_word_freqs_.at(document_id).count(word)) {
             matched_words.clear();
             break;
         }
-        */
+        
     }
 
     return { matched_words, documents_.at(document_id).status };
 }
 
 //O(log N)
-const std::map<std::string, double>& SearchServer::GetWordFrequencies(const int document_id) const noexcept{
+const std::map<std::string, double>& SearchServer::GetWordFrequencies(const int document_id) const noexcept {
     //binary_search  
+    /*
     if (doc_to_word_freqs_.count(document_id)) {
-       return doc_to_word_freqs_.at(document_id);
-    }
-    const std::map<std::string, double>* empty = new std::map<std::string, double>;
+        return doc_to_word_freqs_.at(document_id);
+    }    
+    */
+    const std::map<int, std::map<std::string, double>>::const_iterator it = 
+        std::find_if(doc_to_word_freqs_.begin(), doc_to_word_freqs_.end(), [document_id](const std::pair<int, std::map<std::string, double>>& doc) 
+        {
+            return doc.first == document_id;
+        });
     
+    if (it != doc_to_word_freqs_.end())
+        return it->second;
+
+    const std::map<std::string, double>* empty = new std::map<std::string, double>;
+
     return *empty;
-};
+}
 
 //O(W log N)
-void SearchServer::RemoveDocument(int document_id) {
+void SearchServer::RemoveDocument(const int document_id) {
     if (doc_to_word_freqs_.count(document_id)) {
+
         doc_to_word_freqs_.erase(document_id);
+
         documents_.erase(document_id);
-        std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+
+        auto it = std::lower_bound(document_id_.begin(), document_id_.end(), document_id);
+        document_id_.erase(it);    
     }
 }
 
@@ -176,12 +176,11 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
 
 // Existence required
 double SearchServer::ComputeWordInverseDocumentFreq(const std::string& word) const {
-    /*int size = 0;
+    int size = 0;
     for (const auto& [doc, content] : doc_to_word_freqs_) {
         if (content.count(word)) {
             size++;
         }
-    }*/
-    return log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
-    //return log(GetDocumentCount() * 1.0 / size);
+    }
+    return log(GetDocumentCount() * 1.0 / size);
 }

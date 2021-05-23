@@ -258,7 +258,8 @@ void TestGetWordFrequencies() {
 
 void TestRemoveDocuments() {
     SearchServer server = GetTestServer();
-
+    server.RemoveDocument(3);
+    int x = 2;
     //ASSERT_EQUAL(server.)
 }
 

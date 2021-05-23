@@ -11,7 +11,8 @@ using namespace std::literals;
 #include "paginator.h"
 #include "read_input_functions.h"
 #include "request_queue.h"
-#include "test_framework.h"
+#include "test_example_functions.h"
+#include "remove_duplicates.h"
 
 void AddDocument(SearchServer&, int, const std::string&, const DocumentStatus, const std::vector<int>&);
 
@@ -45,7 +46,7 @@ int main() {
     AddDocument(search_server, 9, "nasty rat with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
 
     std::cout << "Before duplicates removed: "s << search_server.GetDocumentCount() << std::endl;
-    //RemoveDuplicates(search_server);
+    RemoveDuplicates(search_server);
     std::cout << "After duplicates removed: "s << search_server.GetDocumentCount() << std::endl;
 
     return 0;

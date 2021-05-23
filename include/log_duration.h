@@ -35,8 +35,8 @@ public:
 };
 
 inline const std::string LogDuration::Duration()const {
-	Clock::time_point end_time_ = Clock::now();
-	Clock::duration dur_ = end_time_ - begin_time_;
+	Clock::time_point end_time = Clock::now();
+	Clock::duration dur = end_time - begin_time_;
 
-	return operation_ + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(dur_).count()) + " ms"s;
-};
+	return operation_ + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(dur).count()) + " ms"s;
+}
