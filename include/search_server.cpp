@@ -90,11 +90,8 @@ const std::map<std::string, double>& SearchServer::GetWordFrequencies(const int 
 //O(W log N)
 void SearchServer::RemoveDocument(const int document_id) {
     if (doc_to_word_freqs_.count(document_id)) {
-
         doc_to_word_freqs_.erase(document_id);
-
         documents_.erase(document_id);
-
         auto it = std::lower_bound(document_id_.begin(), document_id_.end(), document_id);
         document_id_.erase(it);    
     }
@@ -145,7 +142,6 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
         is_minus = true;
         text = text.substr(1);
     }
-
     if (text.empty() || text[0] == '-' || !IsValidWord(text)) {
         return false;
     }

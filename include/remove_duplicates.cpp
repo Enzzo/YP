@@ -3,42 +3,26 @@
 void RemoveDuplicates(SearchServer& search_server) {
 
     std::set<int> duplicates;
+    std::map<std::set<std::string>, int> temp;
 
-    for (const int l_doc : search_server) {
-        for (const int r_doc : search_server) {
-            if (l_doc >= r_doc) {
-                continue;
-            }
-            const std::map<std::string, double>& left = search_server.GetWordFrequencies(l_doc);
-            const std::map<std::string, double>& right = search_server.GetWordFrequencies(r_doc);
+    for (const int id : search_server) {
+        const std::map<std::string, double>& doc = search_server.GetWordFrequencies(id);
+        std::set<std::string> content;
 
-            if (left.size() != right.size()) {
-                continue;
-            }
+        for (const auto& [word, _] : doc) {
+            content.emplace(word);
+        }
 
-            std::map<std::string, double>::const_iterator l_it = left.begin();
-            std::map<std::string, double>::const_iterator r_it = right.begin();
-
-            bool equal = true;
-            while (l_it != left.end()) {
-                if (l_it->first != r_it->first) {
-                    equal = false;
-                    break;
-                }
-                l_it++;
-                r_it++;
-            }
-
-            if (equal) {
-                std::cout << "Found duplicate document id " << r_doc << "\n";
-                duplicates.emplace(r_doc);
-            }
+        if (temp.count(content)) {
+            std::cout << "Found duplicate document id " << id << "\n";
+            duplicates.emplace(id);
+        }
+        else {
+            temp.emplace(content, id);
         }
     }
-    if (duplicates.size() > 0) {
-        for (const int d : duplicates) {
 
-            search_server.RemoveDocument(d);
-        }
+    for (const int id : duplicates) {
+        search_server.RemoveDocument(id);
     }
 }
