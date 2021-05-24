@@ -67,12 +67,7 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
 
 //O(log N)
 const std::map<std::string, double>& SearchServer::GetWordFrequencies(const int document_id) const noexcept {
-    //binary_search  
-    /*
-    if (doc_to_word_freqs_.count(document_id)) {
-        return doc_to_word_freqs_.at(document_id);
-    }    
-    */
+    //binary_search
     const std::map<int, std::map<std::string, double>>::const_iterator it = 
         std::find_if(doc_to_word_freqs_.begin(), doc_to_word_freqs_.end(), [document_id](const std::pair<int, std::map<std::string, double>>& doc) 
         {
