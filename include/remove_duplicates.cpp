@@ -8,10 +8,10 @@ void RemoveDuplicates(SearchServer& search_server) {
     for (const int id : search_server) {
         const std::map<std::string, double>& doc = search_server.GetWordFrequencies(id);
         std::set<std::string> content;
-
-        for (const auto& [word, _] : doc) {
-            content.emplace(word);
-        }
+        
+        std::transform(doc.begin(), doc.end(), std::inserter(content, content.begin()), [](const std::pair<std::string, double>& d) {
+            return d.first;
+            });
 
         if (temp.count(content)) {
             std::cout << "Found duplicate document id " << id << "\n";
