@@ -3,6 +3,7 @@
 #include <exception>
 
 #include "scopedptr.h"
+#include "ptrvector.h"
 
 // Щупальце
 class Tentacle {
@@ -41,7 +42,7 @@ public:
         try {
             for (int i = 1; i <= num_tentacles; ++i) {
                 t = new Tentacle(i);      // Может выбросить исключение bad_alloc
-                tentacles_.push_back(t);  // Может выбросить исключение bad_alloc
+                tentacles_.GetItems().push_back(t);  // Может выбросить исключение bad_alloc
 
                 // Обнуляем указатель на щупальце, которое уже добавили в tentacles_,
                 // чтобы не удалить его в обработчике catch повторно
@@ -60,8 +61,11 @@ public:
         }
     }
 
-    explicit Octopus(const Octopus& other) {
-        ScopedPtr t(&other);
+    explicit Octopus(Octopus& other) {
+        for (int i = 0; i < other.GetTentacleCount(); ++i) {
+            Tentacle* t = &other.GetTentacle(i);
+            tentacles_.GetItems().push_back(t);
+        }
     }
 
     ~Octopus() {
@@ -80,26 +84,33 @@ public:
     // }
 
     int GetTentacleCount() const noexcept {
-        return static_cast<int>(tentacles_.size());
+        //return static_cast<int>(tentacles_.size());
+        return static_cast<int>(tentacles_.GetItems().size());
     }
 
     const Tentacle& GetTentacle(size_t index) const {
-        return *tentacles_.at(index);
+        //return *tentacles_.at(index);
+        return *tentacles_.GetItems().at(index);
     }
     Tentacle& GetTentacle(size_t index) {
-        return *tentacles_.at(index);
+        //return *tentacles_.at(index);
+        return *tentacles_.GetItems().at(index);
     }
 
 private:
     void Cleanup() {
         // Удаляем щупальца осьминога из динамической памяти
-        for (Tentacle* t : tentacles_) {
-            delete t;
+        //for (Tentacle* t : tentacles_) {
+        for(Tentacle* t : tentacles_.GetItems()){
+            if(t != nullptr)
+                delete t;
         }
         // Очищаем массив указателей на щупальца
-        tentacles_.clear();
+        //tentacles_.clear();
+        tentacles_.GetItems().clear();
     }
 
     // Вектор хранит указатели на щупальца. Сами объекты щупалец находятся в куче
-    std::vector<Tentacle*> tentacles_;
+    //std::vector<Tentacle*> tentacles_;
+    PtrVector<Tentacle> tentacles_;
 };
