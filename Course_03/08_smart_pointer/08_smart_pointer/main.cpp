@@ -84,8 +84,7 @@ public:
     PtrVector(const PtrVector& other) {
         // Реализуйте копирующий конструктор самостоятельно
         items_.reserve(other.GetItems().size());
-        for (T* element : other.GetItems()) {
-            T* e = element;
+        for (T* e : other.GetItems()) {
             items_.push_back(e);
         }
     }
