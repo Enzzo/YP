@@ -83,10 +83,23 @@ public:
     // Создаёт вектор указателей на копии объектов из other
     PtrVector(const PtrVector& other) {
         // Реализуйте копирующий конструктор самостоятельно
+        T* ptr = nullptr;
         items_.reserve(other.GetItems().size());
-        for (T* e : other.GetItems()) {
-            items_.push_back(e);
+        
+        for (T* e : other.GetItems()) try{
+            if (e == nullptr) {
+                ptr = nullptr;
+            }
+            else {
+                ptr = new T(*e);
+            }
+            items_.push_back(ptr);
+            ptr = nullptr;
         }
+        catch (std::logic_error) {
+            throw std::logic_error("");
+        }
+        delete ptr;
     }
 
     // Деструктор удаляет объекты в куче, на которые ссылаются указатели,
