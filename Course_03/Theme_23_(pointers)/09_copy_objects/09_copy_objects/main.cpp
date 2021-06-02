@@ -26,7 +26,7 @@ int main() {
 
     // Осьминогу можно добавлять щупальца
     // Раскомментируйте код, после того как реализуете метод AddTentacle
-    /*
+    
     {
         Octopus octopus(1);
         Tentacle* t0 = &octopus.GetTentacle(0);
@@ -44,7 +44,7 @@ int main() {
             assert(octopus.GetTentacle(i).GetId() == i + 1);
         }
     }
-    */
+    
 
     // Осьминоги могут прицепляться к щупальцам друг друга
     {

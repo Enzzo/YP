@@ -1,4 +1,5 @@
 #pragma once
+#include "scopedptr.h"
 
 template <typename T>
 class PtrVector {
@@ -8,10 +9,10 @@ public:
     // Создаёт вектор указателей на копии объектов из other
     PtrVector(const PtrVector& other) {
         // Реализуйте копирующий конструктор самостоятельно
-        T* ptr = nullptr;
+        ScopedPtr<T> ptr = nullptr;
         items_.reserve(other.GetItems().size());
 
-        for (T* e : other.GetItems()) try {
+        for (ScopedPtr<T> e : other.GetItems()) try {
             if (e == nullptr) {
                 ptr = nullptr;
             }
@@ -31,23 +32,23 @@ public:
     // в векторе items_
     ~PtrVector() {
         // Реализуйте тело деструктора самостоятельно
-        for (T* i : items_) {
-            delete i;
+        for (ScopedPtr<T> i : items_) {
+            i.Release();
         }
     }
 
     // Возвращает ссылку на вектор указателей
-    std::vector<T*>& GetItems() noexcept {
+    std::vector<ScopedPtr<T>>& GetItems() noexcept {
         // Реализуйте метод самостоятельно
         return items_;
     }
 
     // Возвращает константную ссылку на вектор указателей
-    std::vector<T*> const& GetItems() const noexcept {
+    std::vector<ScopedPtr<T>> const& GetItems() const noexcept {
         // Реализуйте метод самостоятельно
         return items_;
     }
 
 private:
-    std::vector<T*> items_;
+    std::vector<ScopedPtr<T>> items_;
 };

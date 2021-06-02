@@ -25,7 +25,6 @@ public:
     void Unlink() noexcept {
         linked_tentacle_ = nullptr;
     }
-
 private:
     int id_ = 0;
     Tentacle* linked_tentacle_ = nullptr;
@@ -38,15 +37,15 @@ public:
         : Octopus(8) {
     }
     explicit Octopus(int num_tentacles) {
-        Tentacle* t = nullptr;
+        ScopedPtr<Tentacle> t = nullptr;
         try {
             for (int i = 1; i <= num_tentacles; ++i) {
-                t = new Tentacle(i);      // Может выбросить исключение bad_alloc
+                t(new Tentacle(i));      // Может выбросить исключение bad_alloc
                 tentacles_.GetItems().push_back(t);  // Может выбросить исключение bad_alloc
 
                 // Обнуляем указатель на щупальце, которое уже добавили в tentacles_,
                 // чтобы не удалить его в обработчике catch повторно
-                t = nullptr;
+                t.Release();
             }
         }
         catch (const std::bad_alloc&) {
@@ -63,8 +62,10 @@ public:
 
     explicit Octopus(Octopus& other) {
         for (int i = 0; i < other.GetTentacleCount(); ++i) {
-            Tentacle* t = &other.GetTentacle(i);
-            tentacles_.GetItems().push_back(t);
+            ScopedPtr<Tentacle> t(&other.GetTentacle(i));
+            //Tentacle* t = &other.GetTentacle(i);
+            tentacles_.GetItems().push_back(t.GetRawPtr());
+            t.Release();
         }
     }
 
@@ -79,9 +80,11 @@ public:
     // равным (количество_щупалец + 1):
     // 1, 2, 3, ...
     // Возвращает ссылку на добавленное щупальце
-    // Tentacle& AddTentacle() {
-    //     Реализуйте добавление щупальца самостоятельно
-    // }
+    Tentacle& AddTentacle() {
+    //  Реализуйте добавление щупальца самостоятельно
+        tentacles_.GetItems().push_back(new Tentacle(tentacles_.GetItems().size()+1));
+        return *tentacles_.GetItems().at(tentacles_.GetItems().size() - 1);
+    }
 
     int GetTentacleCount() const noexcept {
         //return static_cast<int>(tentacles_.size());
@@ -101,7 +104,8 @@ private:
     void Cleanup() {
         // Удаляем щупальца осьминога из динамической памяти
         //for (Tentacle* t : tentacles_) {
-        for(Tentacle* t : tentacles_.GetItems()){
+        //for(Tentacle* t : tentacles_.GetItems()){
+        for(ScopedPtr<Tentacle>* t : tentacles_){
             if(t != nullptr)
                 delete t;
         }
