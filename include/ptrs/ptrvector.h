@@ -9,7 +9,6 @@ public:
     PtrVector(const PtrVector& other) {
         // Реализуйте копирующий конструктор самостоятельно
         T* ptr = nullptr;
-        items_.reserve(other.GetItems().size());
 
         for (T* e : other.GetItems()) {
             if (e == nullptr) {
@@ -21,7 +20,6 @@ public:
             items_.push_back(ptr);
             ptr = nullptr;
         }
-        //delete ptr;
     }
 
     // Деструктор удаляет объекты в куче, на которые ссылаются указатели,

@@ -9,6 +9,13 @@
 using namespace std::literals;
 
 int main() {
+    {
+        Octopus my_octopus1(8);
+        {
+            Octopus my_octopus2(my_octopus1);
+            my_octopus2.GetTentacle(1).LinkTo(my_octopus1.GetTentacle(2));
+        }
+    }
     // Проверка конструирования осьминогов
     {
         // По умолчанию осьминог имеет 8 щупалец
@@ -44,7 +51,6 @@ int main() {
             assert(octopus.GetTentacle(i).GetId() == i + 1);
         }
     }
-    
 
     // Осьминоги могут прицепляться к щупальцам друг друга
     {
@@ -75,15 +81,12 @@ int main() {
             Octopus male_copy(male);
             // Проверяем состояние щупалец копии
             assert(male_copy.GetTentacleCount() == male.GetTentacleCount());
-            int y = 2;
             for (int i = 0; i < male_copy.GetTentacleCount(); ++i) {
                 // Каждое щупальце копии размещается по адресу, отличному от адреса оригинального щупальца
                 assert(&male_copy.GetTentacle(i) != &male.GetTentacle(i));
                 // Каждое щупальце копии прицепляется к тому же щупальцу, что и оригинальное
                 assert(male_copy.GetTentacle(i).GetLinkedTentacle() == male.GetTentacle(i).GetLinkedTentacle());
-                int y = 2;
             }
-            int x = 2;
         }
         // Если вы видите эту надпись, то разрушение осьминогов, скорее всего,
         // прошло без неопределённого поведения
