@@ -38,17 +38,21 @@ public:
     }
     explicit Octopus(int num_tentacles) {
         
-        //try {
+        Tentacle* t = nullptr;
+        try {
             for (int i = 1; i <= num_tentacles; ++i) {
-                ScopedPtr<Tentacle> t(new Tentacle(i));      // Может выбросить исключение bad_alloc
+                t = new Tentacle(i);
+                //ScopedPtr<Tentacle> t(new Tentacle(i));      
                 
-                tentacles_.GetItems().push_back(&t); // Может выбросить исключение bad_alloc
+                std::vector<Tentacle*>& tentacle = tentacles_.GetItems();
+                
+                tentacle.push_back(t); // Может выбросить исключение bad_alloc
 
                 // Обнуляем указатель на щупальце, которое уже добавили в tentacles_,
                 // чтобы не удалить его в обработчике catch повторно
-                t.Release();
+               // t.Release();
             }
-        /*}
+         }
         
         catch (const std::bad_alloc&) {
             // Удаляем щупальца, которые успели попасть в контейнер tentacles_
@@ -59,15 +63,15 @@ public:
             // поэтому выбрасываем исключение, чтобы сообщить вызывающему коду об ошибке
             // throw без параметров внутри catch выполняет ПЕРЕВЫБРОС пойманного исключения
             throw;
-        }*/
+        }
     }
 
     explicit Octopus(Octopus& other) {
         for (int i = 0; i < other.GetTentacleCount(); ++i) {
-            ScopedPtr<Tentacle> t(&other.GetTentacle(i));
-            //Tentacle* t = &other.GetTentacle(i);
+            //ScopedPtr<Tentacle> t(&other.GetTentacle(i));
+            Tentacle t = other.GetTentacle(i);
             tentacles_.GetItems().push_back(&t);
-            t.Release();
+            //t.Release();
         }
     }
 
@@ -84,34 +88,29 @@ public:
     // Возвращает ссылку на добавленное щупальце
     Tentacle& AddTentacle() {
     //  Реализуйте добавление щупальца самостоятельно
-        ScopedPtr<Tentacle> t(new Tentacle(tentacles_.GetItems().size() + 1));
-        tentacles_.GetItems().push_back(&t);
-        return tentacles_.GetItems().at(tentacles_.GetItems().size() - 1);
+        tentacles_.GetItems().push_back(new Tentacle((tentacles_.GetItems().size() + 1)));
+        return *tentacles_.GetItems().at(tentacles_.GetItems().size() - 1);
     }
 
     int GetTentacleCount() const noexcept {
-        //return static_cast<int>(tentacles_.size());
         return static_cast<int>(tentacles_.GetItems().size());
     }
 
     const Tentacle& GetTentacle(size_t index) const {
         //return *tentacles_.at(index);
-        return tentacles_.GetItems().at(index);
+        return *tentacles_.GetItems().at(index);
     }
     Tentacle& GetTentacle(size_t index) {
         //return *tentacles_.at(index);
-        return tentacles_.GetItems().at(index);
+        return *tentacles_.GetItems().at(index);
     }
 
 private:
     void Cleanup() {
         // Удаляем щупальца осьминога из динамической памяти
-        //for (Tentacle* t : tentacles_) {
-        //for(Tentacle* t : tentacles_.GetItems()){
-        for (ScopedPtr<Tentacle>* t : tentacles_.GetItems()){
-            //if(t != nullptr)
-                //delete t;
-            t.Release();
+        for (Tentacle* t : tentacles_.GetItems()){
+            if(t != nullptr)
+                delete t;
         }
         // Очищаем массив указателей на щупальца
         //tentacles_.clear();
@@ -119,6 +118,6 @@ private:
     }
 
     // Вектор хранит указатели на щупальца. Сами объекты щупалец находятся в куче
-    //std::vector<Tentacle*> tentacles_;
-    PtrVector<ScopedPtr<Tentacle>> tentacles_;
+    //std::vector<ScopedPtr<Tentacle>> tentacles_;
+    PtrVector<Tentacle> tentacles_;
 };

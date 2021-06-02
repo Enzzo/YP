@@ -8,21 +8,18 @@ public:
     // Создаёт вектор указателей на копии объектов из other
     PtrVector(const PtrVector& other) {
         // Реализуйте копирующий конструктор самостоятельно
-        //T* ptr = nullptr;
+        T* ptr = nullptr;
         items_.reserve(other.GetItems().size());
 
-        for (T* other_item : other.GetItems()) {
-            items_.push_back(other_item == nullptr ? other_item : new T(*other_item));
-            /*
+        for (T* e : other.GetItems()) {
             if (e == nullptr) {
                 ptr = nullptr;
             }
             else {
-                //Выделяем новую память под существуещее значение
                 ptr = new T(*e);
             }
             items_.push_back(ptr);
-            ptr = nullptr;*/
+            ptr = nullptr;
         }
         //delete ptr;
     }

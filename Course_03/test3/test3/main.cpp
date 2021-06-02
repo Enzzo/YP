@@ -1,32 +1,16 @@
 #include <iostream>
 #include <cassert>
+#include <vector>
 
-class SomeClass {
-	int* p_ = nullptr;
-
-public:
-	SomeClass(const int x) :p_(new int(x)) {};
-	SomeClass(const SomeClass& other) {
-		p_ = new int(other.GetValue());
-	}
-
-	int GetValue()const {
-		return *p_;
-	}
-	int& GetRef()const {
-		return *p_;
-	}
-	~SomeClass() {
-		delete p_;
-	}
-};
+#include "scopedptr.h"
 
 int main() {
-	SomeClass s1(1);
-	assert(s1.GetValue() == 1);
-	{		
-		SomeClass s2 = s1;
-	}
-	assert(s1.GetValue() == 1);
+	
+	int* p1 = new int(10);
+	ScopedPtr<int>sp(p1);
+	sp.Release();
+	delete p1;
+	int x = 2;
+
 	return 0;
 }

@@ -75,15 +75,19 @@ int main() {
             Octopus male_copy(male);
             // Проверяем состояние щупалец копии
             assert(male_copy.GetTentacleCount() == male.GetTentacleCount());
+            int y = 2;
             for (int i = 0; i < male_copy.GetTentacleCount(); ++i) {
                 // Каждое щупальце копии размещается по адресу, отличному от адреса оригинального щупальца
-                //assert(&male_copy.GetTentacle(i) != &male.GetTentacle(i));
+                assert(&male_copy.GetTentacle(i) != &male.GetTentacle(i));
                 // Каждое щупальце копии прицепляется к тому же щупальцу, что и оригинальное
                 assert(male_copy.GetTentacle(i).GetLinkedTentacle() == male.GetTentacle(i).GetLinkedTentacle());
+                int y = 2;
             }
+            int x = 2;
         }
         // Если вы видите эту надпись, то разрушение осьминогов, скорее всего,
         // прошло без неопределённого поведения
         std::cout << "Everything is OK"s << std::endl;
     }
+    return 0;
 }
