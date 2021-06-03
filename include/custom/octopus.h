@@ -104,6 +104,15 @@ public:
         return *tentacles_.GetItems().at(index);
     }
 
+    PtrVector<Tentacle>& GetTentacles() {
+        return tentacles_;
+    }
+
+    Octopus& operator=(Octopus& rhs) {
+        GetTentacles() = rhs.GetTentacles();
+        return *this;
+    }
+
 private:
     void Cleanup() {
         // Удаляем щупальца осьминога из динамической памяти

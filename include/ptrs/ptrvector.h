@@ -2,6 +2,7 @@
 
 template <typename T>
 class PtrVector {
+    std::vector<T*> items_;
 public:
     PtrVector() = default;
 
@@ -31,6 +32,14 @@ public:
         }
     }
 
+    PtrVector& operator=(const PtrVector& rhs) {
+        if (this != &rhs) {
+            PtrVector temp_ptr(rhs);
+            Swap(temp_ptr);
+        }
+        return *this;
+    }
+
     // Возвращает ссылку на вектор указателей
     std::vector<T*>& GetItems() noexcept {
         // Реализуйте метод самостоятельно
@@ -43,6 +52,26 @@ public:
         return items_;
     }
 
+    bool operator==(const PtrVector& rhs) {
+        if (this->GetItems().size() != *rhs->GetItems().size()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < *rhs->GetItems().size() - 1; ++i) {
+            if (GetItems()[i] != *rhs->GetItems()[i] ||
+                &GetItems()[i] != rhs->GetItems()[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator!=(const PtrVector& rhs) {
+        return !(this == rhs);
+    }
+
 private:
-    std::vector<T*> items_;
+    void Swap(PtrVector& p) {
+        GetItems().swap(p.GetItems());    
+    }
 };
