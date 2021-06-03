@@ -12,16 +12,15 @@ void Test2() {
         SingleLinkedList<int> list;
         //  онстантна€ ссылка дл€ доступа к константным верси€м begin()/end()
         const auto& const_list = list;
-        /*
+        
         // »тераторы begine и end у пустого диапазона равны друг другу
         assert(list.begin() == list.end());
-        assert(const_list.begin() == const_list.end());
+        assert(const_list.begin() == const_list.end());        
         assert(list.cbegin() == list.cend());
         assert(list.cbegin() == const_list.begin());
         assert(list.cend() == const_list.end());
-        */
     }
-    /*
+
     // »терирование по непустому списку
     {
         SingleLinkedList<int> list;
@@ -30,23 +29,24 @@ void Test2() {
         list.PushFront(1);
         assert(list.GetSize() == 1u);
         assert(!list.IsEmpty());
-
+        
         assert(const_list.begin() != const_list.end());
         assert(const_list.cbegin() != const_list.cend());
         assert(list.begin() != list.end());
-
+        
         assert(const_list.begin() == const_list.cbegin());
-
+        
         assert(*list.cbegin() == 1);
+        
         *list.begin() = -1;
         assert(*list.cbegin() == -1);
-
         const auto old_begin = list.cbegin();
         list.PushFront(2);
         assert(list.GetSize() == 2);
-
+        
         const auto new_begin = list.cbegin();
         assert(new_begin != old_begin);
+        
         // ѕроверка прединкремента
         {
             auto new_begin_copy(new_begin);
@@ -64,6 +64,7 @@ void Test2() {
             assert((++old_begin_copy) == list.end());
         }
     }
+    
     // ѕреобразование итераторов
     {
         SingleLinkedList<int> list;
@@ -88,7 +89,6 @@ void Test2() {
         string_list.begin()->push_back('!');
         assert(*string_list.begin() == "one!"s);
     }
-    */
 }
 
 int main() {
