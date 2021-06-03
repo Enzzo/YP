@@ -9,17 +9,10 @@ public:
     // Создаёт вектор указателей на копии объектов из other
     PtrVector(const PtrVector& other) {
         // Реализуйте копирующий конструктор самостоятельно
-        T* ptr = nullptr;
-
-        for (T* e : other.GetItems()) {
-            if (e == nullptr) {
-                ptr = nullptr;
-            }
-            else {
-                ptr = new T(*e);
-            }
-            items_.push_back(ptr);
-            ptr = nullptr;
+        items_.reserve(other.GetItems().size());
+        
+        for (T* e : other.GetItems()){
+            items_.push_back(e?new T(*e):nullptr);
         }
     }
 

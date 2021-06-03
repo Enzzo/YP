@@ -15,7 +15,9 @@ class SingleLinkedList {
 
 public:
     SingleLinkedList() = default;
-
+    ~SingleLinkedList() {
+        Clear();
+    }
     // Возвращает количество элементов в списке за время O(1)
     [[nodiscard]] size_t GetSize() const noexcept {
         // Заглушка. Реализуйте метод самостоятельно
@@ -41,6 +43,9 @@ public:
         // Реализуйте метод самостоятельно
         while (head_.next_node != nullptr) {
             Node* temp = head_.next_node;
+            head_.next_node = head_.next_node->next_node;
+            delete temp;
+            --size_;
         }
     }
 
