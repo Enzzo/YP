@@ -55,6 +55,7 @@ class SingleLinkedList {
         // Чтобы компилятор не выдавал предупреждение об отсутствии оператора = при наличии
         // пользовательского конструктора копирования, явно объявим оператор = и
         // попросим компилятор сгенерировать его за нас.
+        //BasicIterator& operator=(const BasicIterator& rhs) = default;
         BasicIterator& operator=(const BasicIterator& rhs) = default;
 
         // Оператор сравнения итераторов (в роли второго аргумента выступает константный итератор)
@@ -74,7 +75,7 @@ class SingleLinkedList {
         // Два итератора равны, если они ссылаются на один и тот же элемент списка, либо на end()
         [[nodiscard]] bool operator==(const BasicIterator<Type>& rhs) const noexcept {
             // Заглушка. Реализуйте оператор самостоятельно
-            return node_ == rhs.node_;;
+            return node_ == rhs.node_;
         }
 
         // Оператор проверки итераторов на неравенство
@@ -137,20 +138,28 @@ public:
 
     SingleLinkedList(std::initializer_list<Type> values) {
         // Реализуйте конструктор самостоятельно
+        for (int i = values.size()-1; i >= 0; --i){
+            PushFront(*(values.begin()+i));
+        }        
+        int x = 2;
     }
 
     SingleLinkedList(const SingleLinkedList& other) {
         // Реализуйте конструктор самостоятельно
+        *this = other;
     }
-
+    
     SingleLinkedList& operator=(const SingleLinkedList& rhs) {
         // Реализуйте присваивание самостоятельно
         return *this;
     }
-
+    
     // Обменивает содержимое списков за время O(1)
     void swap(SingleLinkedList& other) noexcept {
         // Реализуйте обмен содержимого списков самостоятельно
+        std::swap(begin_,other.begin_);
+        std::swap(head_, other.head_);
+        std::swap(size_, other.size_);
     }
 
     // Возвращает итератор, ссылающийся на первый элемент
@@ -241,40 +250,61 @@ private:
 template <typename Type>
 void swap(SingleLinkedList<Type>& lhs, SingleLinkedList<Type>& rhs) noexcept {
     // Реализуйте обмен самостоятельно
+   lhs.swap(rhs);
 }
 
 template <typename Type>
 bool operator==(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
     // Заглушка. Реализуйте сравнение самостоятельно
+
+    auto lit = lhs.begin();
+    auto rit = rhs.begin();
+
+    while (lit != lhs.end() && rit != rhs.end()) {
+        if (*(lit++) != *(rit++)) return false;
+    }
+    
     return true;
 }
 
 template <typename Type>
 bool operator!=(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
     // Заглушка. Реализуйте сравнение самостоятельно
-    return true;
+    return !(lhs == rhs);
 }
 
 template <typename Type>
 bool operator<(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
     // Заглушка. Реализуйте сравнение самостоятельно
+
+    if (lhs.GetSize() < rhs.GetSize()) return true;
+
+    auto lit = lhs.begin();
+    auto rit = rhs.begin();
+
+    while (lit != lhs.end() && rit != rhs.end()) {
+        if (*(lit++) >= *(rit++)) return false;
+    }
+
     return true;
 }
 
 template <typename Type>
 bool operator<=(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
     // Заглушка. Реализуйте сравнение самостоятельно
+    assert(false);
     return true;
 }
 
 template <typename Type>
 bool operator>(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
     // Заглушка. Реализуйте сравнение самостоятельно
+    assert(false);
     return true;
 }
 
 template <typename Type>
 bool operator>=(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
     // Заглушка. Реализуйте сравнение самостоятельно
-    return true;
+    return !(lhs < rhs);
 }
