@@ -93,6 +93,7 @@ public:
         for (Iterator it = begin; it != end; it++) {
             PushBack(*it);
         }
+
     }
 
     SingleLinkedList(std::initializer_list<Type> values) : SingleLinkedList(values.begin(), values.end()) {}
@@ -128,14 +129,13 @@ public:
 
     void PushBack(const Type& value) {
 
-        Node* new_node = new Node(value, nullptr);
         Node* temp = &head_;
 
         while (temp->next_node != nullptr) {
             temp = temp->next_node;
         }
 
-        temp->next_node = new_node;
+        temp->next_node = new Node(value, nullptr);
         size_++;
     }
 
@@ -175,25 +175,16 @@ public:
         return end_;
     }
 
-    // Возвращает итератор, указывающий на позицию перед первым элементом односвязного списка.
-    // Разыменовывать этот итератор нельзя - попытка разыменования приведёт к неопределённому поведению
     [[nodiscard]] Iterator before_begin() noexcept {
-        // Реализуйте самостоятельно
-        return {};
+        return before_begin_;
     }
 
-    // Возвращает константный итератор, указывающий на позицию перед первым элементом односвязного списка.
-    // Разыменовывать этот итератор нельзя - попытка разыменования приведёт к неопределённому поведению
     [[nodiscard]] ConstIterator cbefore_begin() const noexcept {
-        // Реализуйте самостоятельно
-        return {};
+        return before_begin_;
     }
 
-    // Возвращает константный итератор, указывающий на позицию перед первым элементом односвязного списка.
-    // Разыменовывать этот итератор нельзя - попытка разыменования приведёт к неопределённому поведению
     [[nodiscard]] ConstIterator before_begin() const noexcept {
-        // Реализуйте самостоятельно
-        return {};
+        return before_begin_;
     }
 
     /*
@@ -208,9 +199,11 @@ public:
 
     void PopFront() noexcept {
         Node* temp = &head_;
-        head_ = *head_.next_node;
-        temp = nullptr;
+        if (head_.next_node != nullptr) {
+            head_.next_node = head_.next_node->next_node;
+        }
         delete temp;
+        --size_;
     }
 
     /*
@@ -225,8 +218,9 @@ public:
 private:
     Node head_ {};
     size_t size_ = 0;
-    Iterator begin_;
-    Iterator end_;
+    Iterator begin_{};
+    Iterator before_begin_{ &head_ };
+    Iterator end_{};
 };
 
 template <typename Type>

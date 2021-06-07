@@ -424,7 +424,6 @@ void Test3() {
         }
     }
 }
-
 void Test4() {
     struct DeletionSpy {
         ~DeletionSpy() {
