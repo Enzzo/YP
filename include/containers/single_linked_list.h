@@ -93,7 +93,7 @@ public:
         for (Iterator it = begin; it != end; it++) {
             PushBack(*it);
         }
-
+        int x = 2;
     }
 
     SingleLinkedList(std::initializer_list<Type> values) : SingleLinkedList(values.begin(), values.end()) {}
@@ -149,7 +149,7 @@ public:
     }
 
     [[nodiscard]] Iterator begin() noexcept {
-        BasicIterator<value_type> begin_(head_.next_node);
+        Iterator begin_(head_.next_node);
         return begin_;
     }
 
@@ -158,7 +158,7 @@ public:
     }
 
     [[nodiscard]] ConstIterator begin() const noexcept {
-        BasicIterator<value_type> begin_(head_.next_node);
+        ConstIterator begin_(head_.next_node);
         return begin_;
     }
 
@@ -167,7 +167,7 @@ public:
     }
 
     [[nodiscard]] ConstIterator cbegin() const noexcept {
-        BasicIterator<value_type> begin_(head_.next_node);
+        ConstIterator begin_(head_.next_node);
         return begin_;
     }
 
@@ -194,23 +194,35 @@ public:
      */
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
 
-        if (pos == end()) {
-            Node* new_node = new Node(value, nullptr);
-            head_.next_node = new_node;
-            Iterator it(head_.next_node);
-            return it;
+        if (pos.node_ == nullptr) {
+            PushFront(value);
+            return begin();
         }
-        /*
-        Node* next = (pos == end()) ? nullptr : pos.node_->next_node;     //существующий узел после вставляемого. сдвигается        
-        //Node* curr = pos.node_;     //текущий узел, который укажет на новый, а новый - на next
-        Node* new_node = new Node(value, next);   //новый узел, принимающий значение из аргумента
-        pos.node_ = new_node;
-        
-        Iterator it(pos.node_);
-        */
-        return {};
-    }
 
+        Node* next_node = pos.node_->next_node;
+        Node* new_node = new Node(value, next_node);
+        Node* prev = pos.node_;
+        prev->next_node = new_node;
+        Iterator it;
+
+        ++size_;
+        return it;
+    }
+    /*
+    template <typename Type>
+    typename SingleLinkedList<Type>::Iterator SingleLinkedList<Type>::InsertAfter(ConstIterator pos, const Type& value) {
+        auto node = node_;
+        if (node == nullptr) {
+            PushFront(value);
+            return begin();
+        }
+        const auto node_after_inserted = node->next_node;
+        Node* new_node = new Node{ value, node_after_inserted };
+        node->next_node = new_node;
+        ++size_;
+        return Iterator{ new_node };
+    }
+    */
     void PopFront() noexcept {
         if (head_.next_node != nullptr) {
             Node* node = head_.next_node;
@@ -231,8 +243,7 @@ public:
 
 private:
     Node head_ {};
-    size_t size_ = 0;
-    Iterator begin_{};
+    size_t size_ = 0;    
     Iterator before_begin_{ &head_ };
     Iterator end_{};
 };

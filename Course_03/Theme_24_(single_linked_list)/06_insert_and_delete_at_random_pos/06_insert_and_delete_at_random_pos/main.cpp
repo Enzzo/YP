@@ -569,6 +569,10 @@ void Test4() {
 }
 
 int main() {
+    SingleLinkedList<int> test;
+    auto it = test.InsertAfter(test.begin(), 1);
+    it = test.InsertAfter(test.begin(), 2);
+    it = test.InsertAfter(test.begin(), 3);
     Test0();
     Test1();
     Test2();
