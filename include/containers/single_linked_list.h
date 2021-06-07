@@ -193,17 +193,23 @@ public:
      * Если при создании элемента будет выброшено исключение, список останется в прежнем состоянии
      */
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
-        // Заглушка. Реализуйте метод самостоятельно
-        return {};
+        Node* node = new Node(value, nullptr);
+        Iterator it = begin();
+        while (it != pos && it.node_ != nullptr) {
+            ++it;
+        }
+        it.node_ = node;
+
+        return it;
     }
 
     void PopFront() noexcept {
-        Node* temp = &head_;
         if (head_.next_node != nullptr) {
+            Node* node = head_.next_node;
             head_.next_node = head_.next_node->next_node;
+            delete node;
+            --size_;
         }
-        delete temp;
-        --size_;
     }
 
     /*
