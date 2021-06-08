@@ -93,7 +93,6 @@ public:
         for (Iterator it = begin; it != end; it++) {
             PushBack(*it);
         }
-        int x = 2;
     }
 
     SingleLinkedList(std::initializer_list<Type> values) : SingleLinkedList(values.begin(), values.end()) {}
@@ -187,11 +186,6 @@ public:
         return before_begin_;
     }
 
-    /*
-     * Вставляет элемент value после элемента, на который указывает pos.
-     * Возвращает итератор на вставленный элемент
-     * Если при создании элемента будет выброшено исключение, список останется в прежнем состоянии
-     */
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
 
         if (pos.node_ == nullptr) {
@@ -203,26 +197,11 @@ public:
         Node* new_node = new Node(value, next_node);
         Node* prev = pos.node_;
         prev->next_node = new_node;
-        Iterator it;
-
+        Iterator it(new_node);
         ++size_;
         return it;
     }
-    /*
-    template <typename Type>
-    typename SingleLinkedList<Type>::Iterator SingleLinkedList<Type>::InsertAfter(ConstIterator pos, const Type& value) {
-        auto node = node_;
-        if (node == nullptr) {
-            PushFront(value);
-            return begin();
-        }
-        const auto node_after_inserted = node->next_node;
-        Node* new_node = new Node{ value, node_after_inserted };
-        node->next_node = new_node;
-        ++size_;
-        return Iterator{ new_node };
-    }
-    */
+
     void PopFront() noexcept {
         if (head_.next_node != nullptr) {
             Node* node = head_.next_node;
@@ -238,7 +217,16 @@ public:
      */
     Iterator EraseAfter(ConstIterator pos) noexcept {
         // Заглушка. Реализуйте метод самостоятельно
-        return {};
+
+        Node* prev = pos.node_->next_node;
+        Node* next_node = prev->next_node;
+        Node* line = pos.node_;
+        line->next_node = next_node;
+
+        delete prev;
+
+        Iterator it(next_node);
+        return it;
     }
 
 private:
