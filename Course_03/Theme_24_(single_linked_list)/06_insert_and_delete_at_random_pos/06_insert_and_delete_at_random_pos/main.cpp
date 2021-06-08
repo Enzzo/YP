@@ -539,10 +539,12 @@ void Test4() {
     {
         {
             SingleLinkedList<int> lst{ 1, 2, 3, 4 };
+            assert(lst.GetSize() == 4);
             const auto& const_lst = lst;
             const auto item_after_erased = lst.EraseAfter(const_lst.cbefore_begin());
             assert((lst == SingleLinkedList<int>{2, 3, 4}));
             assert(item_after_erased == lst.begin());
+            assert(lst.GetSize() == 3);
         }
         {
             SingleLinkedList<int> lst{ 1, 2, 3, 4 };

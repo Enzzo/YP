@@ -2,7 +2,7 @@
 
 template <typename Type>
 class SingleLinkedList {
-    // Узел списка
+
     struct Node {
         Node() = default;
         Node(const Type& val, Node* next)
@@ -103,15 +103,14 @@ public:
         SingleLinkedList temp(rhs);
         swap(temp);
         return *this;
-    }
+    };
 
     void swap(SingleLinkedList& other) noexcept {
-        
         Node* temp_head = other.head_.next_node;
         other.head_.next_node = head_.next_node;
         head_.next_node = temp_head;
         std::swap(this->size_, other.size_);
-    }
+    };
 
     [[nodiscard]] size_t GetSize() const noexcept {
         return size_;
@@ -121,30 +120,24 @@ public:
         return size_ == 0;
     }
 
-    void PushFront(const Type& value) {
-        head_.next_node = new Node(value, head_.next_node);
-        size_++;
-    }
+    void PushFront(const Type&);
 
-    void PushBack(const Type& value) {
+    void PushBack(const Type&);
 
-        Node* temp = &head_;
+    void PopFront() noexcept;
 
-        while (temp->next_node != nullptr) {
-            temp = temp->next_node;
-        }
+    void Clear();
 
-        temp->next_node = new Node(value, nullptr);
-        size_++;
-    }
+    Iterator EraseAfter(ConstIterator pos) noexcept {
+        Node* prev = pos.node_->next_node;
+        Node* next_node = prev->next_node;
+        Node* line = pos.node_;
+        line->next_node = next_node;
+        --size_;
+        delete prev;
 
-    void Clear() {
-        while (head_.next_node != nullptr) {
-            Node* temp = head_.next_node;
-            head_.next_node = head_.next_node->next_node;
-            delete temp;
-            --size_;
-        }
+        Iterator it(next_node);
+        return it;
     }
 
     [[nodiscard]] Iterator begin() noexcept {
@@ -200,34 +193,7 @@ public:
         Iterator it(new_node);
         ++size_;
         return it;
-    }
-
-    void PopFront() noexcept {
-        if (head_.next_node != nullptr) {
-            Node* node = head_.next_node;
-            head_.next_node = head_.next_node->next_node;
-            delete node;
-            --size_;
-        }
-    }
-
-    /*
-     * Удаляет элемент, следующий за pos.
-     * Возвращает итератор на элемент, следующий за удалённым
-     */
-    Iterator EraseAfter(ConstIterator pos) noexcept {
-        // Заглушка. Реализуйте метод самостоятельно
-
-        Node* prev = pos.node_->next_node;
-        Node* next_node = prev->next_node;
-        Node* line = pos.node_;
-        line->next_node = next_node;
-
-        delete prev;
-
-        Iterator it(next_node);
-        return it;
-    }
+    }    
 
 private:
     Node head_ {};
@@ -235,6 +201,45 @@ private:
     Iterator before_begin_{ &head_ };
     Iterator end_{};
 };
+
+template<typename Type>
+void SingleLinkedList<Type>::PushFront(const Type& value) {
+    head_.next_node = new Node(value, head_.next_node);
+    size_++;
+}
+
+template<typename Type>
+void SingleLinkedList<Type>::PushBack(const Type& value) {
+
+    Node* temp = &head_;
+
+    while (temp->next_node != nullptr) {
+        temp = temp->next_node;
+    }
+
+    temp->next_node = new Node(value, nullptr);
+    size_++;
+}
+
+template<typename Type>
+void SingleLinkedList<Type>::Clear() {
+    while (head_.next_node != nullptr) {
+        Node* temp = head_.next_node;
+        head_.next_node = head_.next_node->next_node;
+        delete temp;
+        --size_;
+    }
+}
+
+template<typename Type>
+void SingleLinkedList<Type>::PopFront() noexcept {
+    if (head_.next_node != nullptr) {
+        Node* node = head_.next_node;
+        head_.next_node = head_.next_node->next_node;
+        delete node;
+        --size_;
+    }
+}
 
 template <typename Type>
 void swap(SingleLinkedList<Type>& lhs, SingleLinkedList<Type>& rhs) noexcept {
