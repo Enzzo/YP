@@ -89,9 +89,9 @@ public:
     SingleLinkedList(Iterator begin, Iterator end) {
         
         assert(size_ == 0 && head_.next_node == nullptr);
-
+        auto pos = before_begin();
         for (Iterator it = begin; it != end; it++) {
-            PushBack(*it);
+             pos = InsertAfter(pos, *it);
         }
     }
 
@@ -121,8 +121,6 @@ public:
     }
 
     void PushFront(const Type&);
-
-    void PushBack(const Type&);
 
     void PopFront() noexcept;
 
@@ -178,22 +176,13 @@ public:
     [[nodiscard]] ConstIterator before_begin() const noexcept {
         return before_begin_;
     }
-
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
-
-        if (pos.node_ == nullptr) {
-            PushFront(value);
-            return begin();
-        }
-
-        Node* next_node = pos.node_->next_node;
-        Node* new_node = new Node(value, next_node);
-        Node* prev = pos.node_;
-        prev->next_node = new_node;
-        Iterator it(new_node);
+        Node* new_node = new Node(value, pos.node_->next_node);
+        pos.node_->next_node = new_node;
         ++size_;
-        return it;
-    }    
+        Iterator result(new_node);
+        return result;
+    }
 
 private:
     Node head_ {};
@@ -205,19 +194,6 @@ private:
 template<typename Type>
 void SingleLinkedList<Type>::PushFront(const Type& value) {
     head_.next_node = new Node(value, head_.next_node);
-    size_++;
-}
-
-template<typename Type>
-void SingleLinkedList<Type>::PushBack(const Type& value) {
-
-    Node* temp = &head_;
-
-    while (temp->next_node != nullptr) {
-        temp = temp->next_node;
-    }
-
-    temp->next_node = new Node(value, nullptr);
     size_++;
 }
 
