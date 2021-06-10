@@ -112,14 +112,6 @@ public:
         std::swap(this->size_, other.size_);
     };
 
-    [[nodiscard]] size_t GetSize() const noexcept {
-        return size_;
-    }
-
-    [[nodiscard]] bool IsEmpty() const noexcept {
-        return size_ == 0;
-    }
-
     void PushFront(const Type&);
 
     void PopFront() noexcept;
@@ -127,6 +119,10 @@ public:
     void Clear();
 
     Iterator EraseAfter(ConstIterator pos) noexcept {
+        if (pos.node_ == nullptr) {
+            return {};
+        }
+
         Node* prev = pos.node_->next_node;
         Node* next_node = prev->next_node;
         Node* line = pos.node_;
@@ -136,6 +132,24 @@ public:
 
         Iterator it(next_node);
         return it;
+    }
+
+    Iterator InsertAfter(ConstIterator pos, const Type& value) {
+        assert(pos.node_ != nullptr);
+
+        Node* new_node = new Node(value, pos.node_->next_node);
+        pos.node_->next_node = new_node;
+        ++size_;
+        Iterator result(new_node);
+        return result;
+    }
+
+    [[nodiscard]] size_t GetSize() const noexcept {
+        return size_;
+    }
+
+    [[nodiscard]] bool IsEmpty() const noexcept {
+        return size_ == 0;
     }
 
     [[nodiscard]] Iterator begin() noexcept {
@@ -175,13 +189,6 @@ public:
 
     [[nodiscard]] ConstIterator before_begin() const noexcept {
         return before_begin_;
-    }
-    Iterator InsertAfter(ConstIterator pos, const Type& value) {
-        Node* new_node = new Node(value, pos.node_->next_node);
-        pos.node_->next_node = new_node;
-        ++size_;
-        Iterator result(new_node);
-        return result;
     }
 
 private:
