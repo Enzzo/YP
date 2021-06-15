@@ -139,8 +139,16 @@ public:
         Assign(values.begin(), values.end());  // Может бросить исключение
     }
 
+    SingleLinkedList(const SingleLinkedList& other) {
+        Assign(other.begin(), other.end());  // Может бросить исключение
+    }
+
     ~SingleLinkedList() {
         Clear();
+    }
+
+    SingleLinkedList& operator=(const SingleLinkedList& other) {
+        Assign(other.begin(), other.end());
     }
 
     // Возвращает итератор, ссылающийся на первый элемент
@@ -238,9 +246,10 @@ public:
     void PopFront() noexcept {
         assert(!IsEmpty());
 
-        delete head_.next_node;
+        Node* prev = head_.next_node;
         // Теперь "голова" списка ссылается на прежний второй узел
         head_.next_node = head_.next_node->next_node;
+        delete prev;        
         --size_;
     }
 
@@ -252,12 +261,10 @@ public:
         assert(!IsEmpty());
 
         Node* const node_to_erase = pos.node_->next_node;
-        delete node_to_erase;
-        --size_;
-
         Node* const node_after_erased = node_to_erase->next_node;
         pos.node_->next_node = node_after_erased;
-
+        delete node_to_erase;
+        --size_;
         return Iterator{node_after_erased};
     }
 
@@ -265,8 +272,9 @@ public:
     void Clear() noexcept {
         // Удаляем элементы начиная с головы списка, пока они не закончатся
         while (head_.next_node != nullptr) {
-            delete head_.next_node;
+            Node* prev = head_.next_node;
             head_.next_node = head_.next_node->next_node;
+            delete prev;            
         }
         size_ = 0;
     }
