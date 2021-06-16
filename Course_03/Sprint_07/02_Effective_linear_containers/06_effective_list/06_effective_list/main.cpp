@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include <list>
 
 using namespace std::literals;
 
