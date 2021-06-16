@@ -1,68 +1,77 @@
 #pragma once
 
 class Editor {
-    std::string text = {};
-    std::string buffer = {};
-    std::string::iterator cursor = text.begin();
+    std::string text_ = {};
+    std::string buffer_ = {};
+    std::string::iterator cursor_ = text_.begin();
 
 public:
     Editor() = default;
     
     // сдвинуть курсор влево
     void Left() {
-        if (cursor != text.begin()) {
-            --cursor;
+        if (!IsEmpty(text_)) {
+            if (cursor_ != text_.begin()) {
+                --cursor_;
+            }
         }
     }
     
     // сдвинуть курсор вправо 
     void Right() {
-        if (cursor != text.end()) {
-            ++cursor;
+        if (!IsEmpty(text_)) {
+            if (cursor_ != text_.end()) {
+                ++cursor_;
+            }
         }
     }
     
     // вставить символ token
     void Insert(char token) {
-        text.insert(cursor, token);
-        std::advance(cursor, 1);
+        text_.insert(cursor_, token);
+        std::advance(cursor_, 1);
     };
     
     // вырезать не более tokens символов, начиная с текущей позиции курсора
     void Cut(size_t tokens = 1) {
-        buffer.erase();
-        std::string::iterator begin = cursor;
-        std::string::iterator end = cursor;
-        
-        int dist = (tokens < static_cast<size_t>(std::distance(end, text.end()))) ? tokens : std::distance(end, text.end());
+        int dist = (tokens < static_cast<size_t>(std::distance(cursor_, text_.end()))) ? tokens : std::distance(cursor_, text_.end());
+        buffer_.erase();
+
         if (dist > 0) {
+            std::string::iterator begin = cursor_;
+            std::string::iterator end = cursor_;
             std::advance(end, dist);
-            buffer.insert(buffer.begin(), begin, end);
-            text.erase(begin, end);
+            buffer_.insert(buffer_.begin(), begin, end);
+            text_.erase(begin, end);
         }
     };
     
     // cкопировать не более tokens символов, начиная с текущей позиции курсора
     void Copy(size_t tokens = 1) {
-        buffer.erase();
-        std::string::iterator begin = cursor;
-        std::string::iterator end = cursor;
+        int dist = (tokens < static_cast<size_t>(std::distance(cursor_, text_.end()))) ? tokens : std::distance(cursor_, text_.end());
+        buffer_.erase();
 
-        int dist = (tokens < static_cast<size_t>(std::distance(end, text.end()))) ? tokens : std::distance(end, text.end());
         if (dist > 0) {
+            std::string::iterator begin = cursor_;
+            std::string::iterator end = cursor_;
             std::advance(end, dist);
-            buffer.insert(buffer.begin(), begin, end);
+            buffer_.insert(buffer_.begin(), begin, end);
         }
     };
     
     // вставить содержимое буфера в текущую позицию курсора
     void Paste() {
-        text.insert(cursor, buffer.begin(), buffer.end());
-        std::advance(cursor, std::distance(buffer.begin(), buffer.end()));
+        text_.insert(cursor_, buffer_.begin(), buffer_.end());
+        std::advance(cursor_, std::distance(buffer_.begin(), buffer_.end()));
     };
     
     // получить текущее содержимое текстового редактора
     std::string GetText() const {
-        return text;
+        return text_;
     };
+
+private:
+    [[nodiscard]] bool IsEmpty(const std::string& str) const noexcept{
+        return str.size() == 0;
+    }
 };
