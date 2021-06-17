@@ -76,6 +76,14 @@ int main() {
     TestPushBack();
     TestPopBack();
 
+    StackVector<int, 10> v1(5);
+    for (int i = 5, j = 3; i < v1.Capacity(); ++i){
+        v1.PushBack(j*=2);
+    }
+    StackVector<int, 0> v2(1);
+
+    StackVector<int, 1> v3;
+    
     cerr << "Running benchmark..."s << endl;
     const size_t max_size = 2500;
 
@@ -85,6 +93,7 @@ int main() {
     vector<vector<int>> test_data(50000);
     for (auto& cur_vec : test_data) {
         cur_vec.resize(value_gen(re));
+
         for (int& x : cur_vec) {
             x = value_gen(re);
         }
@@ -119,4 +128,6 @@ int main() {
         }
     }
     cerr << "Done"s << endl;
+    
+    return 0;
 }
