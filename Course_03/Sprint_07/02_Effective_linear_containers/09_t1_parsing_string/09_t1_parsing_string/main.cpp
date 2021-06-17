@@ -28,12 +28,12 @@ std::vector<std::string_view> SplitIntoWordsView(std::string_view str) {
 
     while (true) {
         int64_t space = str.find(' ');
-        result.push_back(space == pos_end ? str : );
+        result.push_back(space == pos_end ? str : str.substr(0, space));
         if (space == pos_end) {
             break;
         }
         else {
-            str.remove_prefix(space);
+            str.remove_prefix(space + 1);
         }
     }
 
@@ -41,7 +41,7 @@ std::vector<std::string_view> SplitIntoWordsView(std::string_view str) {
 }
 
 int main() {
-    std::string text = "12 3456789";
+    std::string text = "123 456789";
     SplitIntoWordsView(text);
     int x = 2;
 	return 0;
