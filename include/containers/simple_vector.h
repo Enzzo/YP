@@ -122,12 +122,15 @@ public:
             capacity_ = (capacity_ == 0) ? 1 : capacity_ * 2;
         }
         ArrayPtr<Type> temp(capacity_);
+        Iterator first = begin();
+        Iterator last = end();
+        Iterator it = const_cast<Iterator>(temp.Get() + size_ - 1);
 
         if (size_ > 1) {
-            std::copy(std::make_move_iterator(begin()), std::make_move_iterator(end()), temp.Get());
+            std::move(first, last, temp.Get());
         }
 
-        *(temp.Get() + size_ - 1) = std::move(item);
+        *(it) = std::exchange(item, Type());
         items_.swap(temp);
     }
 

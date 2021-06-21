@@ -14,8 +14,8 @@ public:
         : x_(num) {
     }
     
-    X(const X& other) = delete;
-    X& operator=(const X& other) = delete;
+    X(const X& other) = default;
+    X& operator=(const X& other) = default;
 
     X(X&& other) {
         x_ = std::exchange(other.x_, 0);
@@ -161,11 +161,11 @@ void TestNoncopiableErase() {
 }
 */
 int main() {
-    MyTest();
-    TestTemporaryObjConstructor();
-    TestTemporaryObjOperator();
-    TestNamedMoveConstructor();
-    TestNamedMoveOperator();
+    //MyTest();
+    //TestTemporaryObjConstructor();
+    //TestTemporaryObjOperator();
+    //TestNamedMoveConstructor();
+    //TestNamedMoveOperator();
     TestNoncopiableMoveConstructor();
     //TestNoncopiablePushBack();
     //TestNoncopiableInsert();

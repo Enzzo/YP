@@ -6,10 +6,9 @@
 template <typename Type>
 class ArrayPtr {
     Type* raw_ptr_ = nullptr;
-
 public:
     ArrayPtr() = default;
-    explicit ArrayPtr(size_t size) {
+    explicit ArrayPtr(size_t size)  {
         if (size > 0) {
             raw_ptr_ = new Type[size];
         }
