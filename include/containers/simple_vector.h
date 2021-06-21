@@ -59,6 +59,11 @@ public:
         }
     }
 
+<<<<<<< HEAD
+=======
+    //v1
+
+>>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
     SimpleVector(const SimpleVector& other) {
         SimpleVector<Type> temp(other.GetSize());
         std::copy(other.begin(), other.end(), temp.begin());
@@ -66,6 +71,7 @@ public:
         temp.capacity_ = other.capacity_;
         swap(temp);
     }
+<<<<<<< HEAD
 
     SimpleVector(SimpleVector&& other) {
         SimpleVector<Type> temp(other.GetSize());
@@ -97,6 +103,33 @@ public:
         SimpleVector temp;
         temp.swap(rhs);
         swap(temp);
+=======
+    //v2
+    SimpleVector(SimpleVector&& other) {
+        SimpleVector<Type> temp(other.GetSize());
+        temp.items_.swap(std::move(other.items_));
+        temp.size_ = std::exchange(other.size_, 0);
+        temp.capacity_ = std::exchange(other.capacity_, 0);
+        swap(std::move(temp));
+    }
+    
+
+    //v1
+    SimpleVector& operator=(const SimpleVector& rhs) {
+        assert(*this != rhs);
+        SimpleVector<Type> temp(std::move(rhs));
+        swap(temp); //temp опустошается
+        return *this;
+    }
+    //v2
+    SimpleVector& operator=(SimpleVector& rhs) {
+        assert(*this != rhs);
+        SimpleVector<Type> temp(rhs.GetSize());
+        temp.items_.swap(std::move(rhs.items_));
+        temp.size_ = std::exchange(rhs.size_, 0);
+        temp.capacity_ = std::exchange(rhs.capacity_, 0);
+        swap(std::move(temp));
+>>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
         return *this;
     }
     void Reserve(size_t new_capacity) {
@@ -117,8 +150,14 @@ public:
             capacity_ = new_capacity;
         }
     }
+<<<<<<< HEAD
 
     void PushBack(const Type& item) {
+=======
+    //v1
+    
+    void PushBack(const Type& item){
+>>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
 
         ++size_;
         while (size_ > capacity_) {
@@ -138,6 +177,10 @@ public:
         items_.move(std::move(temp));
     }
 
+<<<<<<< HEAD
+=======
+    //v2    
+>>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
     void PushBack(Type&& item) {
 
         ++size_;
@@ -149,15 +192,23 @@ public:
         Iterator first = begin();
         Iterator last = end();
         Iterator it = const_cast<Iterator>(temp.Get() + size_ - 1);
-
+        
         if (size_ > 1) {
             std::move(first, last, temp.Get());
         }
 
         *(it) = std::move(item);
+<<<<<<< HEAD
         items_.move(std::move(temp));
     }
 
+=======
+        items_.swap(std::move(temp));
+    }
+    
+    //v1
+    /*
+>>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
     Iterator Insert(ConstIterator pos, const Type& value) {
         Iterator p = const_cast<Iterator>(pos);
         auto d = std::distance(begin(), p);
@@ -176,8 +227,13 @@ public:
         *(begin() + d) = value;
 
         return begin() + d;
+<<<<<<< HEAD
     }
     /*
+=======
+    }*/
+    //v2
+>>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
     Iterator Insert(ConstIterator pos, Type&& value) {
         Iterator p = const_cast<Iterator>(pos);
         auto d = std::distance(begin(), p);
@@ -205,10 +261,17 @@ public:
 
     Iterator Erase(ConstIterator pos) {
         assert(size_ > 0);
+<<<<<<< HEAD
 
         Iterator first = const_cast<Iterator>(pos + 1);
         Iterator p = const_cast<Iterator>(pos);
         Iterator last = end();
+=======
+        
+        Iterator first = const_cast<Iterator>(pos+1);
+        Iterator p = const_cast<Iterator>(pos);
+        Iterator last = end();        
+>>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
         --size_;
         std::copy(std::make_move_iterator(first), std::make_move_iterator(last), p);
         return p;
@@ -221,8 +284,14 @@ public:
         std::swap(capacity_, other.capacity_);
     }
 
+<<<<<<< HEAD
     void move(SimpleVector&& other) noexcept {
         items_.move(std::move(other.items_));
+=======
+    //v2
+    void swap(SimpleVector&& other) noexcept {
+        items_.swap(std::move(other.items_));
+>>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
         size_ = std::exchange(other.size_, 0);
         capacity_ = std::exchange(other.capacity_, 0);
     }
