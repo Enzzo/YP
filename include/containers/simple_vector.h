@@ -11,7 +11,7 @@ class ReserveProxyObj {
     size_t size_;
 public:
     ReserveProxyObj(size_t size = 0) : size_(size) {}
-    inline const size_t GetSize() const {
+    inline size_t GetSize() const {
         return size_;
     }
 };
@@ -37,13 +37,17 @@ public:
 
     SimpleVector(size_t size, const Type& value) :size_(size), capacity_(size) {
         if (size_ > 0) {
+
             ArrayPtr<Type> temp(size_);
-            std::fill(temp.Get(), temp.Get() + size_, value);
+            
+            Iterator first = temp.Get();
+            Iterator last = temp.Get() + size_;
+            std::fill(first, last, value);
             items_.swap(temp);
         }
     }
 
-    SimpleVector(ReserveProxyObj capacity){
+    SimpleVector(ReserveProxyObj capacity) {
         Reserve(capacity.GetSize());
     }
 
@@ -55,7 +59,6 @@ public:
         }
     }
 
-    //v1
     SimpleVector(const SimpleVector& other) {
         SimpleVector<Type> temp(other.GetSize());
         std::copy(other.begin(), other.end(), temp.begin());
@@ -63,64 +66,85 @@ public:
         temp.capacity_ = other.capacity_;
         swap(temp);
     }
-    //v2
-    SimpleVector(SimpleVector&& other){
+
+    SimpleVector(SimpleVector&& other) {
         SimpleVector<Type> temp(other.GetSize());
-        std::copy(std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()), temp.begin());
+        temp.items_.move(std::move(other.items_));
         temp.size_ = std::exchange(other.size_, 0);
         temp.capacity_ = std::exchange(other.capacity_, 0);
-        swap(temp);
-    }
-    //v1
-    SimpleVector& operator=(const SimpleVector& rhs) {
-        assert(*this != rhs);
-        SimpleVector<Type> temp(rhs);
-        this->swap(temp);
-        return *this;
-    }
-    //v2
-    SimpleVector& operator=(SimpleVector&& rhs) {
-        assert(*this != rhs);
-        SimpleVector<Type> temp(std::move(rhs));
-        this->swap(temp);
-        return *this;
+        move(std::move(temp));
     }
 
+    SimpleVector& operator=(const SimpleVector& rhs) {
+        assert(*this != rhs);
+        SimpleVector<Type> temp(std::move(rhs));
+        swap(temp);
+        return *this;
+    }
+    /*
+    SimpleVector& operator=(SimpleVector&& rhs) {
+        assert(*this != rhs);
+        SimpleVector<Type> temp(rhs.GetSize());
+        temp.items_.move(std::move(rhs.items_));
+        temp.size_ = std::exchange(rhs.size_, 0);
+        temp.capacity_ = std::exchange(rhs.capacity_, 0);
+        move(std::move(temp));
+        return *this;
+    }
+    */
+    SimpleVector& operator=(SimpleVector&& rhs) {
+        assert(*this != rhs);
+        SimpleVector temp;
+        temp.swap(rhs);
+        swap(temp);
+        return *this;
+    }
     void Reserve(size_t new_capacity) {
         if (new_capacity > capacity_) {
             ArrayPtr<Type> temp(new_capacity);
 
-            if (begin() != nullptr)
-                std::copy(items_.Get(), items_.Get() + capacity_, temp.Get());
-            std::fill(temp.Get() + capacity_, temp.Get() + new_capacity, Type());
+            if (begin() != end()) {
+                std::move(items_.Get(), items_.Get() + capacity_, temp.Get());
+            }
+            Iterator first = temp.Get() + capacity_;
+            Iterator last = temp.Get() + new_capacity;
+            std::fill(first, last, Type());
+            /*
+            for (Iterator it = first; it != last; ++it) {
+                *it = std::move(temp.Get());
+            }*/
             items_.swap(temp);
             capacity_ = new_capacity;
         }
     }
-    //v1
-    
+
     void PushBack(const Type& item) {
 
         ++size_;
         while (size_ > capacity_) {
             capacity_ = (capacity_ == 0) ? 1 : capacity_ * 2;
         }
+
         ArrayPtr<Type> temp(capacity_);
-        
+        Iterator first = begin();
+        Iterator last = end();
+        Iterator it = temp.Get() + size_ - 1;
+
         if (size_ > 1) {
-            std::copy(begin(), end(), temp.Get());
+            std::copy(first, last, temp.Get());
         }
 
-        *(temp.Get() + size_-1) = item;
-        items_.swap(temp);
+        *it = item;
+        items_.move(std::move(temp));
     }
-    //v2
+
     void PushBack(Type&& item) {
 
         ++size_;
         while (size_ > capacity_) {
             capacity_ = (capacity_ == 0) ? 1 : capacity_ * 2;
         }
+
         ArrayPtr<Type> temp(capacity_);
         Iterator first = begin();
         Iterator last = end();
@@ -130,17 +154,16 @@ public:
             std::move(first, last, temp.Get());
         }
 
-        *(it) = std::exchange(item, Type());
-        items_.swap(temp);
+        *(it) = std::move(item);
+        items_.move(std::move(temp));
     }
 
-    //v1
     Iterator Insert(ConstIterator pos, const Type& value) {
         Iterator p = const_cast<Iterator>(pos);
         auto d = std::distance(begin(), p);
 
         ++size_;
-        if(size_ > capacity_) {
+        if (size_ > capacity_) {
             Resize(size_);
         }
         if (begin() == end() - 1) {
@@ -148,13 +171,13 @@ public:
             return begin();
         }
 
-        std::copy_backward(begin()+d, end() - 1, end());
-        
+        std::copy_backward(begin() + d, end() - 1, end());
+
         *(begin() + d) = value;
-        
+
         return begin() + d;
     }
-    //v2
+    /*
     Iterator Insert(ConstIterator pos, Type&& value) {
         Iterator p = const_cast<Iterator>(pos);
         auto d = std::distance(begin(), p);
@@ -174,21 +197,20 @@ public:
 
         return begin() + d;
     }
-
+    */
     void PopBack() noexcept {
         assert(size_ > 0);
         --size_;
     }
 
-    // Удаляет элемент вектора в указанной позиции
     Iterator Erase(ConstIterator pos) {
-        assert(size_ > 0);        
-        --size_;
+        assert(size_ > 0);
 
+        Iterator first = const_cast<Iterator>(pos + 1);
         Iterator p = const_cast<Iterator>(pos);
-        std::copy_backward(p+1, end()+1, end());
-
-        
+        Iterator last = end();
+        --size_;
+        std::copy(std::make_move_iterator(first), std::make_move_iterator(last), p);
         return p;
     }
 
@@ -197,6 +219,12 @@ public:
         items_.swap(other.items_);
         std::swap(size_, other.size_);
         std::swap(capacity_, other.capacity_);
+    }
+
+    void move(SimpleVector&& other) noexcept {
+        items_.move(std::move(other.items_));
+        size_ = std::exchange(other.size_, 0);
+        capacity_ = std::exchange(other.capacity_, 0);
     }
 
     size_t GetSize() const noexcept {
@@ -221,14 +249,14 @@ public:
 
     Type& At(size_t index) {
         if (index >= size_) {
-            throw std::out_of_range("out of range");
+            throw std::out_of_range("");
         }
         return items_[index];
     }
 
     const Type& At(size_t index) const {
         if (index >= size_) {
-            throw std::out_of_range();
+            throw std::out_of_range("");
         }
         return items_[index];
     }
@@ -237,19 +265,35 @@ public:
         size_ = 0;
     }
 
-    void Resize(size_t new_size) noexcept{
+    void Resize(size_t new_size) noexcept {
         if (new_size > capacity_) {
-            ArrayPtr<Type> temp(new_size);
-            
-            if(begin() != nullptr)
+            capacity_ = (capacity_ == 0) ? new_size : new_size * 2;
+
+            ArrayPtr<Type> temp(capacity_);
+
+            if (begin() != nullptr) {
                 std::copy(items_.Get(), items_.Get() + size_, temp.Get());
-            std::fill(temp.Get() + size_, temp.Get() + new_size, Type());
+            }
+            Iterator first = temp.Get() + size_;
+            Iterator last = temp.Get() + new_size;
+            std::fill(first, last, Type());
+            /*
+            for (auto it = temp.Get() + size_; it != temp.Get() + new_size; ++it) {
+                *it = std::move(Type());
+            }
+            */
             items_.swap(temp);
 
-            capacity_ = (capacity_ == 0) ? new_size : new_size * 2;
+            
         }
         else if (new_size > size_) {
-            std::fill(items_.Get() + size_, items_.Get() + new_size, Type());
+            Iterator first = items_.Get() + size_;
+            Iterator last = items_.Get() + new_size;
+            std::fill(first, last, Type());
+            /*
+            for (auto it = items_.Get() + size_; it != items_.Get() + new_size; ++it) {
+                *it = std::move(Type());
+            }*/
         }
         size_ = new_size;
     }
@@ -290,7 +334,7 @@ inline bool operator!=(const SimpleVector<Type>& lhs, const SimpleVector<Type>& 
 }
 
 template <typename Type>
-inline bool operator<(const SimpleVector<Type>& lhs, const SimpleVector<Type>& rhs) {    
+inline bool operator<(const SimpleVector<Type>& lhs, const SimpleVector<Type>& rhs) {
     return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
