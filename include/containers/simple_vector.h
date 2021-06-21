@@ -55,6 +55,7 @@ public:
         }
     }
 
+    //v1
     SimpleVector(const SimpleVector& other) {
         SimpleVector<Type> temp(other.GetSize());
         std::copy(other.begin(), other.end(), temp.begin());
@@ -62,10 +63,25 @@ public:
         temp.capacity_ = other.capacity_;
         swap(temp);
     }
-
+    //v2
+    SimpleVector(SimpleVector&& other){
+        SimpleVector<Type> temp(other.GetSize());
+        std::copy(std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()), temp.begin());
+        temp.size_ = std::exchange(other.size_, 0);
+        temp.capacity_ = std::exchange(other.capacity_, 0);
+        swap(temp);
+    }
+    //v1
     SimpleVector& operator=(const SimpleVector& rhs) {
         assert(*this != rhs);
         SimpleVector<Type> temp(rhs);
+        this->swap(temp);
+        return *this;
+    }
+    //v2
+    SimpleVector& operator=(SimpleVector&& rhs) {
+        assert(*this != rhs);
+        SimpleVector<Type> temp(std::move(rhs));
         this->swap(temp);
         return *this;
     }
@@ -81,7 +97,8 @@ public:
             capacity_ = new_capacity;
         }
     }
-
+    //v1
+    
     void PushBack(const Type& item) {
 
         ++size_;
@@ -97,7 +114,24 @@ public:
         *(temp.Get() + size_-1) = item;
         items_.swap(temp);
     }
+    //v2
+    void PushBack(Type&& item) {
 
+        ++size_;
+        while (size_ > capacity_) {
+            capacity_ = (capacity_ == 0) ? 1 : capacity_ * 2;
+        }
+        ArrayPtr<Type> temp(capacity_);
+
+        if (size_ > 1) {
+            std::copy(std::make_move_iterator(begin()), std::make_move_iterator(end()), temp.Get());
+        }
+
+        *(temp.Get() + size_ - 1) = std::move(item);
+        items_.swap(temp);
+    }
+
+    //v1
     Iterator Insert(ConstIterator pos, const Type& value) {
         Iterator p = const_cast<Iterator>(pos);
         auto d = std::distance(begin(), p);
@@ -115,6 +149,26 @@ public:
         
         *(begin() + d) = value;
         
+        return begin() + d;
+    }
+    //v2
+    Iterator Insert(ConstIterator pos, Type&& value) {
+        Iterator p = const_cast<Iterator>(pos);
+        auto d = std::distance(begin(), p);
+
+        ++size_;
+        if (size_ > capacity_) {
+            Resize(size_);
+        }
+        if (begin() == end() - 1) {
+            *begin() = std::move(value);
+            return begin();
+        }
+
+        std::copy_backward(begin() + d, end() - 1, end());
+
+        *(begin() + d) = std::move(value);
+
         return begin() + d;
     }
 

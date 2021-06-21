@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <numeric>
+#include <utility>
 
 class X {
 public:
@@ -12,8 +13,10 @@ public:
     X(size_t num)
         : x_(num) {
     }
+    
     X(const X& other) = delete;
     X& operator=(const X& other) = delete;
+
     X(X&& other) {
         x_ = std::exchange(other.x_, 0);
     }
@@ -76,15 +79,25 @@ void TestNamedMoveOperator() {
     assert(vector_to_move.GetSize() == 0);
     std::cout << "Done!" << std::endl << std::endl;
 }
+void MyTest() {
+    X x(1);
+    int i = 2;
+    SimpleVector<X> v1;
+    v1.PushBack(1);
+}
 
 void TestNoncopiableMoveConstructor() {
     const size_t size = 5;
     std::cout << "Test noncopiable object, move constructor" << std::endl;
+    
     SimpleVector<X> vector_to_move;
+    
     for (size_t i = 0; i < size; ++i) {
         vector_to_move.PushBack(X(i));
     }
-
+    
+}
+    /*
     SimpleVector<X> moved_vector = std::move(vector_to_move);
     assert(moved_vector.GetSize() == size);
     assert(vector_to_move.GetSize() == 0);
@@ -94,7 +107,7 @@ void TestNoncopiableMoveConstructor() {
     }
     std::cout << "Done!" << std::endl << std::endl;
 }
-
+/*
 void TestNoncopiablePushBack() {
     const size_t size = 5;
     std::cout << "Test noncopiable push back" << std::endl;
@@ -146,15 +159,16 @@ void TestNoncopiableErase() {
     assert(it->GetX() == 1);
     std::cout << "Done!" << std::endl << std::endl;
 }
-
+*/
 int main() {
+    MyTest();
     TestTemporaryObjConstructor();
     TestTemporaryObjOperator();
     TestNamedMoveConstructor();
     TestNamedMoveOperator();
     TestNoncopiableMoveConstructor();
-    TestNoncopiablePushBack();
-    TestNoncopiableInsert();
-    TestNoncopiableErase();
+    //TestNoncopiablePushBack();
+    //TestNoncopiableInsert();
+    //TestNoncopiableErase();
     return 0;
 }
