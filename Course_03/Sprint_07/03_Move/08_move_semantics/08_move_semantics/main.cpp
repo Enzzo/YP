@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <numeric>
-#include <utility>
+#include <vector>
 
 class X {
 public:
@@ -80,10 +80,8 @@ void TestNamedMoveOperator() {
     std::cout << "Done!" << std::endl << std::endl;
 }
 void MyTest() {
-    X x(1);
-    int i = 2;
-    SimpleVector<X> v1;
-    v1.PushBack(1);
+    std::vector<int> v1 = { 1, 2, 3, 4, 5 };
+    std::copy_backward(v1.begin() + 1, v1.end()-1, v1.end());
 }
 
 void TestNoncopiableMoveConstructor() {
@@ -96,8 +94,6 @@ void TestNoncopiableMoveConstructor() {
         vector_to_move.PushBack(X(i));
     }
     
-}
-    /*
     SimpleVector<X> moved_vector = std::move(vector_to_move);
     assert(moved_vector.GetSize() == size);
     assert(vector_to_move.GetSize() == 0);
@@ -107,7 +103,7 @@ void TestNoncopiableMoveConstructor() {
     }
     std::cout << "Done!" << std::endl << std::endl;
 }
-/*
+
 void TestNoncopiablePushBack() {
     const size_t size = 5;
     std::cout << "Test noncopiable push back" << std::endl;
@@ -159,16 +155,16 @@ void TestNoncopiableErase() {
     assert(it->GetX() == 1);
     std::cout << "Done!" << std::endl << std::endl;
 }
-*/
+
 int main() {
-    //MyTest();
-    //TestTemporaryObjConstructor();
-    //TestTemporaryObjOperator();
-    //TestNamedMoveConstructor();
-    //TestNamedMoveOperator();
+    MyTest();
+    TestTemporaryObjConstructor();
+    TestTemporaryObjOperator();
+    TestNamedMoveConstructor();
+    TestNamedMoveOperator();
     TestNoncopiableMoveConstructor();
-    //TestNoncopiablePushBack();
-    //TestNoncopiableInsert();
-    //TestNoncopiableErase();
+    TestNoncopiablePushBack();
+    TestNoncopiableInsert();
+    TestNoncopiableErase();
     return 0;
 }

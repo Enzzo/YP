@@ -11,7 +11,7 @@ class ReserveProxyObj {
     size_t size_;
 public:
     ReserveProxyObj(size_t size = 0) : size_(size) {}
-    inline const size_t GetSize() const {
+    inline size_t GetSize() const {
         return size_;
     }
 };
@@ -56,6 +56,7 @@ public:
     }
 
     //v1
+
     SimpleVector(const SimpleVector& other) {
         SimpleVector<Type> temp(other.GetSize());
         std::copy(other.begin(), other.end(), temp.begin());
@@ -64,25 +65,30 @@ public:
         swap(temp);
     }
     //v2
-    SimpleVector(SimpleVector&& other){
+    SimpleVector(SimpleVector&& other) {
         SimpleVector<Type> temp(other.GetSize());
-        std::copy(std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()), temp.begin());
+        temp.items_.swap(std::move(other.items_));
         temp.size_ = std::exchange(other.size_, 0);
         temp.capacity_ = std::exchange(other.capacity_, 0);
-        swap(temp);
+        swap(std::move(temp));
     }
+    
+
     //v1
     SimpleVector& operator=(const SimpleVector& rhs) {
         assert(*this != rhs);
-        SimpleVector<Type> temp(rhs);
-        this->swap(temp);
+        SimpleVector<Type> temp(std::move(rhs));
+        swap(temp); //temp опустошается
         return *this;
     }
     //v2
-    SimpleVector& operator=(SimpleVector&& rhs) {
+    SimpleVector& operator=(SimpleVector& rhs) {
         assert(*this != rhs);
-        SimpleVector<Type> temp(std::move(rhs));
-        this->swap(temp);
+        SimpleVector<Type> temp(rhs.GetSize());
+        temp.items_.swap(std::move(rhs.items_));
+        temp.size_ = std::exchange(rhs.size_, 0);
+        temp.capacity_ = std::exchange(rhs.capacity_, 0);
+        swap(std::move(temp));
         return *this;
     }
 
@@ -99,7 +105,7 @@ public:
     }
     //v1
     
-    void PushBack(const Type& item) {
+    void PushBack(const Type& item){
 
         ++size_;
         while (size_ > capacity_) {
@@ -114,7 +120,8 @@ public:
         *(temp.Get() + size_-1) = item;
         items_.swap(temp);
     }
-    //v2
+
+    //v2    
     void PushBack(Type&& item) {
 
         ++size_;
@@ -125,16 +132,17 @@ public:
         Iterator first = begin();
         Iterator last = end();
         Iterator it = const_cast<Iterator>(temp.Get() + size_ - 1);
-
+        
         if (size_ > 1) {
             std::move(first, last, temp.Get());
         }
 
-        *(it) = std::exchange(item, Type());
-        items_.swap(temp);
+        *(it) = std::move(item);
+        items_.swap(std::move(temp));
     }
-
+    
     //v1
+    /*
     Iterator Insert(ConstIterator pos, const Type& value) {
         Iterator p = const_cast<Iterator>(pos);
         auto d = std::distance(begin(), p);
@@ -153,7 +161,7 @@ public:
         *(begin() + d) = value;
         
         return begin() + d;
-    }
+    }*/
     //v2
     Iterator Insert(ConstIterator pos, Type&& value) {
         Iterator p = const_cast<Iterator>(pos);
@@ -180,15 +188,14 @@ public:
         --size_;
     }
 
-    // Удаляет элемент вектора в указанной позиции
     Iterator Erase(ConstIterator pos) {
-        assert(size_ > 0);        
-        --size_;
-
-        Iterator p = const_cast<Iterator>(pos);
-        std::copy_backward(p+1, end()+1, end());
-
+        assert(size_ > 0);
         
+        Iterator first = const_cast<Iterator>(pos+1);
+        Iterator p = const_cast<Iterator>(pos);
+        Iterator last = end();        
+        --size_;
+        std::copy(std::make_move_iterator(first), std::make_move_iterator(last), p);
         return p;
     }
 
@@ -197,6 +204,13 @@ public:
         items_.swap(other.items_);
         std::swap(size_, other.size_);
         std::swap(capacity_, other.capacity_);
+    }
+
+    //v2
+    void swap(SimpleVector&& other) noexcept {
+        items_.swap(std::move(other.items_));
+        size_ = std::exchange(other.size_, 0);
+        capacity_ = std::exchange(other.capacity_, 0);
     }
 
     size_t GetSize() const noexcept {
@@ -221,14 +235,14 @@ public:
 
     Type& At(size_t index) {
         if (index >= size_) {
-            throw std::out_of_range("out of range");
+            throw std::out_of_range("");
         }
         return items_[index];
     }
 
     const Type& At(size_t index) const {
         if (index >= size_) {
-            throw std::out_of_range();
+            throw std::out_of_range("");
         }
         return items_[index];
     }
