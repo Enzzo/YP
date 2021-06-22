@@ -52,13 +52,8 @@ public:
     void swap(ArrayPtr& other) noexcept {
         std::swap(raw_ptr_, other.raw_ptr_);
     }
-<<<<<<< HEAD
     
     void move(ArrayPtr&& other) noexcept {
-=======
-
-    void swap(ArrayPtr&& other) noexcept {
->>>>>>> 88cae2ef41778b1f04a1f2d65689a3b632e075ed
         raw_ptr_ = std::exchange(other.raw_ptr_, nullptr);
     }
 };
