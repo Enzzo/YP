@@ -104,12 +104,10 @@ inline void SimpleVectorFirstPartPraktikumTest() {
         SimpleVector<int> v(3);
         v[2] = 17;
         v.Resize(7);
-        /*
         assert(v.GetSize() == 7);
         assert(v.GetCapacity() >= v.GetSize());
         assert(v[2] == 17);
         assert(v[3] == 0);
-        */
     }
     {
         SimpleVector<int> v(3);
@@ -566,7 +564,7 @@ void TestNoncopiableInsert() {
     assert(v.GetSize() == size + 1);
     assert(v.begin()->GetX() == size + 1);
     // в конец
-    /*
+    
     v.Insert(v.end(), X(size + 2));
     assert(v.GetSize() == size + 2);
     assert((v.end() - 1)->GetX() == size + 2);
@@ -574,10 +572,10 @@ void TestNoncopiableInsert() {
     v.Insert(v.begin() + 3, X(size + 3));
     assert(v.GetSize() == size + 3);
     assert((v.begin() + 3)->GetX() == size + 3);
-    */
+    
     std::cout << "Done!" << std::endl << std::endl;
 }
-/*
+
 void TestNoncopiableErase() {
     const size_t size = 3;
     std::cout << "Test noncopiable erase" << std::endl;
@@ -592,4 +590,4 @@ void TestNoncopiableErase() {
     it = v.Erase(v.begin());
     assert(it->GetX() == 2);
     std::cout << "Done!" << std::endl << std::endl;
-}*/
+}

@@ -146,47 +146,17 @@ public:
         *(it) = std::move(item);
         items_.move(std::move(temp));
     }
-    /*
-    Iterator Insert(ConstIterator pos, const Type& value) {
-        Iterator p = const_cast<Iterator>(pos);
-        auto d = std::distance(begin(), p);
 
-        ++size_;
-        if (size_ > capacity_) {
-            Resize(size_);
-        }
-        if (begin() == end() - 1) {
-            *begin() = value;
-            return begin();
-        }
-
-        std::copy_backward(begin() + d, end() - 1, end());
-
-        *(begin() + d) = value;
-
-        return begin() + d;
-    }
-    */
     Iterator Insert(ConstIterator pos, Type&& value) {
-        
+        Resize(size_ + 1);
         Iterator p = const_cast<Iterator>(pos);
-        auto d = std::distance(begin(), p);
-        
-        ++size_;
-        if (size_ > capacity_) {
-            Resize(size_);
-        }
-        
-        if (begin() == end() - 1) {
-            *begin() = std::move(value);
-            return begin();
-        }
+        int dist = std::distance(begin(), p);
 
-        //std::copy_backward(begin() + d, end() - 1, end());
-
-        *(begin() + d) = std::move(value);
         
-        return begin() + d;
+
+        *(begin() + dist) = std::move(value);
+        
+        return begin() + dist;
     }
     void PopBack() noexcept {
         assert(size_ > 0);
@@ -256,50 +226,28 @@ public:
     }
 
     void Resize(size_t new_size) noexcept {
-        /*
-        if (new_size > capacity_) {
-            capacity_ = (capacity_ == 0) ? new_size : new_size * 2;
-
-            ArrayPtr<Type> temp(capacity_);
-
-            if (begin() != nullptr) {
-                //std::copy(items_.Get(), items_.Get() + size_, temp.Get());
-            }
-            Iterator first = temp.Get() + size_;
-            Iterator last = temp.Get() + new_size;
-            //std::fill(first, last, Type());
-            
-            for (auto it = temp.Get() + size_; it != temp.Get() + new_size; ++it) {
-                *it = std::move(Type());
-            }
-            
-            items_.swap(temp);
-
-            
-        }
-        */
         if (new_size > size_) {
 
-            //если вместимость увеличилась, выделяем новую память
             if (new_size > capacity_) {
                 capacity_ = (capacity_ == 0) ? new_size : new_size * 2;
 
-                //ArrayPtr<Type> temp(capacity_);
+                ArrayPtr<Type> temp(capacity_);
 
-                //std::move(begin(), begin() + size_, temp.Get());
+                if(begin() != nullptr)
+                    std::move(begin(), end(), temp.Get());
 
-                //items_.swap(temp);
+                items_.swap(temp);
             }
-            //обнулить всё от size до new_sizes
-            Iterator first = begin();// +size_;
-            Iterator last = begin();// +new_size;
-            
-            //fill doesn't work!!!
+
+            Iterator first = begin()+size_;
+            Iterator last = begin()+new_size;
+
             for (auto it = first; it != last; ++it) {
                 *it = Type();
             }
         }
         size_ = new_size;
+        int x = 2;
     }
 
     Iterator begin() noexcept {

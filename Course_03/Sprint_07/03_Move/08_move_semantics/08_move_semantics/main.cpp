@@ -18,6 +18,6 @@ int main() {
     TestNamedMoveOperator();
     TestNoncopiablePushBack();
     TestNoncopiableInsert();
-    //TestNoncopiableErase();
+    TestNoncopiableErase();
     return 0;
 }
