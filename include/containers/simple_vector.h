@@ -216,20 +216,13 @@ void SimpleVector<Type>::Reserve(size_t new_capacity) {
             std::move(items_.Get(), items_.Get() + capacity_, temp.Get());
         }
         Iterator first = temp.Get() + capacity_;
-<<<<<<< HEAD
-        Iterator last = temp.Get() + new_capacity;        
-        for (Iterator it = first; it != last; ++it) {
-            *it = Type();
-        }
+        Iterator last = temp.Get() + new_capacity;   
         
-=======
-        Iterator last = temp.Get() + new_capacity;     
-
+       
         for (Iterator it = first; it != last; ++it) {
             *it = Type();
         }
 
->>>>>>> bc85b2108fffb2c16393d9a85ceb8144388e9571
         items_.swap(temp);
         capacity_ = new_capacity;
     }
