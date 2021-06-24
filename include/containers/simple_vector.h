@@ -67,7 +67,9 @@ public:
 
     SimpleVector(SimpleVector&& other) {        
         SimpleVector temp;
-        temp.move(std::move(other));
+        temp.items_.swap(other.items_);
+        temp.size_ = std::exchange(other.size_, 0);
+        temp.capacity_ = std::exchange(other.capacity_, 0);
         swap(temp);        
     }
     
@@ -80,8 +82,7 @@ public:
     
     SimpleVector& operator=(SimpleVector&& rhs) {        
         assert(*this != rhs);
-        SimpleVector temp;
-        temp.move(std::move(rhs));
+        SimpleVector temp(rhs);
         swap(temp);        
         return *this;
     }
@@ -102,17 +103,11 @@ public:
 
         Iterator p = const_cast<Iterator>(pos);
         int dist = std::distance(p, end());
-
         ArrayPtr<Type> temp(dist);
-
         std::move(p, end(), temp.Get());
-
-        Resize(size_ + 1);
-        
+        Resize(size_ + 1);        
         Iterator t = end() - dist - 1; //target iterator
-
         *(t) = std::move(value);
-
         std::move(temp.Get(), temp.Get() + dist, t+1);
         return t;
     }   
@@ -124,14 +119,12 @@ public:
         Iterator p = const_cast<Iterator>(pos);
         Iterator last = end();
         --size_;
-        std::copy(std::make_move_iterator(first), std::make_move_iterator(last), p);
+        std::move(first, last, p);
 
         return p;
     }
 
     void swap(SimpleVector& other) noexcept;
-
-    void move(SimpleVector&& other) noexcept;
 
     inline size_t GetSize() const noexcept {
         return size_;
@@ -216,13 +209,6 @@ void SimpleVector<Type>::swap(SimpleVector& other) noexcept {
 }
 
 template<typename Type>
-void SimpleVector<Type>::move(SimpleVector&& other) noexcept {
-    items_.move(std::move(other.items_));
-    size_ = std::exchange(other.size_, 0);
-    capacity_ = std::exchange(other.capacity_, 0);
-}
-
-template<typename Type>
 void SimpleVector<Type>::Reserve(size_t new_capacity) {
     if (new_capacity > capacity_) {
         ArrayPtr<Type> temp(new_capacity);
@@ -230,11 +216,11 @@ void SimpleVector<Type>::Reserve(size_t new_capacity) {
             std::move(items_.Get(), items_.Get() + capacity_, temp.Get());
         }
         Iterator first = temp.Get() + capacity_;
-        Iterator last = temp.Get() + new_capacity;
-
+        Iterator last = temp.Get() + new_capacity;        
         for (Iterator it = first; it != last; ++it) {
             *it = Type();
         }
+        
         items_.swap(temp);
         capacity_ = new_capacity;
     }
@@ -248,15 +234,12 @@ void SimpleVector<Type>::Resize(size_t new_size) noexcept {
             while (new_size > capacity_) {
                 capacity_ = (capacity_ == 0) ? 1 : capacity_ * 2;
             }
-
             ArrayPtr<Type> temp(capacity_);
-
-            if (begin() != nullptr)
+            if (begin() != nullptr) {
                 std::move(begin(), end(), temp.Get());
-
-            items_.move(std::move(temp));
+            }
+            items_.swap(temp);
         }
-
         Iterator first = begin() + size_;
         Iterator last = begin() + new_size;
 
