@@ -218,11 +218,9 @@ void SimpleVector<Type>::Reserve(size_t new_capacity) {
         Iterator first = temp.Get() + capacity_;
         Iterator last = temp.Get() + new_capacity;   
         
-       
         for (Iterator it = first; it != last; ++it) {
             *it = Type();
         }
-
         items_.swap(temp);
         capacity_ = new_capacity;
     }
