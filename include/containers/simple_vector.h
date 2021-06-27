@@ -82,8 +82,8 @@ public:
     
     SimpleVector& operator=(SimpleVector&& rhs) {        
         assert(*this != rhs);
-        SimpleVector temp(rhs);
-        swap(temp);        
+        this->Resize(rhs.GetSize());
+        std::move(rhs.begin(), rhs.end(), begin());
         return *this;
     }
     
