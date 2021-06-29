@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "search_server.h"
+#include "process_queries.h"
 
 using namespace std::literals;
 
@@ -27,12 +28,8 @@ int main() {
         "not very funny nasty pet"s,
         "curly hair"s
     };
-    id = 0;
-    for (
-        const auto& documents : ProcessQueries(search_server, queries)
-        ) {
-        std::cout << documents.size() << " documents for query ["s << queries[id++] << "]"s << std::endl;
+    for (const Document& document : ProcessQueriesJoined(search_server, queries)) {
+        std::cout << "Document "s << document.id << " matched with relevance "s << document.relevance << std::endl;
     }
-
     return 0;
 }

@@ -18,7 +18,6 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
 
     const double inv_word_count = 1.0 / words.size();
     for (const std::string& word : words) {
-       //word_to_document_freqs_[word][document_id] += inv_word_count;
        doc_to_word_freqs_[document_id][word] += inv_word_count;
     }
 
@@ -65,7 +64,6 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
     return { matched_words, documents_.at(document_id).status };
 }
 
-//O(log N)
 const std::map<std::string, double>& SearchServer::GetWordFrequencies(const int document_id) const noexcept {
 
     const std::map<int, std::map<std::string, double>>::const_iterator it =
@@ -78,15 +76,20 @@ const std::map<std::string, double>& SearchServer::GetWordFrequencies(const int 
     return *empty;
 }
 
-//O(W log N)
 void SearchServer::RemoveDocument(const int document_id) {
+    RemoveDocument(std::execution::seq, document_id);
+}
+
+template<typename ExecutionPolicy>
+void RemoveDocument(ExecutionPolicy&& p, int document_id) {
     if (doc_to_word_freqs_.count(document_id)) {
         doc_to_word_freqs_.erase(document_id);
         documents_.erase(document_id);
         auto it = std::lower_bound(document_id_.begin(), document_id_.end(), document_id);
-        document_id_.erase(it);    
+        document_id_.erase(it);
     }
 }
+
 
 bool SearchServer::IsValidWord(const std::string& word) {
     // A valid word must not contain special characters
@@ -122,7 +125,6 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
 }
 
 [[nodiscard]] bool SearchServer::ParseQueryWord(std::string text, QueryWord& result) const {
-    // Empty result by initializing it with default constructed QueryWord
     result = {};
 
     if (text.empty()) {
@@ -142,7 +144,7 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
 }
 
 [[nodiscard]] bool SearchServer::ParseQuery(const std::string& text, Query& result) const {
-    // Empty result by initializing it with default constructed Query
+
     result = {};
     for (const std::string& word : SplitIntoWords(text)) {
         QueryWord query_word;
@@ -161,7 +163,6 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
     return true;
 }
 
-// Existence required
 double SearchServer::ComputeWordInverseDocumentFreq(const std::string& word) const {
     int size = 0;
     for (const auto& [doc, content] : doc_to_word_freqs_) {

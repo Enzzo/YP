@@ -5,10 +5,13 @@
 #include <set>
 #include <map>
 #include <algorithm>
+#include <execution>
 
 #include "document.h"
 #include "string_processing.h"
 #include "log_duration.h"
+
+using namespace std::literals;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
@@ -73,12 +76,10 @@ public:
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string&, int) const;
 
-    //O(log N)
     const std::map<std::string, double>& GetWordFrequencies(const int) const noexcept;
 
-    //O(W log N)
     void RemoveDocument(int document_id);
-
+    
 private:
 
     static bool IsValidWord(const std::string&);
@@ -136,7 +137,6 @@ std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_quer
         matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
     }
 
-    // Exchange matched_documents and result instead of deep copying
     result.swap(matched_documents);
     return result;
 }
