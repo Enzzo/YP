@@ -38,27 +38,25 @@ int CountWords(std::string_view str) {
     // игнорируя начальные, конечные
     // и подряд идущие пробелы
     
-    //std::vector<int> line(str.size());
-    std::string_view::iterator first = str.begin();
-    std::string_view::iterator last = str.end();
+    if (str.empty()) {
+        return 0;
+    }
 
-    std::vector<int> red(str.size());
-    int x = 0;
-    x = std::transform_reduce(str.begin(), str.end(), red.begin(), 0);/* , std::plus<>{});/* , [&first, &str](const char ch) {
-        ++first;
-        return ch != ' ' && (*first == ' ' || first == str.end()) ;
-        });*/
-    int y = 3;
-    return x;
+    std::string_view::iterator first = str.begin()+1;
+    std::vector<int> v(str.size());
+
+    return std::transform_reduce(std::execution::par, str.begin(), str.end() - 1, first, 0, std::plus<>(), [](const char l, const char r) {
+        return isspace(l) && !isspace(r);
+        }) +(*str.begin() != ' ');
 }
 
 int main() {
-    /*
+    
     std::mt19937 generator;
 
-    const std::string s = GenerateQuery(generator, 500'000'00, 4);
+    //const std::string s = GenerateQuery(generator, 500'000'00, 4);
 
-    TEST(CountWords);
-    */
-    std::cout << CountWords("     ffff bnvnbv gdfdfgfd    d     "sv) << std::endl;
+    //TEST(CountWords);
+    
+    std::cout << CountWords("  ss"sv) << std::endl;
 }
