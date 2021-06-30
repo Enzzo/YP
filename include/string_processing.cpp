@@ -24,20 +24,19 @@ std::vector<std::string_view> SplitIntoWords(const std::string_view& text) {
 
 std::vector<std::string_view> SplitIntoWords(const std::string_view& text) {
     std::vector<std::string_view> words;
+    std::string_view temp = text;
     words.reserve(std::count(text.begin(), text.end(), ' ') + 1);
     
-    int pos = 0;
+    int start = 0;
+    int end = 0;
 
     while (true) {
-        pos = text.find(' ', pos + 1);
-        if (pos == std::string_view::npos) break;
-
-        std::string_view temp(new char[pos]);// = text.substr(pos);
-        //std::move(text.begin(), text.begin() + pos, temp.begin());
-        const std::string s = "fff";
-        words.push_back(temp);
-        //std::string_view& temp = *words.end();
+        end = temp.find(' ', start);
+        if (end == std::string_view::npos) break;        
+        
+        words.push_back(temp.substr(start, end-start));
+        start = end + 1;
     }
-    int x = 0;
+    words.push_back(temp.substr(start));
     return words;
 }

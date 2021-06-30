@@ -1,7 +1,6 @@
 #pragma once
 
-#include "search_server.h"
-#include "remove_duplicates.h"
+#include "process_queries.h"
 
 #include <iomanip>
 
@@ -68,7 +67,7 @@ void TestGetWordFrequencies();
 
 void TestRemoveDocuments();
 
-//void TestRemoveDuplicates();
+void TestRemoveDuplicates();
 
 // The TestSearchServer function is the entry point for running tests
 void TestSearchServer();

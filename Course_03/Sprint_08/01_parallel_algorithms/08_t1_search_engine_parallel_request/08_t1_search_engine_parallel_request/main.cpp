@@ -1,4 +1,5 @@
 #include "search_server.h"
+#include "test_example_functions.h"
 
 #include <iostream>
 #include <string>
@@ -8,18 +9,17 @@
 using namespace std;
 
 int main() {
-
-    //SearchServer search_server("and with"sv);
-    SearchServer search_server("and with ssss gggggg"sv);
+    TestSearchServer();
+    SearchServer search_server("and with"sv);
 
     int id = 0;
     for (
-        const string& text : {
-            "funny pet and nasty rat"s,
-            "funny pet with curly hair"s,
-            "funny pet and not very nasty rat"s,
-            "pet with rat and rat and rat"s,
-            "nasty rat with curly hair"s,
+        const string_view& text : {
+            "funny pet and nasty rat"sv,
+            "funny pet with curly hair"sv,
+            "funny pet and not very nasty rat"sv,
+            "pet with rat and rat and rat"sv,
+            "nasty rat with curly hair"sv,
         }
         ) {
         search_server.AddDocument(++id, text, DocumentStatus::ACTUAL, { 1, 2 });

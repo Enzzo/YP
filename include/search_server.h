@@ -49,7 +49,8 @@ public:
     template <typename StringContainer>
     explicit SearchServer(const StringContainer&);
 
-    //explicit SearchServer(const std::string&);
+    explicit SearchServer(const std::string&);
+    
     explicit SearchServer(const std::string_view&);
 
     void AddDocument(int, const std::string_view&, DocumentStatus, const std::vector<int>&);
@@ -87,7 +88,8 @@ public:
     
 private:
 
-    static bool IsValidWord(const std::string_view&);
+    template<typename str>
+    static bool IsValidWord(const str&);
 
     static int ComputeAverageRating(const std::vector<int>&);
 
@@ -191,7 +193,7 @@ std::vector<Document> SearchServer::FindAllDocuments(const Query& query, Documen
 
 template <typename StringContainer>
 void SearchServer::CheckValidity(const StringContainer& strings) {
-    for (const std::string_view& str : strings) {
+    for (const auto& str : strings) {
         if (!IsValidWord(str)) {
             throw std::invalid_argument("invalid stop-words in constructor"s);
         }
@@ -202,9 +204,18 @@ template <typename StringContainer>
 std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
     std::set<std::string_view> non_empty_strings;
     for (const auto& str : strings) {
-        if (!str.empty()) {
+        if(!str.empty())
             non_empty_strings.insert(str);
-        }
     }
     return non_empty_strings;
 }
+
+template<typename str>
+bool SearchServer::IsValidWord(const str& word) {
+    // A valid word must not contain special characters
+    return std::none_of(word.begin(), word.end(), [](char c) {
+        return c >= '\0' && c < ' ';
+        });
+}
+
+void RemoveDuplicates(SearchServer&);
