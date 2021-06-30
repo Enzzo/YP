@@ -3,6 +3,11 @@
 SearchServer::SearchServer(const std::string_view& stop_words_text)
     : SearchServer(SplitIntoWords(stop_words_text)) {}
 
+SearchServer::SearchServer(const std::string& stop_words_text) {
+    raw_query_ = stop_words_text;
+    std::string_view temp = raw_query_;
+    SearchServer(raw_query_);
+}
 void SearchServer::AddDocument(int document_id, const std::string_view& document, DocumentStatus status,
     const std::vector<int>& ratings) {
     if ((document_id < 0)) {

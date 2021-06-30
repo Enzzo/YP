@@ -41,6 +41,8 @@ class SearchServer {
     
     std::set<int> document_id_;
 
+    std::string raw_query_;
+
 public:
     // Defines an invalid document id
     // You can refer this constant as SearchServer::INVALID_DOCUMENT_ID
@@ -50,6 +52,8 @@ public:
     explicit SearchServer(const StringContainer&);
         
     explicit SearchServer(const std::string_view&);
+
+    explicit SearchServer(const std::string&);
 
     void AddDocument(int, const std::string_view&, DocumentStatus, const std::vector<int>&);
 
@@ -111,15 +115,15 @@ private:
     template <typename StringContainer>
     void CheckValidity(const StringContainer&);
 
-    //template <typename StringContainer>
-    //std::set<std::string_view> MakeUniqueNonEmptyStrings(const StringContainer&);
-    std::set<std::string_view> MakeUniqueNonEmptyStrings(const std::vector<std::string_view>&);
+    template <typename StringContainer>
+    std::set<std::string_view> MakeUniqueNonEmptyStrings(const StringContainer&);
+    //std::set<std::string_view> MakeUniqueNonEmptyStrings(const std::vector<std::string_view>&);
 };
 
 template <typename StringContainer>
 SearchServer::SearchServer(const StringContainer& stop_words) {
     CheckValidity(stop_words);
-    //stop_words_ = MakeUniqueNonEmptyStrings(stop_words);
+    stop_words_ = MakeUniqueNonEmptyStrings(stop_words);
 }
 
 template <typename DocumentPredicate>
@@ -200,14 +204,13 @@ void SearchServer::CheckValidity(const StringContainer& strings) {
     }
 }
 
-//template <typename StringContainer>
-//std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
-std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const std::vector<std::string_view>& strings){
+template <typename StringContainer>
+std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
+//std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const std::vector<std::string_view>& strings){
     std::set<std::string_view> non_empty_strings;
     for (const auto& str : strings) {
-        std::string_view t{ str };
-        if(!t.empty())
-            non_empty_strings.insert(t);
+        if(!str.empty())
+            non_empty_strings.insert(str);
     }
     return non_empty_strings;
 }
