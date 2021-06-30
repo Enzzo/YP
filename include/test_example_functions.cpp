@@ -49,7 +49,7 @@ bool is_equal(const double l, const double r) {
 //creating an instance of a search server that covers all the tests
 SearchServer GetTestServer() {
 
-    SearchServer server("1word1 2word2 3word3"s);
+    SearchServer server("1word1 2word2 3word3"sv);
 
     server.AddDocument(0, "1word1 1word2 1word3 1word4", DocumentStatus::ACTUAL, { 1, 2, 3 });
     server.AddDocument(1, "2word1 2word2 2word3 2word4", DocumentStatus::BANNED, { 4, 5, 6, 7, 8 });
@@ -63,7 +63,7 @@ SearchServer GetTestServer() {
 
 SearchServer GetTestServerWithDuplicates() {
 
-    SearchServer server("and with"s);
+    SearchServer server("and with"sv);
 
     server.AddDocument(1, "funny pet and nasty rat"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
     server.AddDocument(2, "funny pet with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
@@ -95,7 +95,7 @@ SearchServer GetTestServerWithDuplicates() {
 void SearchServer_AddDocument_CheckSize_SizeChange() {
 
     //empty server
-    SearchServer server(""s);
+    SearchServer server(""sv);
 
     //search for a non-existent word
     std::vector<Document> fd = server.FindTopDocuments("1word1");
@@ -127,7 +127,7 @@ void SearchServer_AddDocument_CheckId_IdFound() {
 }
 
 void SearchServer_AddDocument_CheckDocumentsCount_Equal() {
-    SearchServer server(""s);
+    SearchServer server(""sv);
 
     std::vector<Document> fd = server.FindTopDocuments("1word2");
 

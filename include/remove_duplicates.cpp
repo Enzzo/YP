@@ -3,13 +3,13 @@
 void RemoveDuplicates(SearchServer& search_server) {
 
     std::set<int> duplicates;
-    std::map<std::set<std::string>, int> temp;
+    std::map<std::set<std::string_view>, int> temp;
 
     for (const int id : search_server) {
-        const std::map<std::string, double>& doc = search_server.GetWordFrequencies(id);
-        std::set<std::string> content;
+        const std::map<std::string_view, double>& doc = search_server.GetWordFrequencies(id);
+        std::set<std::string_view> content;
         
-        std::transform(doc.begin(), doc.end(), std::inserter(content, content.begin()), [](const std::pair<std::string, double>& d) {
+        std::transform(doc.begin(), doc.end(), std::inserter(content, content.begin()), [](const std::pair<std::string_view, double>& d) {
             return d.first;
             });
 

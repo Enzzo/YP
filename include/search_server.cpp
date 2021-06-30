@@ -3,7 +3,7 @@
 SearchServer::SearchServer(const std::string_view& stop_words_text)
     : SearchServer(SplitIntoWords(stop_words_text)) {}
 
-void SearchServer::AddDocument(int document_id, const std::string& document, DocumentStatus status,
+void SearchServer::AddDocument(int document_id, const std::string_view& document, DocumentStatus status,
     const std::vector<int>& ratings) {
     if ((document_id < 0)) {
         throw std::invalid_argument("ID can't be less than zero"s);
@@ -25,7 +25,7 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
     document_id_.emplace(document_id);
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query, DocumentStatus status) const {
 
     return FindTopDocuments(
         raw_query,
@@ -34,7 +34,7 @@ std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_quer
         });
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query) const {
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query) const {
     return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
 }
 

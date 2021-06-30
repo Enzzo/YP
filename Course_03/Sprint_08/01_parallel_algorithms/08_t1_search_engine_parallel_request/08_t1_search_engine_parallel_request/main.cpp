@@ -8,11 +8,9 @@
 using namespace std;
 
 int main() {
-    
-    std::vector<string_view> v = { "aaa", "bbb", "ccc" };
 
-    //SearchServer search_server("and with"s);
-    SearchServer search_server(v);
+    //SearchServer search_server("and with"sv);
+    SearchServer search_server("and with ssss gggggg"sv);
 
     int id = 0;
     for (

@@ -52,7 +52,7 @@ public:
     //explicit SearchServer(const std::string&);
     explicit SearchServer(const std::string_view&);
 
-    void AddDocument(int, const std::string&, DocumentStatus, const std::vector<int>&);
+    void AddDocument(int, const std::string_view&, DocumentStatus, const std::vector<int>&);
 
     inline int GetDocumentCount() const noexcept{
         return documents_.size();
@@ -69,9 +69,9 @@ public:
     }
 
     template <typename DocumentPredicate>
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const;
-    std::vector<Document> FindTopDocuments(const std::string&, DocumentStatus) const;
-    std::vector<Document> FindTopDocuments(const std::string&) const;
+    std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentPredicate document_predicate) const;
+    std::vector<Document> FindTopDocuments(const std::string_view&, DocumentStatus) const;
+    std::vector<Document> FindTopDocuments(const std::string_view&) const;
 
 
     std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(const std::string_view&, int) const;
@@ -121,7 +121,7 @@ SearchServer::SearchServer(const StringContainer& stop_words) {
 }
 
 template <typename DocumentPredicate>
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query, DocumentPredicate document_predicate) const {
 
     std::vector<Document> result;
     Query query;
