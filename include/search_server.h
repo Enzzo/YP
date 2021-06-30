@@ -48,9 +48,7 @@ public:
 
     template <typename StringContainer>
     explicit SearchServer(const StringContainer&);
-
-    explicit SearchServer(const std::string&);
-    
+        
     explicit SearchServer(const std::string_view&);
 
     void AddDocument(int, const std::string_view&, DocumentStatus, const std::vector<int>&);
@@ -94,7 +92,8 @@ private:
     static int ComputeAverageRating(const std::vector<int>&);
 
     inline bool IsStopWord(const std::string_view& word) const {
-        return stop_words_.count(word) > 0;
+        std::string temp(word);
+        return stop_words_.count(temp) > 0;
     }
 
     [[nodiscard]] bool SplitIntoWordsNoStop(const std::string_view&, std::vector<std::string_view>&) const;
@@ -112,14 +111,15 @@ private:
     template <typename StringContainer>
     void CheckValidity(const StringContainer&);
 
-    template <typename StringContainer>
-    std::set<std::string_view> MakeUniqueNonEmptyStrings(const StringContainer&);
+    //template <typename StringContainer>
+    //std::set<std::string_view> MakeUniqueNonEmptyStrings(const StringContainer&);
+    std::set<std::string_view> MakeUniqueNonEmptyStrings(const std::vector<std::string_view>&);
 };
 
 template <typename StringContainer>
 SearchServer::SearchServer(const StringContainer& stop_words) {
     CheckValidity(stop_words);
-    stop_words_ = MakeUniqueNonEmptyStrings(stop_words);
+    //stop_words_ = MakeUniqueNonEmptyStrings(stop_words);
 }
 
 template <typename DocumentPredicate>
@@ -200,12 +200,14 @@ void SearchServer::CheckValidity(const StringContainer& strings) {
     }
 }
 
-template <typename StringContainer>
-std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
+//template <typename StringContainer>
+//std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
+std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const std::vector<std::string_view>& strings){
     std::set<std::string_view> non_empty_strings;
     for (const auto& str : strings) {
-        if(!str.empty())
-            non_empty_strings.insert(str);
+        std::string_view t{ str };
+        if(!t.empty())
+            non_empty_strings.insert(t);
     }
     return non_empty_strings;
 }

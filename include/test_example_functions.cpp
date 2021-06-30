@@ -48,7 +48,7 @@ bool is_equal(const double l, const double r) {
 
 //creating an instance of a search server that covers all the tests
 SearchServer GetTestServer() {
-
+    //стоп-слова не добавл€ютс€
     SearchServer server("1word1 2word2 3word3"s);
 
     server.AddDocument(0, "1word1 1word2 1word3 1word4"sv, DocumentStatus::ACTUAL, { 1, 2, 3 });
