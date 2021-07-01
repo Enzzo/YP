@@ -49,14 +49,14 @@ bool is_equal(const double l, const double r) {
 //creating an instance of a search server that covers all the tests
 SearchServer GetTestServer() {
     //стоп-слова не добавляются
-    SearchServer server("1word1 2word2 3word3"sv);
+    SearchServer server("1word1 2word2 3word3"s);
 
-    server.AddDocument(0, "1word1 1word2 1word3 1word4"sv, DocumentStatus::ACTUAL, { 1, 2, 3 });
-    server.AddDocument(1, "2word1 2word2 2word3 2word4"sv, DocumentStatus::BANNED, { 4, 5, 6, 7, 8 });
-    server.AddDocument(2, "3word1 3word2 3word3 3word4 3word3 3word4"sv, DocumentStatus::IRRELEVANT, { 1, 3, 4, 5, 6, 7, 8 });
-    server.AddDocument(3, "4word1 4word2 4word3 4word4"sv, DocumentStatus::REMOVED, { 4, 5, 6, 7, 8, 20, 9 });
-    server.AddDocument(4, "5word1 5word2 5word3 5word4 5word3 5word4"sv, DocumentStatus::ACTUAL, { 5, 1, 3, 4, 5, 6, 7, 8 });
-    server.AddDocument(5, "6word1 6word2 6word1 6word2"sv, DocumentStatus::ACTUAL, { 9, 4, 5, 6, 7, 8, 20, 9 });
+    server.AddDocument(0, "1word1 1word2 1word3 1word4"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
+    server.AddDocument(1, "2word1 2word2 2word3 2word4"s, DocumentStatus::BANNED, { 4, 5, 6, 7, 8 });
+    server.AddDocument(2, "3word1 3word2 3word3 3word4 3word3 3word4"s, DocumentStatus::IRRELEVANT, { 1, 3, 4, 5, 6, 7, 8 });
+    server.AddDocument(3, "4word1 4word2 4word3 4word4"s, DocumentStatus::REMOVED, { 4, 5, 6, 7, 8, 20, 9 });
+    server.AddDocument(4, "5word1 5word2 5word3 5word4 5word3 5word4"s, DocumentStatus::ACTUAL, { 5, 1, 3, 4, 5, 6, 7, 8 });
+    server.AddDocument(5, "6word1 6word2 6word1 6word2"s, DocumentStatus::ACTUAL, { 9, 4, 5, 6, 7, 8, 20, 9 });
 
     return server;
 }
@@ -117,7 +117,6 @@ void SearchServer_AddDocument_CheckSize_SizeEmpty() {
     //fd is empty!
     const std::vector<Document>& fd = server.FindTopDocuments("2word2", DocumentStatus::BANNED);
     
-    //TODO!!!
     ASSERT(fd.empty());
     int x = 2;
 }
@@ -133,14 +132,14 @@ void SearchServer_AddDocument_CheckId_IdFound() {
 void SearchServer_AddDocument_CheckDocumentsCount_Equal() {
     SearchServer server(""sv);
 
-    std::vector<Document> fd = server.FindTopDocuments("1word2");
+    std::vector<Document> fd = server.FindTopDocuments("1word2"s);
 
     ASSERT_EQUAL(fd.size(), 0);
 
-    server.AddDocument(0, "1word2", DocumentStatus::ACTUAL, { 1, 2, 3 });
-    server.AddDocument(1, "2word2", DocumentStatus::ACTUAL, { 1, 2, 3 });
+    server.AddDocument(0, "1word2"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
+    server.AddDocument(1, "2word2"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
 
-    fd = server.FindTopDocuments("1word2 2word2");
+    fd = server.FindTopDocuments("1word2 2word2"sv);
 
     ASSERT_EQUAL(fd.size(), 2);
 }
@@ -313,6 +312,48 @@ void TestRemoveDuplicates() {
     ASSERT(server.GetWordFrequencies(7) == empty);
 }
 
+void TestMultiThread1() {
+    SearchServer search_server("and with"sv);
+
+    int id = 0;
+    for (
+        const std::string_view& text : {
+            "funny pet and nasty rat"sv,
+            "funny pet with curly hair"sv,
+            "funny pet and not very nasty rat"sv,
+            "pet with rat and rat and rat"sv,
+            "nasty rat with curly hair"sv,
+        }
+        ) {
+        search_server.AddDocument(++id, text, DocumentStatus::ACTUAL, { 1, 2 });
+    }
+
+    const std::string_view query = "curly and funny";
+
+    auto report = [&search_server, &query] {
+        std::cout << search_server.GetDocumentCount() << " documents total, "s
+            << search_server.FindTopDocuments(query).size() << " documents for query ["s << query << "]"s << std::endl;
+    };
+
+    report();
+    // однопоточная версия
+    search_server.RemoveDocument(5);
+    report();
+    // однопоточная версия
+    search_server.RemoveDocument(std::execution::seq, 1);
+    report();
+    // многопоточная версия
+    search_server.RemoveDocument(std::execution::par, 2);
+    report();
+
+    /*
+    5 documents total, 4 documents for query [curly and funny]
+    4 documents total, 3 documents for query [curly and funny]
+    3 documents total, 2 documents for query [curly and funny]
+    2 documents total, 1 documents for query [curly and funny] 
+    */
+}
+
 // The TestSearchServer function is the entry point for running tests
 void TestSearchServer() {
 
@@ -339,4 +380,6 @@ void TestSearchServer() {
     RUN_TEST(TestGetWordFrequencies);
     RUN_TEST(TestRemoveDocuments);
     RUN_TEST(TestRemoveDuplicates);
+
+    RUN_TEST(TestMultiThread1);
 }

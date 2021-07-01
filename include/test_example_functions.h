@@ -1,8 +1,8 @@
 #pragma once
+#include <iomanip>
+#include <random>
 
 #include "process_queries.h"
-
-#include <iomanip>
 
 template <typename Func>
 void RunTestImpl(Func, const std::string&);
@@ -71,3 +71,5 @@ void TestRemoveDuplicates();
 
 // The TestSearchServer function is the entry point for running tests
 void TestSearchServer();
+
+void TestMultiThread1();
