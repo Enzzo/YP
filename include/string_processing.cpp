@@ -1,9 +1,8 @@
 #include "string_processing.h"
 #include <execution>
 
-/*
-std::vector<std::string_view> SplitIntoWords(const std::string_view& text) {
-    std::vector<std::string_view> words;
+std::vector<std::string> SplitIntoWords(const std::string& text) {
+    std::vector<std::string> words;
     std::string word;
     for (const char c : text) {
         if (c == ' ') {
@@ -20,11 +19,11 @@ std::vector<std::string_view> SplitIntoWords(const std::string_view& text) {
         words.push_back(word);
     }
     return words;
-}*/
-
+}
+/*
 std::vector<std::string_view> SplitIntoWords(const std::string_view& text) {
     std::vector<std::string_view> words;
-    std::string_view temp = text;
+    std::string temp(text);
     words.reserve(std::count(text.begin(), text.end(), ' ') + 1);
     
     int start = 0;
@@ -39,4 +38,4 @@ std::vector<std::string_view> SplitIntoWords(const std::string_view& text) {
     }
     words.push_back(temp.substr(start));
     return words;
-}
+}*/

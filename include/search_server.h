@@ -23,19 +23,19 @@ class SearchServer {
     };
 
     struct QueryWord {
-        std::string_view data;
+        std::string data;
         bool is_minus;
         bool is_stop;
     };
 
     struct Query {
-        std::set<std::string_view> plus_words;
-        std::set<std::string_view> minus_words;
+        std::set<std::string> plus_words;
+        std::set<std::string> minus_words;
     };
 
-    std::set<std::string_view> stop_words_;
+    std::set<std::string> stop_words_;
 
-    std::map<int, std::map<std::string_view, double>> doc_to_word_freqs_;
+    std::map<int, std::map<std::string, double>> doc_to_word_freqs_;
 
     std::map<int, DocumentData> documents_;
     
@@ -52,8 +52,6 @@ public:
     explicit SearchServer(const StringContainer&);
         
     explicit SearchServer(const std::string_view&);
-
-    explicit SearchServer(const std::string&);
 
     void AddDocument(int, const std::string_view&, DocumentStatus, const std::vector<int>&);
 
@@ -100,14 +98,14 @@ private:
         return stop_words_.count(temp) > 0;
     }
 
-    [[nodiscard]] bool SplitIntoWordsNoStop(const std::string_view&, std::vector<std::string_view>&) const;
+    [[nodiscard]] bool SplitIntoWordsNoStop(const std::string&, std::vector<std::string>&) const;
 
-    [[nodiscard]] bool ParseQueryWord(std::string_view, QueryWord&) const;
+    [[nodiscard]] bool ParseQueryWord(std::string, QueryWord&) const;
 
-    [[nodiscard]] bool ParseQuery(const std::string_view&, Query&) const;
+    [[nodiscard]] bool ParseQuery(const std::string&, Query&) const;
 
     // Existence required
-    double ComputeWordInverseDocumentFreq(const std::string_view&) const;
+    double ComputeWordInverseDocumentFreq(const std::string&) const;
 
     template <typename DocumentPredicate>
     std::vector<Document> FindAllDocuments(const Query&, DocumentPredicate) const;
@@ -116,7 +114,7 @@ private:
     void CheckValidity(const StringContainer&);
 
     template <typename StringContainer>
-    std::set<std::string_view> MakeUniqueNonEmptyStrings(const StringContainer&);
+    std::set<std::string> MakeUniqueNonEmptyStrings(const StringContainer&);
     //std::set<std::string_view> MakeUniqueNonEmptyStrings(const std::vector<std::string_view>&);
 };
 
@@ -128,10 +126,10 @@ SearchServer::SearchServer(const StringContainer& stop_words) {
 
 template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query, DocumentPredicate document_predicate) const {
-
+    std::string rq(raw_query);
     std::vector<Document> result;
     Query query;
-    if (!ParseQuery(raw_query, query)) {
+    if (!ParseQuery(rq, query)) {
         throw std::invalid_argument("invalid request");
     }
     auto matched_documents = FindAllDocuments(query, document_predicate);
@@ -156,7 +154,7 @@ template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindAllDocuments(const Query& query, DocumentPredicate document_predicate) const {
     std::map<int, double> document_to_relevance;
 
-    for (const std::string_view& word : query.plus_words) {
+    for (const auto& word : query.plus_words) {
         const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
 
         for (const auto [document_id, word_freq] : doc_to_word_freqs_) {
@@ -175,7 +173,7 @@ std::vector<Document> SearchServer::FindAllDocuments(const Query& query, Documen
     }
 
 
-    for (const std::string_view& word : query.minus_words) {
+    for (const auto& word : query.minus_words) {
         for (const auto& [id, doc] : doc_to_word_freqs_) {
             if (document_to_relevance.count(id)) {
                 for (const auto& [w, fr] : doc) {
@@ -205,9 +203,8 @@ void SearchServer::CheckValidity(const StringContainer& strings) {
 }
 
 template <typename StringContainer>
-std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
-//std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const std::vector<std::string_view>& strings){
-    std::set<std::string_view> non_empty_strings;
+std::set<std::string> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
+    std::set<std::string> non_empty_strings;
     for (const auto& str : strings) {
         if(!str.empty())
             non_empty_strings.insert(str);
