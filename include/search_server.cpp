@@ -1,9 +1,6 @@
 #include "search_server.h"
 
-SearchServer::SearchServer(const std::string_view& stop_words_text) {
-    std::string temp(stop_words_text);
-    SearchServer(SplitIntoWords(temp));
-}
+SearchServer::SearchServer(const std::string_view& stop_words_text) : SearchServer(SplitIntoWords(stop_words_text)){}
 
 void SearchServer::AddDocument(int document_id, const std::string_view& document, DocumentStatus status,
     const std::vector<int>& ratings) {
@@ -104,7 +101,9 @@ const std::map<std::string_view, double>& SearchServer::GetWordFrequencies(const
 
     if (it != doc_to_word_freqs_.end()) {
         std::map<std::string_view, double> x;
-        //std::copy(it->second.begin(), it->second.end(), x.begin());
+        //x.emplace(it->second);
+        //std::copy(it->second.begin(), it->second.end(), x);
+
         return x;
     }
 
