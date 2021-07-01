@@ -23,39 +23,37 @@ class SearchServer {
     };
 
     struct QueryWord {
-        std::string_view data;
+        std::string data;
         bool is_minus;
         bool is_stop;
     };
 
     struct Query {
-        std::set<std::string_view> plus_words;
-        std::set<std::string_view> minus_words;
+        std::set<std::string> plus_words;
+        std::set<std::string> minus_words;
     };
 
-    std::set<std::string_view> stop_words_;    
-
-    std::map<int, std::map<std::string_view, double>> doc_to_word_freqs_;
-
+    std::set<std::string> stop_words_;    
+    std::map<int, std::map<std::string, double>> doc_to_word_freqs_;
     std::map<int, DocumentData> documents_;
-
     std::set<int> document_id_;
 
-    std::string raw_stop_words_copy_;
-    std::vector<std::string> raw_documents_copy_;
-    std::vector<std::string> documents_find_copy_;
 
 public:
     // Defines an invalid document id
     // You can refer this constant as SearchServer::INVALID_DOCUMENT_ID
     inline static constexpr int INVALID_DOCUMENT_ID = -1;
 
+    explicit SearchServer() = default;
+
+    explicit SearchServer(const std::string_view&);
+
     template <typename StringContainer>
     explicit SearchServer(const StringContainer&);
 
     explicit SearchServer(const std::string&);
 
-    explicit SearchServer(const std::string_view&);
+    
 
     void AddDocument(int, const std::string_view&, DocumentStatus, const std::vector<int>&);
 
@@ -98,17 +96,17 @@ private:
     static int ComputeAverageRating(const std::vector<int>&);
 
     inline bool IsStopWord(const std::string_view& word) const {
-        return stop_words_.count(word) > 0;
+        return stop_words_.count(static_cast<std::string>(word)) > 0;
     }
 
-    [[nodiscard]] bool SplitIntoWordsNoStop(const std::string_view&, std::vector<std::string_view>&) const;
+    [[nodiscard]] bool SplitIntoWordsNoStop(const std::string_view&, std::vector<std::string>&) const;
 
-    [[nodiscard]] bool ParseQueryWord(std::string_view, QueryWord&) const;
+    [[nodiscard]] bool ParseQueryWord(std::string, QueryWord&) const;
 
     [[nodiscard]] bool ParseQuery(const std::string_view&, Query&) const;
 
     // Existence required
-    double ComputeWordInverseDocumentFreq(const std::string_view&) const;
+    double ComputeWordInverseDocumentFreq(const std::string&) const;
 
     template <typename DocumentPredicate>
     std::vector<Document> FindAllDocuments(const Query&, DocumentPredicate) const;
@@ -117,7 +115,7 @@ private:
     void CheckValidity(const StringContainer&);
 
     template <typename StringContainer>
-    std::set<std::string_view> MakeUniqueNonEmptyStrings(const StringContainer&);
+    std::set<std::string> MakeUniqueNonEmptyStrings(const StringContainer&);
 };
 
 template <typename StringContainer>
@@ -156,7 +154,7 @@ template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindAllDocuments(const Query& query, DocumentPredicate document_predicate) const {
     std::map<int, double> document_to_relevance;
 
-    for (const std::string_view& word : query.plus_words) {
+    for (const std::string& word : query.plus_words) {
         const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
 
         for (const auto [document_id, word_freq] : doc_to_word_freqs_) {
@@ -174,8 +172,7 @@ std::vector<Document> SearchServer::FindAllDocuments(const Query& query, Documen
         }
     }
 
-
-    for (const std::string_view& word : query.minus_words) {
+    for (const std::string& word : query.minus_words) {
         for (const auto& [id, doc] : doc_to_word_freqs_) {
             if (document_to_relevance.count(id)) {
                 for (const auto& [w, fr] : doc) {
@@ -205,10 +202,10 @@ void SearchServer::CheckValidity(const StringContainer& strings) {
 }
 
 template <typename StringContainer>
-std::set<std::string_view> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
-    std::set<std::string_view> non_empty_strings;
+std::set<std::string> SearchServer::MakeUniqueNonEmptyStrings(const StringContainer& strings) {
+    std::set<std::string> non_empty_strings;
     for (const auto& str : strings) {
-        non_empty_strings.insert(str);
+        non_empty_strings.emplace(str);
     }
     return non_empty_strings;
 }
