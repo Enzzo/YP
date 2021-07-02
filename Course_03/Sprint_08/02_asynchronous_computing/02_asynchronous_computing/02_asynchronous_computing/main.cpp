@@ -1,19 +1,41 @@
 ﻿#include <algorithm>
 #include <execution>
-#include <iostream>
 #include <future>
+#include <iostream>
+
+using namespace std;
 
 template <typename RandomAccessIterator, typename Value>
-RandomAccessIterator LowerBound(const std::execution::sequenced_policy&, RandomAccessIterator range_begin, RandomAccessIterator range_end, const Value& value) {
+RandomAccessIterator LowerBound(const execution::sequenced_policy&, RandomAccessIterator range_begin, RandomAccessIterator range_end, const Value& value) {
+    return lower_bound(range_begin, range_end, value);
+}
+
+template <typename RandomAccessIterator, typename Value>
+RandomAccessIterator LowerBound(RandomAccessIterator range_begin, RandomAccessIterator range_end, const Value& value) {
+    return LowerBound(execution::seq, range_begin, range_end, value);
+}
+
+template <typename RandomAccessIterator, typename Value>
+RandomAccessIterator LowerBound(const execution::parallel_policy&, RandomAccessIterator range_begin, RandomAccessIterator range_end, const Value& value) {
     auto left_bound = range_begin;
     auto right_bound = range_end;
     while (left_bound + 1 < right_bound) {
-        const auto middle = left_bound + (right_bound - left_bound) / 2;
-        if (*middle < value) {
-            left_bound = middle;
+        const int distance = right_bound - left_bound;
+        const int part_length = max(1, distance / 3);
+        const auto middle_left = left_bound + part_length;
+        const auto middle_right = right_bound - part_length;
+
+        auto left_less_future = async([middle_left, &value] { return *middle_left < value; });
+
+        if (*middle_right < value) {
+            left_bound = middle_right;
+        }
+        else if (left_less_future.get()) {
+            left_bound = middle_left;
+            right_bound = middle_right;
         }
         else {
-            right_bound = middle;
+            right_bound = middle_left;
         }
     }
     if (left_bound == range_begin && !(*left_bound < value)) {
@@ -24,25 +46,15 @@ RandomAccessIterator LowerBound(const std::execution::sequenced_policy&, RandomA
     }
 }
 
-template <typename RandomAccessIterator, typename Value>
-RandomAccessIterator LowerBound(RandomAccessIterator range_begin, RandomAccessIterator range_end, const Value& value) {
-    return LowerBound(std::execution::seq, range_begin, range_end, value);
-}
-
-template <typename RandomAccessIterator, typename Value>
-RandomAccessIterator LowerBound(const std::execution::parallel_policy&, RandomAccessIterator range_begin, RandomAccessIterator range_end, const Value& value) {
-    return LowerBound(std::execution::seq, range_begin, range_end, value);
-}
-
 int main() {
-    const std::vector<std::string> strings = {
+    const vector<string> strings = {
         "cat",
         "dog",
         "dog",
         "horse"
     };
 
-    const std::vector<std::string> requests = {
+    const vector<string> requests = {
         "bear",
         "cat",
         "deer",
@@ -52,19 +64,18 @@ int main() {
     };
 
     // последовательные версии
-    std::cout << "Request [" << requests[0] << "] → position "
-        << LowerBound(strings.begin(), strings.end(), requests[0]) - strings.begin() << std::endl;
-    std::cout << "Request [" << requests[1] << "] → position "
-        << LowerBound(std::execution::seq, strings.begin(), strings.end(), requests[1]) - strings.begin() << std::endl;
-    std::cout << "Request [" << requests[2] << "] → position "
-        << LowerBound(std::execution::seq, strings.begin(), strings.end(), requests[2]) - strings.begin() << std::endl;
+    cout << "Request [" << requests[0] << "] → position "
+        << LowerBound(strings.begin(), strings.end(), requests[0]) - strings.begin() << endl;
+    cout << "Request [" << requests[1] << "] → position "
+        << LowerBound(execution::seq, strings.begin(), strings.end(), requests[1]) - strings.begin() << endl;
+    cout << "Request [" << requests[2] << "] → position "
+        << LowerBound(execution::seq, strings.begin(), strings.end(), requests[2]) - strings.begin() << endl;
 
     // параллельные
-    std::cout << "Request [" << requests[3] << "] → position "
-        << LowerBound(std::execution::par, strings.begin(), strings.end(), requests[3]) - strings.begin() << std::endl;
-    std::cout << "Request [" << requests[4] << "] → position "
-        << LowerBound(std::execution::par, strings.begin(), strings.end(), requests[4]) - strings.begin() << std::endl;
-    std::cout << "Request [" << requests[5] << "] → position "
-        << LowerBound(std::execution::par, strings.begin(), strings.end(), requests[5]) - strings.begin() << std::endl;
-    return 0;
+    cout << "Request [" << requests[3] << "] → position "
+        << LowerBound(execution::par, strings.begin(), strings.end(), requests[3]) - strings.begin() << endl;
+    cout << "Request [" << requests[4] << "] → position "
+        << LowerBound(execution::par, strings.begin(), strings.end(), requests[4]) - strings.begin() << endl;
+    cout << "Request [" << requests[5] << "] → position "
+        << LowerBound(execution::par, strings.begin(), strings.end(), requests[5]) - strings.begin() << endl;
 }
