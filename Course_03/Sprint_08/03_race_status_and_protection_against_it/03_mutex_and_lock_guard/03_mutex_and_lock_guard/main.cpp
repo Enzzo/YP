@@ -14,31 +14,22 @@ using namespace std;
 template<typename T>
 class Synchronized {
 public:
-    Synchronized(T initial = T()) :value_(initial) {
-        
+    Synchronized(T initial = T()) :value_(initial){
+
     };
     ~Synchronized() {
-        
     }
-    struct Access {
-        Access(T& initial = T()) : ref_to_value(initial){
-            //this->mtx.lock();
-            
-        }
-        ~Access() {
-            this->mtx.unlock();
-        }
+    struct Access {        
         T& ref_to_value;
-        //std::mutex mtx;
+        std::lock_guard<std::mutex> guard;
     };
 
-    Access GetAccess() {
-        Access a(value_);        
-        return a;
+    Access GetAccess() {        
+        return { value_, std::lock_guard(mtx)};
     }
 private:
-    T value_;    
-    
+    T value_;
+    std::mutex mtx;
 };
 
 void TestConcurrentUpdate() {
@@ -49,6 +40,7 @@ void TestConcurrentUpdate() {
         for (size_t i = 0; i < add_count; ++i) {
             auto access = common_string.GetAccess();
             access.ref_to_value += 'a';
+            std::mutex mtx;
         }
     };
     auto f1 = async(updater);
@@ -112,6 +104,5 @@ int main() {
     TestRunner tr;
     RUN_TEST(tr, TestConcurrentUpdate);
     RUN_TEST(tr, TestProducerConsumer);
-
     return 0;
 }
