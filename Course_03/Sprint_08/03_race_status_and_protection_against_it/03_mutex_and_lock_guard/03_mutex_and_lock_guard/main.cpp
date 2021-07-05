@@ -15,28 +15,30 @@ template<typename T>
 class Synchronized {
 public:
     Synchronized(T initial = T()) :value_(initial) {
+        
     };
-
+    ~Synchronized() {
+        
+    }
     struct Access {
         Access(T& initial = T()) : ref_to_value(initial){
+            //this->mtx.lock();
             
         }
         ~Access() {
-            std::mutex mtx;
-            mtx.unlock();
+            this->mtx.unlock();
         }
         T& ref_to_value;
-        
+        //std::mutex mtx;
     };
 
-    Access GetAccess() {        
-        std::lock_guard<std::mutex> guard(this->mtx);
-        Access a(value_);
+    Access GetAccess() {
+        Access a(value_);        
         return a;
     }
 private:
-    T value_;
-    std::mutex mtx;
+    T value_;    
+    
 };
 
 void TestConcurrentUpdate() {
