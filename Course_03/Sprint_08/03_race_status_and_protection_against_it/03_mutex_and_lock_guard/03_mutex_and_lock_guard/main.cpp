@@ -8,28 +8,36 @@
 #include <queue>
 #include <thread>
 
+
+
 using namespace std;
-// Реализуйте шаблон Synchronized<T>.
-// Метод GetAccess должен возвращать структуру, в которой есть поле T& ref_to_value.
-template <typename T>
+template<typename T>
 class Synchronized {
 public:
-    explicit Synchronized(T initial = T()) :value_(initial){
-        
+    Synchronized(T initial = T()) :value_(initial) {
     };
 
     struct Access {
+        Access(T& initial = T()) : ref_to_value(initial){
+            
+        }
+        ~Access() {
+            std::mutex mtx;
+            mtx.unlock();
+        }
         T& ref_to_value;
+        
     };
 
-    Access GetAccess() {
-        Access access_ = { value_ };
-        return access_;
+    Access GetAccess() {        
+        std::lock_guard<std::mutex> guard(this->mtx);
+        Access a(value_);
+        return a;
     }
 private:
     T value_;
+    std::mutex mtx;
 };
-
 
 void TestConcurrentUpdate() {
     Synchronized<string> common_string;
@@ -41,7 +49,6 @@ void TestConcurrentUpdate() {
             access.ref_to_value += 'a';
         }
     };
-
     auto f1 = async(updater);
     auto f2 = async(updater);
 
@@ -99,16 +106,10 @@ void TestProducerConsumer() {
 }
 
 int main() {
-    /*
+    
     TestRunner tr;
     RUN_TEST(tr, TestConcurrentUpdate);
     RUN_TEST(tr, TestProducerConsumer);
-    */
-    int a = 2;
-    int& b = a;
-    Synchronized<int>x(10);
-    int y = x.GetAccess().ref_to_value;
-    y = 3;
-    int z = x.GetAccess().ref_to_value;
+
     return 0;
 }
