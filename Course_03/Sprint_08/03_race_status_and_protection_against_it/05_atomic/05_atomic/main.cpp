@@ -11,18 +11,19 @@ template <typename Container, typename Predicate>
 std::vector<typename Container::value_type> CopyIfUnordered(const Container& container, Predicate predicate) {
     std::vector<typename Container::value_type> result;
     result.reserve(container.size());
-    std::atomic_int size = 1;
+    std::atomic_int size = 0;
 
     std::for_each(
         std::execution::par,
         container.begin(), container.end(),
         [predicate, &size, &result](const auto& value) {
-            if (result.size() < size) {
-                if (predicate(value)) {
+            if (predicate(value)) {
+                if (size.fetch_add(1) == size) {
+                    auto& r = result[size - 1];
                     result.resize(size);
-                    result[size - 1] = value;
-                    size++;
+                    r = value;
                 }
+                int x = 2;
             }
         }
     );
