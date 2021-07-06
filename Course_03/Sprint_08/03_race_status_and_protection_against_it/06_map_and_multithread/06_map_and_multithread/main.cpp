@@ -8,7 +8,7 @@
 
 #include "log_duration.h"
 #include "test_runner_p.h"
-
+using namespace std;
 using namespace std::string_literals;
 
 template <typename Key, typename Value>
@@ -21,21 +21,38 @@ public:
         std::lock_guard<std::mutex> guard;
     };
 
-    explicit ConcurrentMap(size_t bucket_count) {
-
-    }
+    explicit ConcurrentMap(size_t bucket_count) : data_(bucket_count) {}
 
     Access operator[](const Key& key) {
-        return { map_.at(key), std::lock_guard(mtx) };
+        std::lock_guard<std::mutex> lock(mtx_);
+        Submap& item = data_[GetIndex(key)];
+        return { item.submap[key], std::lock_guard<std::mutex>(item.m) };
     }
 
     std::map<Key, Value> BuildOrdinaryMap() {
-        return map_;
+        std::map<Key, Value> result;
+        for (auto& i : data_) {
+            for (auto& d : i.submap) {
+                result[d.first] = d.second;
+            }
+        }
+        return result;
     }
 
 private:
-    std::map<Key, Value> map_;
-    std::mutex mtx;
+    std::mutex mtx_;
+
+    struct Submap {
+        std::map<Key, Value> submap;
+        std::mutex m;
+    };
+
+    std::vector<Submap> data_;
+
+    int GetIndex(Key key) {
+        int index = key;
+        return abs(index) % data_.size();
+    }
 };
 
 using namespace std;
