@@ -1,7 +1,6 @@
 #include <iostream>
 #include <numeric>
 #include <vector>
-#include <mutex>
 #include <future>
 #include <execution>
 
@@ -9,24 +8,20 @@ using namespace std::literals;
 
 template <typename Container, typename Predicate>
 std::vector<typename Container::value_type> CopyIfUnordered(const Container& container, Predicate predicate) {
-    std::vector<typename Container::value_type> result;
-    result.reserve(container.size());
     std::atomic_int size = 0;
+    std::vector<typename Container::value_type> result;
+    result.resize(container.size());
 
-    std::for_each(
+    for_each(
         std::execution::par,
         container.begin(), container.end(),
         [predicate, &size, &result](const auto& value) {
             if (predicate(value)) {
-                if (size.fetch_add(1) == size) {
-                    auto& r = result[size - 1];
-                    result.resize(size);
-                    r = value;
-                }
-                int x = 2;
+                result[size.fetch_add(1)] = value;
             }
         }
     );
+    result.resize(size);
     return result;
 }
 
