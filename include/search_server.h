@@ -9,7 +9,6 @@
 
 #include "document.h"
 #include "string_processing.h"
-#include "log_duration.h"
 
 using namespace std::literals;
 
@@ -76,10 +75,20 @@ public:
     std::vector<Document> FindTopDocuments(const std::string_view&, DocumentStatus) const;
     std::vector<Document> FindTopDocuments(const std::string_view&) const;
 
+    template <typename DocumentPredicate>
+    std::vector<Document> FindTopDocuments(std::execution::sequenced_policy, const std::string_view& raw_query, DocumentPredicate document_predicate) const;
+    std::vector<Document> FindTopDocuments(std::execution::sequenced_policy, const std::string_view&, DocumentStatus) const;
+    std::vector<Document> FindTopDocuments(std::execution::sequenced_policy, const std::string_view&) const;
+
+    template <typename DocumentPredicate>
+    std::vector<Document> FindTopDocuments(std::execution::parallel_policy, const std::string_view& raw_query, DocumentPredicate document_predicate) const;
+    std::vector<Document> FindTopDocuments(std::execution::parallel_policy, const std::string_view&, DocumentStatus) const;
+    std::vector<Document> FindTopDocuments(std::execution::parallel_policy, const std::string_view&) const;
+
 
     std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(const std::string_view&, int) const;
-    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::execution::sequenced_policy p, const std::string_view&, int) const;
-    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::execution::parallel_policy p, const std::string_view&, int) const;
+    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::execution::sequenced_policy, const std::string_view&, int) const;
+    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::execution::parallel_policy, const std::string_view&, int) const;
 
 
     const std::map<std::string_view, double>& GetWordFrequencies(const int) const noexcept;
@@ -135,6 +144,58 @@ std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw
     auto matched_documents = FindAllDocuments(query, document_predicate);
 
     sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
+        if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
+            return lhs.rating > rhs.rating;
+        }
+        else {
+            return lhs.relevance > rhs.relevance;
+        }
+        });
+    if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
+        matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
+    }
+
+    result.swap(matched_documents);
+    return result;
+}
+
+template <typename DocumentPredicate>
+std::vector<Document> SearchServer::FindTopDocuments(std::execution::sequenced_policy, const std::string_view& raw_query, DocumentPredicate document_predicate) const {
+
+    std::vector<Document> result;
+    Query query;
+    if (!ParseQuery(raw_query, query)) {
+        throw std::invalid_argument("invalid request");
+    }
+    auto matched_documents = FindAllDocuments(query, document_predicate);
+
+    sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
+        if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
+            return lhs.rating > rhs.rating;
+        }
+        else {
+            return lhs.relevance > rhs.relevance;
+        }
+        });
+    if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
+        matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
+    }
+
+    result.swap(matched_documents);
+    return result;
+}
+
+template <typename DocumentPredicate>
+std::vector<Document> SearchServer::FindTopDocuments(std::execution::parallel_policy, const std::string_view& raw_query, DocumentPredicate document_predicate) const {
+
+    std::vector<Document> result;
+    Query query;
+    if (!ParseQuery(raw_query, query)) {
+        throw std::invalid_argument("invalid request");
+    }
+    auto matched_documents = FindAllDocuments(query, document_predicate);
+
+    sort(std::execution::par, matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
         if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
             return lhs.rating > rhs.rating;
         }
