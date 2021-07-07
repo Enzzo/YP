@@ -11,48 +11,45 @@
 using namespace std;
 using namespace std::string_literals;
 
-template <typename Key, typename Value>
+template<typename K, typename V>
 class ConcurrentMap {
 public:
-    static_assert(std::is_integral_v<Key>, "ConcurrentMap supports only integer keys"s);
+    using MapMutex = std::pair<std::map<K, V>, std::mutex>;
+    static_assert(std::is_integral_v<K>, "ConcurrentMap supports only integer keys");
 
     struct Access {
-        Value& ref_to_value;
         std::lock_guard<std::mutex> guard;
+        V& ref_to_value;
+
+        Access(std::map<K, V>& m, const K& key, std::mutex& mtx) : guard(std::lock_guard(mtx)), ref_to_value(m[key]) {}
     };
 
-    explicit ConcurrentMap(size_t bucket_count) : data_(bucket_count) {}
+    explicit ConcurrentMap(size_t bucket_count) : bucket_count(bucket_count), data(new MapMutex[bucket_count]) {}
 
-    Access operator[](const Key& key) {
-        std::lock_guard<std::mutex> lock(mtx_);
-        Submap& item = data_[GetIndex(key)];
-        return { item.submap[key], std::lock_guard<std::mutex>(item.m) };
+    Access operator[](const K& key) {
+        auto& [map, mtx] = data[key % bucket_count];
+        auto dataAccessLocker = std::lock_guard(AccessMutex);
+        return { map, key, mtx };
     }
 
-    std::map<Key, Value> BuildOrdinaryMap() {
-        std::map<Key, Value> result;
-        for (auto& i : data_) {
-            for (auto& d : i.submap) {
-                result[d.first] = d.second;
-            }
+    std::map<K, V> BuildOrdinaryMap() {
+        auto dataAccessLocker = std::lock_guard(AccessMutex);
+        std::map<K, V> to_ret;
+        for (size_t i = 0; i != bucket_count; i++) {
+            auto& chunk = data[i].first;
+            to_ret.insert(chunk.begin(), chunk.end());
         }
-        return result;
+        return to_ret;
+    }
+
+    ~ConcurrentMap() {
+        delete[] data;
     }
 
 private:
-    std::mutex mtx_;
-
-    struct Submap {
-        std::map<Key, Value> submap;
-        std::mutex m;
-    };
-
-    std::vector<Submap> data_;
-
-    int GetIndex(Key key) {
-        int index = key;
-        return abs(index) % data_.size();
-    }
+    size_t bucket_count;
+    MapMutex* data;
+    std::mutex AccessMutex;
 };
 
 using namespace std;
@@ -107,7 +104,7 @@ void TestReadAndWrite() {
         }
         return result;
     };
-
+    
     auto u1 = async(updater);
     auto r1 = async(reader);
     auto u2 = async(updater);
@@ -122,6 +119,7 @@ void TestReadAndWrite() {
             return s.empty() || s == "a" || s == "aa";
             }));
     }
+    
 }
 
 void TestSpeedup() {

@@ -1,3 +1,4 @@
+/*
 #include <cstdlib>
 #include <future>
 #include <map>
@@ -105,3 +106,4 @@ private:
 		return abs(num) % SIZE_MAP;
 	}
 };
+*/
