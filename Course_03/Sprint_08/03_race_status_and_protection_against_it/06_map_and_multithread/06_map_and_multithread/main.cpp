@@ -14,35 +14,47 @@ using namespace std::string_literals;
 
 template <typename Key, typename Value>
 class ConcurrentMap {
+    struct Bucket {
+        std::map<Key, Value> data;
+        std::mutex bucket_access;
+    };
+    std::vector<Bucket> buckets_;
+    std::mutex map_access_;
+
 public:
     static_assert(std::is_integral_v<Key>, "ConcurrentMap supports only integer keys"s);
 
     struct Access {
         Value& ref_to_value;
-        std::lock_guard<std::mutex> g;
+        std::lock_guard<std::mutex> access;
     };
 
-    explicit ConcurrentMap(size_t bucket_count) : bucket_(bucket_count) {};
+    explicit ConcurrentMap(size_t bucket_count) : buckets_(bucket_count) {};
 
     Access operator[](const Key& key) {
-        uint64_t n = key % bucket_.size();
-        size_t b = bucket_[n].data.size() + n;
-        auto& item = bucket_[n];
-        return { item.data[b], std::lock_guard(item.bucket_access) };
+        std::lock_guard<std::mutex> guard(map_access_);
+        int n = GetBucket(key);
+        auto& item = buckets_[n];
+        
+        return { item.data[key], std::lock_guard<std::mutex>(item.bucket_access) };
     }
 
     std::map<Key, Value> BuildOrdinaryMap() {
+        std::lock_guard<std::mutex> guard(map_access_);
         std::map<Key, Value> result;
+        for (Bucket& bucket : buckets_) {
+            std::lock_guard<std::mutex>guard(bucket.bucket_access);
+            for (const auto& [key, value] : bucket.data) {
+                result[key] = value;
+            }
+        }
         return result;
     };
 
 private:
-    struct Bucket {
-        std::map<Key, Value> data;
-        std::mutex bucket_access;
-    };
-    std::vector<Bucket> bucket_;
-    std::mutex map_access_;
+    uint64_t GetBucket(const Key& key) {
+        return std::abs(static_cast<int>(key)) % buckets_.size();
+    }
 };
 
 using namespace std;
