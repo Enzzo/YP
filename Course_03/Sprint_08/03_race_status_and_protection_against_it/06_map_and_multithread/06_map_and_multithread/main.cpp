@@ -5,51 +5,44 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <math.h>
 
 #include "log_duration.h"
 #include "test_runner_p.h"
-using namespace std;
+
 using namespace std::string_literals;
 
-template<typename K, typename V>
+template <typename Key, typename Value>
 class ConcurrentMap {
 public:
-    using MapMutex = std::pair<std::map<K, V>, std::mutex>;
-    static_assert(std::is_integral_v<K>, "ConcurrentMap supports only integer keys");
+    static_assert(std::is_integral_v<Key>, "ConcurrentMap supports only integer keys"s);
 
     struct Access {
-        std::lock_guard<std::mutex> guard;
-        V& ref_to_value;
-
-        Access(std::map<K, V>& m, const K& key, std::mutex& mtx) : guard(std::lock_guard(mtx)), ref_to_value(m[key]) {}
+        Value& ref_to_value;
+        std::lock_guard<std::mutex> g;
     };
 
-    explicit ConcurrentMap(size_t bucket_count) : bucket_count(bucket_count), data(new MapMutex[bucket_count]) {}
+    explicit ConcurrentMap(size_t bucket_count) : bucket_(bucket_count) {};
 
-    Access operator[](const K& key) {
-        auto& [map, mtx] = data[key % bucket_count];
-        auto dataAccessLocker = std::lock_guard(AccessMutex);
-        return { map, key, mtx };
+    Access operator[](const Key& key) {
+        uint64_t n = key % bucket_.size();
+        size_t b = bucket_[n].data.size() + n;
+        auto& item = bucket_[n];
+        return { item.data[b], std::lock_guard(item.bucket_access) };
     }
 
-    std::map<K, V> BuildOrdinaryMap() {
-        auto dataAccessLocker = std::lock_guard(AccessMutex);
-        std::map<K, V> to_ret;
-        for (size_t i = 0; i != bucket_count; i++) {
-            auto& chunk = data[i].first;
-            to_ret.insert(chunk.begin(), chunk.end());
-        }
-        return to_ret;
-    }
-
-    ~ConcurrentMap() {
-        delete[] data;
-    }
+    std::map<Key, Value> BuildOrdinaryMap() {
+        std::map<Key, Value> result;
+        return result;
+    };
 
 private:
-    size_t bucket_count;
-    MapMutex* data;
-    std::mutex AccessMutex;
+    struct Bucket {
+        std::map<Key, Value> data;
+        std::mutex bucket_access;
+    };
+    std::vector<Bucket> bucket_;
+    std::mutex map_access_;
 };
 
 using namespace std;
@@ -104,7 +97,7 @@ void TestReadAndWrite() {
         }
         return result;
     };
-    
+
     auto u1 = async(updater);
     auto r1 = async(reader);
     auto u2 = async(updater);
@@ -119,7 +112,6 @@ void TestReadAndWrite() {
             return s.empty() || s == "a" || s == "aa";
             }));
     }
-    
 }
 
 void TestSpeedup() {
