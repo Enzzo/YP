@@ -35,9 +35,10 @@ class SearchServer {
     };
 
     std::set<std::string> stop_words_;    
-    //std::map<int, std::map<std::string, double>> doc_to_word_freqs_;
-    ConcurrentMap<int, std::map<std::string, double>> doc_to_word_freqs_;
+    std::map<int, std::map<std::string, double>> doc_to_word_freqs_;
+    //ConcurrentMap<int, std::map<std::string, double>> doc_to_word_freqs_ = ConcurrentMap<int, std::map<std::string, double>>(THREAD_COUNT);
     std::map<int, DocumentData> documents_;
+    //ConcurrentMap<int, DocumentData> documents_ = ConcurrentMap<int, DocumentData>(THREAD_COUNT);
     std::set<int> document_id_;
 
 
