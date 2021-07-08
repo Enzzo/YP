@@ -10,7 +10,7 @@
 #include "document.h"
 #include "string_processing.h"
 #include "concurrent_map.h"
-
+#include "log_duration.h"
 using namespace std::literals;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
@@ -89,17 +89,17 @@ public:
     std::vector<Document> FindTopDocuments(std::execution::parallel_policy, const std::string_view&, DocumentStatus) const;
     std::vector<Document> FindTopDocuments(std::execution::parallel_policy, const std::string_view&) const;
 
-
+    template<typename ExecutionPolicy>
+    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(ExecutionPolicy&&, const std::string_view&, int) const;
     std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(const std::string_view&, int) const;
-    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::execution::sequenced_policy, const std::string_view&, int) const;
-    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::execution::parallel_policy, const std::string_view&, int) const;
-
 
     const std::map<std::string_view, double>& GetWordFrequencies(const int) const noexcept;
 
+    template<typename ExecutionPolicy>
+    void RemoveDocument(ExecutionPolicy&&, const int document_id);
+
     void RemoveDocument(const int document_id);
-    void RemoveDocument(std::execution::sequenced_policy p, const int document_id);
-    void RemoveDocument(std::execution::parallel_policy p, const int document_id);
+    
 
 private:
 
@@ -137,30 +137,10 @@ SearchServer::SearchServer(const StringContainer& stop_words) {
     stop_words_ = MakeUniqueNonEmptyStrings(stop_words);
 }
 
+
 template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query, DocumentPredicate document_predicate) const {
-    
-    std::vector<Document> result;
-    Query query;
-    if (!ParseQuery(raw_query, query)) {
-        throw std::invalid_argument("invalid request");
-    }
-    auto matched_documents = FindAllDocuments(query, document_predicate);
-
-    sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
-        if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
-            return lhs.rating > rhs.rating;
-        }
-        else {
-            return lhs.relevance > rhs.relevance;
-        }
-        });
-    if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
-        matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
-    }
-
-    result.swap(matched_documents);
-    return result;
+    return FindTopDocuments(std::execution::par, raw_query, document_predicate);
 }
 
 template <typename DocumentPredicate>
@@ -197,8 +177,8 @@ std::vector<Document> SearchServer::FindTopDocuments(std::execution::parallel_po
     if (!ParseQuery(raw_query, query)) {
         throw std::invalid_argument("invalid request");
     }
-    auto matched_documents = FindAllDocuments(query, document_predicate);
 
+    auto matched_documents = FindAllDocuments(query, document_predicate);
     sort(std::execution::par, matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
         if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
             return lhs.rating > rhs.rating;
@@ -214,6 +194,7 @@ std::vector<Document> SearchServer::FindTopDocuments(std::execution::parallel_po
     result.swap(matched_documents);
     return result;
 }
+
 
 template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindAllDocuments(const Query& query, DocumentPredicate document_predicate) const {
@@ -255,6 +236,16 @@ std::vector<Document> SearchServer::FindAllDocuments(const Query& query, Documen
         matched_documents.push_back({ document_id, relevance, documents_.at(document_id).rating });
     }
     return matched_documents;
+}
+
+template<typename ExecutionPolicy>
+void SearchServer::RemoveDocument(ExecutionPolicy&& policy, const int document_id) {
+    if (doc_to_word_freqs_.count(document_id)) {
+        doc_to_word_freqs_.erase(document_id);
+        documents_.erase(document_id);
+        auto it = std::lower_bound(document_id_.begin(), document_id_.end(), document_id);
+        document_id_.erase(it);
+    }
 }
 
 template <typename StringContainer>
