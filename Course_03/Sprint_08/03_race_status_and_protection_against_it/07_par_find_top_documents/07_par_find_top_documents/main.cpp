@@ -15,7 +15,7 @@ string GenerateWord(mt19937& generator, int max_length) {
     string word;
     word.reserve(length);
     for (int i = 0; i < length; ++i) {
-        word.push_back(uniform_int_distribution('a', 'z')(generator));
+        word.push_back(static_cast<char>(uniform_int_distribution(static_cast<int>('a'), static_cast<int>('z'))(generator)));
     }
     return word;
 }
@@ -70,8 +70,11 @@ void Test(string_view mark, const SearchServer& search_server, const vector<stri
 int main() {
     mt19937 generator;
 
-    const auto dictionary = GenerateDictionary(generator, 1000, 10);
-    const auto documents = GenerateQueries(generator, dictionary, 10'000, 70);
+    //const auto dictionary = GenerateDictionary(generator, 1000, 10);
+    //const auto documents = GenerateQueries(generator, dictionary, 10'000, 70);
+
+    const auto dictionary = GenerateDictionary(generator, 10, 10);
+    const auto documents = GenerateQueries(generator, dictionary, 10, 70);
 
     SearchServer search_server(dictionary[0]);
     for (size_t i = 0; i < documents.size(); ++i) {
