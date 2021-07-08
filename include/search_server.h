@@ -9,10 +9,12 @@
 
 #include "document.h"
 #include "string_processing.h"
+#include "concurrent_map.h"
 
 using namespace std::literals;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
+const int THREAD_COUNT = 4;
 
 class SearchServer {
 
@@ -33,7 +35,8 @@ class SearchServer {
     };
 
     std::set<std::string> stop_words_;    
-    std::map<int, std::map<std::string, double>> doc_to_word_freqs_;
+    //std::map<int, std::map<std::string, double>> doc_to_word_freqs_;
+    ConcurrentMap<int, std::map<std::string, double>> doc_to_word_freqs_;
     std::map<int, DocumentData> documents_;
     std::set<int> document_id_;
 

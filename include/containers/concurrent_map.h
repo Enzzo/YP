@@ -5,7 +5,7 @@
 using namespace std::string_literals;
 
 template <typename Key, typename Value>
-class ConcurrentSet {
+class ConcurrentMap {
     struct Bucket {
         std::map<Key, Value> data;
         std::mutex bucket_access;
