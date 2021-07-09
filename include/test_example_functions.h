@@ -7,7 +7,7 @@
 template <typename Func>
 void RunTestImpl(Func, const std::string&);
 
-void AssertImpl(bool,const std::string&, const std::string&, const std::string&, const unsigned, const std::string&);
+void AssertImpl(bool, const std::string&, const std::string&, const std::string&, const unsigned, const std::string&);
 
 template <typename T, typename U>
 void AssertEqualImpl(const T&, const U&, const std::string&, const std::string&, const std::string&,

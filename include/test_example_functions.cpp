@@ -55,7 +55,7 @@ SearchServer GetTestServer() {
     server.AddDocument(1, "2word1 2word2 2word3 2word4"s, DocumentStatus::BANNED, { 4, 5, 6, 7, 8 });
     server.AddDocument(2, "3word1 3word2 3word3 3word4 3word3 3word4"s, DocumentStatus::IRRELEVANT, { 1, 3, 4, 5, 6, 7, 8 });
     server.AddDocument(3, "4word1 4word2 4word3 4word4"sv, DocumentStatus::REMOVED, { 4, 5, 6, 7, 8, 20, 9 });
-    server.AddDocument(4, "5word1 5word2 5word3 5word4 5word3 5word4"sv, DocumentStatus::ACTUAL, { 5, 1, 3, 4, 5, 6, 7, 8 });
+    server.AddDocument(4, "5word1 5word2 5word3 5word4 5word3 5word4", DocumentStatus::ACTUAL, { 5, 1, 3, 4, 5, 6, 7, 8 });
     server.AddDocument(5, "6word1 6word2 6word1 6word2"sv, DocumentStatus::ACTUAL, { 9, 4, 5, 6, 7, 8, 20, 9 });
 
     return server;
@@ -116,7 +116,7 @@ void SearchServer_AddDocument_CheckSize_SizeEmpty() {
     //2word2 - is stop word!
     //fd is empty!
     const std::vector<Document>& fd = server.FindTopDocuments("2word2", DocumentStatus::BANNED);
-    
+
     ASSERT(fd.empty());
 }
 
@@ -167,10 +167,10 @@ void TestMinusWords() {
 void TestMatchingDocuments() {
     SearchServer server = GetTestServer();
 
-    const auto& [w1, ds1] = server.MatchDocument("1word1 1word2 2word1 2word2"sv, 0);
+    const auto& [w1, ds1] = server.MatchDocument("1word1 1word2 2word1 2word2"s, 0);
     const auto& [w2, ds2] = server.MatchDocument("1word1 1word2 2word1 2word2"s, 1);
-    const auto& [w3, ds3] = server.MatchDocument("1word1 1word2 -2word1 2word2", 0);
-    const auto& [w4, ds4] = server.MatchDocument("-1word2 -2word1 2word2", 0);
+    const auto& [w3, ds3] = server.MatchDocument("1word1 1word2 -2word1 2word2"s, 0);
+    const auto& [w4, ds4] = server.MatchDocument("-1word2 -2word1 2word2"s, 0);
 
     ASSERT(w1[0] == "1word2"); ASSERT(ds1 == DocumentStatus::ACTUAL);
     ASSERT(w2[0] == "2word1"); ASSERT(ds2 == DocumentStatus::BANNED);
@@ -272,7 +272,7 @@ void TestGetWordFrequencies() {
     const std::map<std::string_view, double>& result1 = server.GetWordFrequencies(1);
     const std::map<std::string_view, double>& result5 = server.GetWordFrequencies(5);
     const std::map<std::string_view, double>& result8 = server.GetWordFrequencies(8);
-    
+
     ASSERT_EQUAL(result1.size(), 3);
 
     ASSERT_EQUAL(is_equal(result1.at("2word1"), 0.33333333333333331), true);
@@ -301,7 +301,7 @@ void TestRemoveDuplicates() {
     SearchServer server = GetTestServerWithDuplicates();
     RemoveDuplicates(server);
     const std::map<std::string_view, double> empty;
-    
+
     ASSERT(server.GetWordFrequencies(1) != empty);
     ASSERT(server.GetWordFrequencies(2) != empty);
     ASSERT(server.GetWordFrequencies(3) == empty);
@@ -309,7 +309,7 @@ void TestRemoveDuplicates() {
     ASSERT(server.GetWordFrequencies(5) == empty);
     ASSERT(server.GetWordFrequencies(6) != empty);
     ASSERT(server.GetWordFrequencies(7) == empty);
-    
+
 }
 
 void TestMultiThread1() {
@@ -350,7 +350,7 @@ void TestMultiThread1() {
     5 documents total, 4 documents for query [curly and funny]
     4 documents total, 3 documents for query [curly and funny]
     3 documents total, 2 documents for query [curly and funny]
-    2 documents total, 1 documents for query [curly and funny] 
+    2 documents total, 1 documents for query [curly and funny]
     */
 }
 
