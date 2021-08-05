@@ -31,6 +31,21 @@ public:
         return { item.data[key], std::lock_guard<std::mutex>(item.bucket_access) };
     }
 
+    void Erase(const Key& key) {
+        std::lock_guard<std::mutex> guard(map_access_);
+        int n = GetBucket(key);
+        auto& item = buckets_[n];
+        item.data.erase(key);
+    }
+
+    size_t Size() {
+        size_t size = 0;
+        for (const Bucket& b : buckets_) {
+            size += b.data.size();
+        }
+        return size;
+    }
+
     std::map<Key, Value> BuildOrdinaryMap() {
         std::lock_guard<std::mutex> guard(map_access_);
         std::map<Key, Value> result;
