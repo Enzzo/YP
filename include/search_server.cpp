@@ -14,14 +14,12 @@ void SearchServer::AddDocument(int document_id, const std::string_view& document
         throw std::invalid_argument("ID already exists"s);
     }
 
-    std::vector<std::string> words;
-    if (!SplitIntoWordsNoStop(document, words)) {
-        throw std::invalid_argument("invalid character(s) in word"s);
-    }
+    std::vector<std::string> words = SplitIntoWordsNoStop(document);
 
     const double inv_word_count = 1.0 / words.size();
     for (const std::string& word : words) {
         doc_to_word_freqs_[document_id][word] += inv_word_count;
+        word_to_doc_freqs_[word][document_id] += inv_word_count;
     }
 
     documents_.emplace(document_id, DocumentData{ ComputeAverageRating(ratings), status });
@@ -41,92 +39,8 @@ std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw
     return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(std::execution::sequenced_policy, const std::string_view& raw_query, DocumentStatus status) const {
-
-    return FindTopDocuments(
-        std::execution::seq,
-        raw_query,
-        [status](int document_id, DocumentStatus document_status, int rating) {
-            return document_status == status;
-        });
-}
-
-std::vector<Document> SearchServer::FindTopDocuments(std::execution::sequenced_policy, const std::string_view& raw_query) const {
-    return FindTopDocuments(std::execution::seq, raw_query, DocumentStatus::ACTUAL);
-}
-
-std::vector<Document> SearchServer::FindTopDocuments(std::execution::parallel_policy, const std::string_view& raw_query, DocumentStatus status) const {
-
-    return FindTopDocuments(
-        std::execution::par,
-        raw_query,
-        [status](int document_id, DocumentStatus document_status, int rating) {
-            return document_status == status;
-        });
-}
-
-std::vector<Document> SearchServer::FindTopDocuments(std::execution::parallel_policy, const std::string_view& raw_query) const {
-    return FindTopDocuments(std::execution::par, raw_query, DocumentStatus::ACTUAL);
-}
-
 std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(const std::string_view& raw_query, int document_id) const {
     return MatchDocument(std::execution::seq, raw_query, document_id);
-}
-
-std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(std::execution::sequenced_policy, const std::string_view& raw_query, int document_id) const {
-
-    Query query;
-    if (!ParseQuery(raw_query, query)) {
-        throw std::invalid_argument("invalid request");
-    }
-    std::vector<std::string_view> matched_words;
-    const std::map<std::string, double>& doc = doc_to_word_freqs_.at(document_id);
-
-    for (const std::string& word : query.plus_words) {
-
-        auto it = doc.find(word);
-
-        if (it != doc.end()) {
-            matched_words.push_back(std::string_view(it->first));
-        }
-    }
-    for (const std::string& word : query.minus_words) {
-
-        if (doc.count(word)) {
-            matched_words.clear();
-            break;
-        }
-    }
-
-    return { matched_words, documents_.at(document_id).status };
-}
-
-std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(std::execution::parallel_policy, const std::string_view& raw_query, int document_id) const {
-
-    Query query;
-    if (!ParseQuery(raw_query, query)) {
-        throw std::invalid_argument("invalid request");
-    }
-    std::vector<std::string_view> matched_words;
-    const std::map<std::string, double>& doc = doc_to_word_freqs_.at(document_id);
-
-    for (const std::string& word : query.plus_words) {
-
-        auto it = doc.find(word);
-
-        if (it != doc.end()) {
-            matched_words.push_back(std::string_view(it->first));
-        }
-    }
-    for (const std::string& word : query.minus_words) {
-
-        if (doc.count(word)) {
-            matched_words.clear();
-            break;
-        }
-    }
-
-    return { matched_words, documents_.at(document_id).status };
 }
 
 const std::map<std::string_view, double>& SearchServer::GetWordFrequencies(const int document_id) const noexcept {
@@ -150,26 +64,6 @@ void SearchServer::RemoveDocument(const int document_id) {
     RemoveDocument(std::execution::seq, document_id);
 }
 
-void SearchServer::RemoveDocument(std::execution::sequenced_policy p, const int document_id) {
-    if (doc_to_word_freqs_.count(document_id)) {
-        doc_to_word_freqs_.erase(document_id);
-        documents_.erase(document_id);
-        auto it = std::lower_bound(document_id_.begin(), document_id_.end(), document_id);
-        document_id_.erase(it);
-    }
-}
-
-void SearchServer::RemoveDocument(std::execution::parallel_policy p, int document_id) {
-    if (doc_to_word_freqs_.count(document_id)) {
-
-        std::async([&document_id, this] { this-> doc_to_word_freqs_.erase(document_id); });
-        std::async([&document_id, this] {this->documents_.erase(document_id); });
-        
-        auto it = std::lower_bound(document_id_.begin(), document_id_.end(), document_id);
-        std::async([it, this] {this->document_id_.erase(it); });
-    }
-}
-
 int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
     if (ratings.empty()) {
         return 0;
@@ -181,26 +75,24 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
     return rating_sum / static_cast<int>(ratings.size());
 }
 
-[[nodiscard]] bool SearchServer::SplitIntoWordsNoStop(const std::string_view& text, std::vector<std::string>& result) const {
-    result.clear();
-    std::vector<std::string> words;
+std::vector<std::string> SearchServer::SplitIntoWordsNoStop(const std::string_view& text) const {
+    std::vector<std::string> result;
+
     for (const std::string& word : SplitIntoWords(text)) {
         if (!IsValidWord(word)) {
-            return false;
+            return {};
         }
         if (!IsStopWord(word)) {
-            words.push_back(word);
+            result.push_back(word);
         }
     }
-    result = words;
-    return true;
+    return result;
 }
 
-[[nodiscard]] bool SearchServer::ParseQueryWord(std::string text, QueryWord& result) const {
-    result = {};
+SearchServer::QueryWord SearchServer::ParseQueryWord(std::string text) const {
 
     if (text.empty()) {
-        return false;
+        return QueryWord();
     }
     bool is_minus = false;
     if (text[0] == '-') {
@@ -208,21 +100,19 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
         text = text.substr(1);
     }
     if (text.empty() || text[0] == '-' || !IsValidWord(text)) {
-        return false;
+        return QueryWord();
     }
 
-    result = QueryWord{ text, is_minus, IsStopWord(text) };
-    return true;
+
+    return QueryWord{ text, is_minus, IsStopWord(text) };
 }
 
-[[nodiscard]] bool SearchServer::ParseQuery(const std::string_view& text, Query& result) const {
+SearchServer::Query SearchServer::ParseQuery(const std::string_view& text) const {
 
-    result = {};
+    Query result;
+
     for (const std::string& word : SplitIntoWords(text)) {
-        QueryWord query_word;
-        if (!ParseQueryWord(word, query_word)) {
-            return false;
-        }
+        QueryWord query_word = ParseQueryWord(word);
         if (!query_word.is_stop) {
             if (query_word.is_minus) {
                 result.minus_words.insert(query_word.data);
@@ -232,7 +122,7 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
             }
         }
     }
-    return true;
+    return result;
 }
 
 double SearchServer::ComputeWordInverseDocumentFreq(const std::string& word) const {
@@ -273,3 +163,4 @@ void RemoveDuplicates(SearchServer& search_server) {
         search_server.RemoveDocument(id);
     }
 }
+
