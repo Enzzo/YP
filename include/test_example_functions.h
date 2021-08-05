@@ -3,6 +3,7 @@
 #include <random>
 
 #include "process_queries.h"
+#include "remove_duplicates.h"
 
 template <typename Func>
 void RunTestImpl(Func, const std::string&);

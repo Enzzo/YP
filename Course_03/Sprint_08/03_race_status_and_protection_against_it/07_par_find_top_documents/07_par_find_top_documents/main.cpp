@@ -74,8 +74,8 @@ int main() {
     //const auto dictionary = GenerateDictionary(generator, 1000, 10);
     //const auto documents = GenerateQueries(generator, dictionary, 10'000, 70);
 
-    const auto dictionary = GenerateDictionary(generator, 10, 10);
-    const auto documents = GenerateQueries(generator, dictionary, 10, 70);
+    const auto dictionary = GenerateDictionary(generator, 1000, 10);
+    const auto documents = GenerateQueries(generator, dictionary, 100, 70);
 
     SearchServer search_server(dictionary[0]);
     for (size_t i = 0; i < documents.size(); ++i) {
