@@ -3,16 +3,22 @@
 
 #include "transport_catalogue.h"
 
-class InputReader{
-	TransportCatalogue& transport_catalogue_;
+namespace inp {
+	using tc::TransportCatalogue;
 
-public:
-	InputReader() = delete;
-	explicit InputReader(TransportCatalogue& transport_catalogue) : transport_catalogue_(transport_catalogue) {};
+	class Reader {
+		TransportCatalogue& transport_catalogue_;
 
-	void Request(std::istream& request = std::cin);
+	public:
+		Reader() = delete;
+		explicit Reader(TransportCatalogue& transport_catalogue) : transport_catalogue_(transport_catalogue) {};
 
-private:
-	void TrimString(std::string&);
-	std::pair<int, std::string> ParseDescription(std::istream&)const;
-};
+		void Request(std::istream& request = std::cin);
+
+	private:
+		void TrimString(std::string&) const;
+		[[nodiscard]] std::pair<int, std::string> ParseDescription(std::istream&)const;
+		void ParseStop(std::istream&);
+		void ParseBus(std::istream&);
+	};
+}

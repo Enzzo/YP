@@ -1,0 +1,67 @@
+[
+    {
+        "buses": [
+            "RSQGkT2DsST7ypFiJZ",
+            "UahpfpE4MlNd7",
+            "k6c4kPfH0mvOtRmG0R",
+            "yDT9  3hWlE2"
+        ],
+        "request_id": 130800072
+    },
+    {
+        "buses": [
+            "IQhANZzHr13wh",
+            "RSQGkT2DsST7ypFiJZ",
+            "SNV0QCUGfZj9oozg",
+            "VxaAB36yTBNuB4iP",
+            "mJazBU4tI4q"
+        ],
+        "request_id": 666751868
+    },
+    {
+        "error_message": "not found",
+        "request_id": 1300664386
+    },
+    {
+        "buses": [
+            "QIbU1fznLRLklkCMgZNU",
+            "UahpfpE4MlNd7",
+            "k6c4kPfH0mvOtRmG0R"
+        ],
+        "request_id": 659334562
+    },
+    {
+        "buses": [
+            "RSQGkT2DsST7ypFiJZ",
+            "l34lBEEYJcyvm XeFRCJC4Nz"
+        ],
+        "request_id": 903957281
+    },
+    {
+        "buses": [
+            "RSQGkT2DsST7ypFiJZ"
+        ],
+        "request_id": 900786594
+    },
+    {
+        "curvature": 1.76102,
+        "request_id": 1921043750,
+        "route_length": 2.97618e+07,
+        "stop_count": 44,
+        "unique_stop_count": 35
+    },
+    {
+        "buses": [
+            "RSQGkT2DsST7ypFiJZ",
+            "yDT9  3hWlE2"
+        ],
+        "request_id": 1904613271
+    },
+    {
+        "curvature": 1.82893,
+        "request_id": 731256225,
+        "route_length": 2.24171e+07,
+        "stop_count": 33,
+        "unique_stop_count": 15
+    }
+]

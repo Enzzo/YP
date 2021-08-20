@@ -1,0 +1,62 @@
+[
+    {
+        "curvature": 1.51932,
+        "request_id": 1044727270,
+        "route_length": 3.45287e+06,
+        "stop_count": 7,
+        "unique_stop_count": 6
+    },
+    {
+        "curvature": 1.51932,
+        "request_id": 1044727270,
+        "route_length": 3.45287e+06,
+        "stop_count": 7,
+        "unique_stop_count": 6
+    },
+    {
+        "curvature": 1.63229,
+        "request_id": 1550454772,
+        "route_length": 2.29278e+06,
+        "stop_count": 4,
+        "unique_stop_count": 3
+    },
+    {
+        "curvature": 1.25152,
+        "request_id": 1926606165,
+        "route_length": 1.80173e+06,
+        "stop_count": 3,
+        "unique_stop_count": 2
+    },
+    {
+        "curvature": 1.63229,
+        "request_id": 1550454772,
+        "route_length": 2.29278e+06,
+        "stop_count": 4,
+        "unique_stop_count": 3
+    },
+    {
+        "buses": [
+
+        ],
+        "request_id": 78947955
+    },
+    {
+        "curvature": 1.51932,
+        "request_id": 1044727270,
+        "route_length": 3.45287e+06,
+        "stop_count": 7,
+        "unique_stop_count": 6
+    },
+    {
+        "buses": [
+
+        ],
+        "request_id": 1237573050
+    },
+    {
+        "buses": [
+            "jKHAQpO7orTDFS6mKggg"
+        ],
+        "request_id": 887980104
+    }
+]

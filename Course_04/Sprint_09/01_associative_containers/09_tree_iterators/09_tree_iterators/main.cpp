@@ -58,7 +58,6 @@ TreeNode<T>* begin(TreeNode<T>* node) {
 
 template <class T>
 TreeNode<T>* next(TreeNode<T>* node) {
-    // место для вашей реализации
 
     if (node->right) {
         return begin(node->right);
