@@ -32,6 +32,11 @@ svg::Color MakeColor(int r, int g, int b);
 svg::Color MakeColor(int r, int g, int b, double a);
 
 class SphereProjector final {
+    double padding_;
+    double min_lon_;
+    double max_lat_;
+    double zoom_coef_ = 0;
+
 public:
     SphereProjector() = default;
 
@@ -40,12 +45,6 @@ public:
         double width, double height, double padding);
 
     svg::Point                        operator()(const geo::Coordinates& coords) const;
-
-private:
-    double                            padding_;
-    double                            min_lon_;
-    double                            max_lat_;
-    double                            zoom_coef_ = 0;
 };
 
 class MapRenderer final {

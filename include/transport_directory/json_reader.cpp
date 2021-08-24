@@ -9,6 +9,7 @@ void JSONreader::ReadBase(const json::Document& doc){
     base_requests_ = load.at("base_requests"s).AsArray();
     map_renderer_.SetSettings(MakeRenderSettings(load.at("render_settings").AsMap()));
 
+    //load stops
     for (const auto& request : base_requests_) {
         const auto& description = request.AsMap();
         if (description.at("type"s).AsString() == "Stop"s) {
@@ -16,6 +17,7 @@ void JSONreader::ReadBase(const json::Document& doc){
         }
     }
 
+    //load distances
     for (const auto& request : base_requests_) {
         const auto& description = request.AsMap();
         if (description.at("type"s).AsString() == "Stop"s) {
@@ -30,6 +32,7 @@ void JSONreader::ReadBase(const json::Document& doc){
         }
     }
 
+    //load buses
     for (const auto& request : base_requests_) {
         const auto& description = request.AsMap();
         if (description.at("type"s).AsString() == "Bus"s) {
