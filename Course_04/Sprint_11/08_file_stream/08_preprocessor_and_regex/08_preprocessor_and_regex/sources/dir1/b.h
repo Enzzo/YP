@@ -1,3 +1,3 @@
 // text from b.h before include
-#include "subdir/15c.h"
+#include "subdir/c.h"
 // text from b.h after include

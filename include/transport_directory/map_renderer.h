@@ -44,14 +44,14 @@ public:
         const geo::Coordinates& right_bottom,
         double width, double height, double padding);
 
-    svg::Point                        operator()(const geo::Coordinates& coords) const;
+    svg::Point operator()(const geo::Coordinates& coords) const;
 };
 
 class MapRenderer final {
-    SphereProjector                   sphere_projector_;
-    Settings                          settings_;
-    size_t                            index_color_ = 0;
-    svg::Document                     document_;
+    SphereProjector sphere_projector_;
+    Settings settings_;
+    size_t index_color_ = 0;
+    svg::Document document_;
 
 public:
     MapRenderer() = default;
@@ -62,12 +62,11 @@ public:
     void SetTrail(const Buses& buses);
     void SetStation(const Stops& stops);
 
-private:   
-
-    void AddTrail(const Bus& bus);
-    void AddTrailName(const Bus& bus);
-    void AddStation(const Stop& stop);
-    void AddStationName(const Stop& stop);
+private:
+    void RenderTrail(const Bus& bus);
+    void RenderTrailName(const Bus& bus);
+    void RenderStation(const Stop& stop);
+    void RenderStationName(const Stop& stop);
     svg::Polyline CreateTrail(const Bus& bus) const;
     svg::Color GetColor();
     svg::Point GetPoint(const geo::Coordinates& coords) const;

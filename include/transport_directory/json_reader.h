@@ -22,15 +22,22 @@ public:
 		, request_handler_(request)
 		, map_renderer_(map_renderer) {};
 
-	void ReadBase(const json::Document&);
+	void ReadRequest(const json::Document&);
 	void ReadRequests(const json::Document&);
-	void Answer(std::ostream& ost = std::cout);
+	void ReadTransportCatalogue(std::ostream& ost = std::cout);
 
 private:
 	Stop MakeStop(const json::Dict&);
 	Bus MakeBus(const json::Dict&);
 	Settings MakeRenderSettings(const json::Dict&) const;
-	json::Node AnswerStop(const json::Dict&);
-	json::Node AnswerBus(const json::Dict&);
-	json::Node AnswerMap(const json::Dict& description);
+	json::Node ReadStop(const json::Dict&);
+	json::Node ReadBus(const json::Dict&);
+	json::Node ReadMap(const json::Dict& description);
+
+	void LoadStops();
+	void LoadBuses();
+	void LoadDistances();
+
+	svg::Point SetPoint(const json::Node&)const;
+	svg::Color SetColor(const json::Node&)const;
 };

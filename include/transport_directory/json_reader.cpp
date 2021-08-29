@@ -4,20 +4,38 @@
 
 using namespace std::literals;
 
-void JSONreader::ReadBase(const json::Document& doc){
+void JSONreader::ReadRequest(const json::Document& doc){
     const auto load = doc.GetRoot().AsMap();
     base_requests_ = load.at("base_requests"s).AsArray();
     map_renderer_.SetSettings(MakeRenderSettings(load.at("render_settings").AsMap()));
 
-    //load stops
+    LoadStops();
+    LoadDistances();
+    LoadBuses();        
+
+    map_renderer_.SetBorder(base_.GetStops());
+    map_renderer_.SetTrail(base_.GetBuses());
+    map_renderer_.SetStation(base_.GetStops());
+}
+void JSONreader::LoadStops() {
     for (const auto& request : base_requests_) {
         const auto& description = request.AsMap();
         if (description.at("type"s).AsString() == "Stop"s) {
             base_.AddStop(MakeStop(description));
         }
     }
+}
 
-    //load distances
+void JSONreader::LoadBuses() {
+    for (const auto& request : base_requests_) {
+        const auto& description = request.AsMap();
+        if (description.at("type"s).AsString() == "Bus"s) {
+            base_.AddBus(MakeBus(description));
+        }
+    }
+}
+
+void JSONreader::LoadDistances() {
     for (const auto& request : base_requests_) {
         const auto& description = request.AsMap();
         if (description.at("type"s).AsString() == "Stop"s) {
@@ -31,18 +49,6 @@ void JSONreader::ReadBase(const json::Document& doc){
             }
         }
     }
-
-    //load buses
-    for (const auto& request : base_requests_) {
-        const auto& description = request.AsMap();
-        if (description.at("type"s).AsString() == "Bus"s) {
-            base_.AddBus(MakeBus(description));
-        }
-    }
-
-    map_renderer_.SetBorder(base_.GetStops());
-    map_renderer_.SetTrail(base_.GetBuses());
-    map_renderer_.SetStation(base_.GetStops());
 }
 
 Stop JSONreader::MakeStop(const json::Dict& description) {
@@ -68,25 +74,25 @@ void JSONreader::ReadRequests(const json::Document& doc) {
     stat_requests_ = load.at("stat_requests"s).AsArray();
 }
 
-void JSONreader::Answer(std::ostream& ost){
+void JSONreader::ReadTransportCatalogue(std::ostream& ost){
     for (const auto& request : stat_requests_) {
         const auto& description = request.AsMap();
         const auto& type = description.at("type"s).AsString();
         if (type == "Stop"s) {
-            answers_.push_back(AnswerStop(description));
+            answers_.push_back(ReadStop(description));
         }
         else if (type == "Bus"s) {
-            answers_.push_back(AnswerBus(description));
+            answers_.push_back(ReadBus(description));
         }
         else if (type == "Map"s) {
-            answers_.push_back(AnswerMap(description));
+            answers_.push_back(ReadMap(description));
         }
     }
     const json::Document answer(answers_);
     Print(answer, ost);
 }
 
-json::Node JSONreader::AnswerStop(const json::Dict& description) {
+json::Node JSONreader::ReadStop(const json::Dict& description) {
     json::Dict dict;
     dict["request_id"s] = description.at("id"s).AsInt();
 
@@ -105,7 +111,7 @@ json::Node JSONreader::AnswerStop(const json::Dict& description) {
     return dict;
 }
 
-json::Node JSONreader::AnswerBus(const json::Dict& description) {
+json::Node JSONreader::ReadBus(const json::Dict& description) {
     json::Dict dict;
     dict["request_id"s] = description.at("id"s).AsInt();
 
@@ -122,7 +128,7 @@ json::Node JSONreader::AnswerBus(const json::Dict& description) {
     return dict;
 }
 
-json::Node JSONreader::AnswerMap(const json::Dict& description) {
+json::Node JSONreader::ReadMap(const json::Dict& description) {
     json::Dict dict;
     dict["request_id"s] = description.at("id"s).AsInt();
 
@@ -132,28 +138,29 @@ json::Node JSONreader::AnswerMap(const json::Dict& description) {
     return dict;
 }
 
-Settings JSONreader::MakeRenderSettings(const json::Dict& description) const {
-    auto make_point = [](const json::Node& node) {
-        const auto& array = node.AsArray();
-        return MakePoint(array.front().AsDouble(),
-            array.back().AsDouble());
-    };
+svg::Point JSONreader::SetPoint(const json::Node& node)const {
+    const auto& array = node.AsArray();
+    return MakePoint(array.front().AsDouble(),
+        array.back().AsDouble());
+}
 
-    auto make_color = [](const json::Node& node) {
-        if (node.IsArray()) {
-            const auto& array = node.AsArray();
-            if (array.size() == 3) {
-                return MakeColor(array.at(0).AsInt(),
-                    array.at(1).AsInt(), array.at(2).AsInt());
-            }
-            else if (array.size() == 4) {
-                return MakeColor(array.at(0).AsInt(),
-                    array.at(1).AsInt(), array.at(2).AsInt(),
-                    array.at(3).AsDouble());
-            }
+svg::Color JSONreader::SetColor(const json::Node& node)const {
+    if (node.IsArray()) {
+        const auto& array = node.AsArray();
+        if (array.size() == 3) {
+            return MakeColor(array.at(0).AsInt(),
+                array.at(1).AsInt(), array.at(2).AsInt());
         }
-        return MakeColor(node.AsString());
-    };
+        else if (array.size() == 4) {
+            return MakeColor(array.at(0).AsInt(),
+                array.at(1).AsInt(), array.at(2).AsInt(),
+                array.at(3).AsDouble());
+        }
+    }
+    return MakeColor(node.AsString());
+}
+
+Settings JSONreader::MakeRenderSettings(const json::Dict& description) const {
 
     Settings settings;
     settings.width = description.at("width"s).AsDouble();
@@ -162,15 +169,15 @@ Settings JSONreader::MakeRenderSettings(const json::Dict& description) const {
     settings.line_width = description.at("line_width"s).AsDouble();
     settings.stop_radius = description.at("stop_radius"s).AsDouble();
     settings.bus_label_font_size = description.at("bus_label_font_size"s).AsInt();
-    settings.bus_label_offset = make_point(description.at("bus_label_offset"s));
+    settings.bus_label_offset = SetPoint(description.at("bus_label_offset"s));
     settings.stop_label_font_size = description.at("stop_label_font_size"s).AsInt();
-    settings.stop_label_offset = make_point(description.at("stop_label_offset"s));
-    settings.underlayer_color = make_color(description.at("underlayer_color"s));
+    settings.stop_label_offset = SetPoint(description.at("stop_label_offset"s));
+    settings.underlayer_color = SetColor(description.at("underlayer_color"s));
     settings.underlayer_width = description.at("underlayer_width"s).AsDouble();
     const auto& array_color = description.at("color_palette"s).AsArray();
     settings.color_palette.reserve(array_color.size());
     for (const auto& color : array_color) {
-        settings.color_palette.push_back(make_color(color));
+        settings.color_palette.push_back(SetColor(color));
     }
     return settings;
 }

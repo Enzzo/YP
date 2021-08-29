@@ -17,11 +17,10 @@ path operator""_p(const char* data, std::size_t sz) {
 }
 
 std::optional<std::filesystem::path> FindIncludeFile(const std::filesystem::path& filename, const std::filesystem::path& catalog) {
+    
     for (const std::filesystem::path& c : std::filesystem::directory_iterator(catalog)) {
-
         std::filesystem::file_status status = std::filesystem::status(c);
         if (status.type() == std::filesystem::file_type::regular) {
-            const std::filesystem::path file_name = filename;
             if (c.filename() == filename.filename()) {
                 return c;
             }
@@ -35,29 +34,23 @@ std::optional<std::filesystem::path> FindIncludeFile(const std::filesystem::path
 
 bool Preprocess(const path&, const path&, const vector<path>&);
 
-bool FindInAbsolutely(const std::filesystem::path& in_file, const std::filesystem::path& out_file, const std::smatch& m, const std::vector<std::filesystem::path>& include_directories, const int row) {
+std::optional<std::filesystem::path> FindInAbsolutely(const std::smatch& m, const std::vector<std::filesystem::path>& include_directories) {
     for (const std::filesystem::path& directory : include_directories) {
         const std::filesystem::path pt(m[1].str(), std::filesystem::path::generic_format);
         const std::optional<std::filesystem::path> p = FindIncludeFile(pt, directory);
         if (p) {
-            if (Preprocess(p.value(), out_file, include_directories)) {
-                return true;
-            }
+            return p;
         }
     }
-    std::string out = in_file.string();
-    std::filesystem::path file(m[1].str());
-    std::cout << "unknown include file " << file.filename().string() << " at file " << out << " at line " << row << std::endl;
-    return false;
+    return nullopt;
 }
 
-bool FindInRelatively(const std::filesystem::path& in_file, const std::filesystem::path& out_file, const std::smatch& m, const std::vector<std::filesystem::path>& include_directories, const int row) {
-    //const std::filesystem::path pt(m[1].str(), std::filesystem::path::generic_format);
+std::optional<std::filesystem::path> FindInRelatively(const std::filesystem::path& in_file, const std::smatch& m) {
     const std::filesystem::path p = in_file.parent_path() / m[1].str();
-    if (Preprocess(p, out_file, include_directories)) {
-        return true;
+    if (std::filesystem::exists(p)) {
+        return p;
     }
-    return FindInAbsolutely(p, out_file, m, include_directories, row);
+    return nullopt;
 }
 
 bool Preprocess(const path& in_file, const path& out_file, const vector<path>& include_directories) {
@@ -72,35 +65,90 @@ bool Preprocess(const path& in_file, const path& out_file, const vector<path>& i
     static std::regex relatively(R"/(\s*#\s*include\s*"([^"]*)"\s*)/");
     static std::regex absolutely(R"/(\s*#\s*include\s*<([^>]*)>\s*)/");
     std::smatch m;
-
-     std::string line;
-
-     unsigned int row = 0;
-     while (getline(in, line)) {
-         row++;
-
+    std::string line;
+    unsigned int row = 0;
+    
+    while (getline(in, line)) {
+        row++;
         if(std::regex_match(line, m, relatively)){
-            if (!FindInRelatively(in_file, out_file, m, include_directories, row)) {
+            std::optional<std::filesystem::path> include_path = FindInRelatively(in_file, m);
+            if (!include_path) {
+                include_path = FindInAbsolutely(m, include_directories);
+                if (!include_path) {
+                    std::filesystem::path file = std::string(m[1]);
+                    std::cout << "unknown include file " << file.filename().string() << " at file " << in_file.string() << " at line " << row;
+                    return false;
+                }
+            }
+            if (!Preprocess(*include_path, out_file, include_directories)) {
                 return false;
             }
         }
         else if(std::regex_match(line, m, absolutely)){
-            if (!FindInAbsolutely(in_file, out_file, m, include_directories, row)) {
+            std::optional<std::filesystem::path> include_path = FindInAbsolutely(m, include_directories);
+            if (!include_path) {
+                std::filesystem::path file = std::string(m[1]);
+                std::cout << "unknown include file " << file.filename().string() << " at file " << in_file.string() << " at line " << row;
+                return false;
+            }
+            if (!Preprocess(*include_path, out_file, include_directories)) {
                 return false;
             }
         }
         else{
             out<<line<<std::endl;
         }
-     }
+    }
     return true;
 }
 
-string GetFileContents(string file) {
+string GetFileContentsPraktikum(string file) {
     ifstream stream(file);
 
     // конструируем string по двум итераторам
     return { (istreambuf_iterator<char>(stream)), istreambuf_iterator<char>() };
+}
+
+void TestStrangeInclude() {
+    error_code err;
+    filesystem::remove_all("sources"_p, err);
+    filesystem::create_directories("sources"_p, err);
+    filesystem::create_directories("sources"_p / "include_dir"_p, err);
+    {
+        ofstream file("sources/a.cpp");
+        file << "// this comment before include\n"
+            "#  \t include \t  \"b.h\"\n"
+            "// text between b.h and c.h\n"
+            "#  \t include \t  <c.h>\n"
+            "\n"
+            "int SayHello() {\n"
+            "    cout << \"hello, world!\" << endl;\n"
+            "}\n"sv;
+    } {
+        ofstream file("sources/b.h");
+        file << "// text from b.h before include\n"
+            "// text from b.h after include"sv;
+    } {
+        ofstream file("sources/include_dir/c.h");
+        file << "// text from c.h before include\n"
+            "// text from c.h after include"sv;
+    }
+
+    assert((Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p, { "sources"_p / "include_dir"_p })));
+
+    ostringstream test_out;
+    test_out << "// this comment before include\n"
+        "// text from b.h before include\n"
+        "// text from b.h after include\n"
+        "// text between b.h and c.h\n"
+        "// text from c.h before include\n"
+        "// text from c.h after include\n"
+        "\n"
+        "int SayHello() {\n"
+        "    cout << \"hello, world!\" << endl;\n"
+        "}\n"sv;
+
+    assert(GetFileContentsPraktikum("sources/a.in"s) == test_out.str());
 }
 
 void Test() {
@@ -125,7 +173,7 @@ void Test() {
     {
         ofstream file("sources/dir1/b.h");
         file << "// text from b.h before include\n"
-            "#include \"subdir/15c.h\"\n"
+            "#include \"subdir/c.h\"\n"
             "// text from b.h after include"sv;
     }
     {
@@ -167,7 +215,7 @@ void Test() {
         "int SayHello() {\n"
         "    cout << \"hello, world!\" << endl;\n"sv;
 
-    //assert(GetFileContents("sources/a.in"s) == test_out.str());
+    assert(GetFileContentsPraktikum("sources/a.in"s) == test_out.str());
 }
 
 int main() {

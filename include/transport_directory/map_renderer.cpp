@@ -81,11 +81,11 @@ void MapRenderer::SetBorder(const Stops& stops) {
 
 void MapRenderer::SetTrail(const Buses& buses) {
     for (const auto& bus : buses) {
-        AddTrail(*bus);
+        RenderTrail(*bus);
     }
     index_color_ = 0;
     for (const auto& bus : buses) {
-        AddTrailName(*bus);
+        RenderTrailName(*bus);
     }
     index_color_ = 0;
 }
@@ -93,17 +93,17 @@ void MapRenderer::SetTrail(const Buses& buses) {
 void MapRenderer::SetStation(const Stops& stops) {
     for (const auto& stop : stops) {
         if (!stop->free) {
-            AddStation(*stop);
+            RenderStation(*stop);
         }
     }
     for (const auto& stop : stops) {
         if (!stop->free) {
-            AddStationName(*stop);
+            RenderStationName(*stop);
         }
     }
 }
 
-void MapRenderer::AddTrail(const Bus& bus) {
+void MapRenderer::RenderTrail(const Bus& bus) {
     using namespace svg;
     document_.Add(CreateTrail(bus)
         .SetFillColor(NoneColor)
@@ -113,7 +113,7 @@ void MapRenderer::AddTrail(const Bus& bus) {
         .SetStrokeLineJoin(StrokeLineJoin::ROUND));
 }
 
-void MapRenderer::AddTrailName(const Bus& bus) {
+void MapRenderer::RenderTrailName(const Bus& bus) {
     using namespace svg;
     const auto& point_begin = GetPoint(bus.stops.front()->coord);
     Text text = Text().SetFillColor(GetColor())
@@ -143,14 +143,14 @@ void MapRenderer::AddTrailName(const Bus& bus) {
     }
 }
 
-void MapRenderer::AddStation(const Stop& stop) {
+void MapRenderer::RenderStation(const Stop& stop) {
     using namespace svg;
     document_.Add(Circle().SetCenter(GetPoint(stop.coord))
         .SetRadius(settings_.stop_radius)
         .SetFillColor("white"s));
 }
 
-void MapRenderer::AddStationName(const Stop& stop) {
+void MapRenderer::RenderStationName(const Stop& stop) {
     using namespace svg;
     Text text = Text().SetFillColor("black"s)
         .SetPosition(GetPoint(stop.coord))
