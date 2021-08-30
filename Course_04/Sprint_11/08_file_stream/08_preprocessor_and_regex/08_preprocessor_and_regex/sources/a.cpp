@@ -1,9 +1,8 @@
 // this comment before include
-#include "dir1/b.h"
+#  	 include 	  " b . h "
 // text between b.h and c.h
-#include "dir1/d.h"
+#  	 include 	  <c.h>
 
 int SayHello() {
     cout << "hello, world!" << endl;
-#   include<d u mm y.txt>
 }
