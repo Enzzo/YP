@@ -1,7 +1,6 @@
 // this comment before include
-#  	 include 	  " b . h "
+#include "b.h"
 // text between b.h and c.h
-#  	 include 	  <c.h>
 
 int SayHello() {
     cout << "hello, world!" << endl;

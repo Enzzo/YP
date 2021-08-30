@@ -6,10 +6,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <vector >
-#include  <optional>
-
-#include "transport_directory/geo.h ";
+#include <optional>
 
 using namespace std;
 using filesystem::path;
@@ -67,10 +64,15 @@ bool Preprocess(const path& in_file, const path& out_file, const vector<path>& i
     std::ifstream in(in_file);
 
     if (!in.is_open()) {
+        std::cerr << in_file << std::endl;
         return false;
     }
 
     std::ofstream out(out_file, std::ios::app);
+    if (!out.is_open()) {
+        std::cerr << out_file << std::endl;
+        return false;
+    }
 
     static std::regex relatively(R"/(\s*#\s*include\s*"([^"]*)"\s*)/");
     static std::regex absolutely(R"/(\s*#\s*include\s*<([^>]*)>\s*)/");
@@ -87,7 +89,7 @@ bool Preprocess(const path& in_file, const path& out_file, const vector<path>& i
                 include_path = FindInAbsolutely(m, include_directories);
                 if (!include_path) {
                     std::filesystem::path file = std::string(m[1]);
-                    std::cout << "unknown include file " << file << " at file " << in_file.string() << " at line " << row << std::endl;
+                    std::cout << "unknown include file "sv << file.string() << " at file "sv << in_file.string() << " at line "sv << row << std::endl;
                     return false;
                 }
             }
@@ -99,7 +101,7 @@ bool Preprocess(const path& in_file, const path& out_file, const vector<path>& i
             std::optional<std::filesystem::path> include_path = FindInAbsolutely(m, include_directories);
             if (!include_path) {
                 std::filesystem::path file = std::string(m[1]);
-                std::cout << "unknown include file " << file.filename().string() << " at file " << in_file.string() << " at line " << row << std::endl;
+                std::cout << "unknown include file "sv << file.string() << " at file "sv << in_file.string() << " at line "sv << row << std::endl;
                 return false;
             }
             if (!Preprocess(*include_path, out_file, include_directories)) {
@@ -120,6 +122,28 @@ string GetFileContentsPraktikum(string file) {
     return { (istreambuf_iterator<char>(stream)), istreambuf_iterator<char>() };
 }
 
+void TestSimpleLocalInclude() {
+    error_code err;
+    filesystem::remove_all("sources"_p, err);
+    filesystem::create_directories("sources"_p, err);
+    {
+        ofstream file("sources/a.cpp");
+        file << "// this comment before include\n"
+            "#include \"b.h\"\n"
+            "// text between b.h and c.h\n"
+            "\n"
+            "int SayHello() {\n"
+            "    cout << \"hello, world!\" << endl;\n"
+            "}\n"sv;
+    } {
+        ofstream file("sources/b.h");
+        file << "// text from b.h before include\n"
+            "// text from b.h after include"sv;
+    }
+
+    assert((Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p, {})));
+}
+
 void TestStrangeIncludeCustom() {
     error_code err;
     filesystem::remove_all("sources"_p, err);
@@ -128,7 +152,7 @@ void TestStrangeIncludeCustom() {
     {
         ofstream file("sources/a.cpp");
         file << "// this comment before include\n"
-            "#  \t include \t  \" b . h \"\n"
+            "#  \t include \t  \"b.h\"\n"
             "// text between b.h and c.h\n"
             "#  \t include \t  <c.h>\n"
             "\n"
@@ -231,5 +255,6 @@ void Test() {
 
 int main() {
     //Test();
-    TestStrangeIncludeCustom();
+    //TestStrangeIncludeCustom();
+    TestSimpleLocalInclude();
 }
