@@ -16,6 +16,14 @@ path operator""_p(const char* data, std::size_t sz) {
     return path(data, data + sz);
 }
 
+std::string_view TrimString(const std::string& line) {
+    std::string_view result;
+    auto l = line.find_last_not_of(' ');
+    auto r = line.find_first_not_of(' ');
+    int y = 2;
+    return result;
+}
+
 std::optional<std::filesystem::path> FindIncludeFile(const std::filesystem::path& filename, const std::filesystem::path& catalog) {
     
     for (const std::filesystem::path& c : std::filesystem::directory_iterator(catalog)) {
@@ -54,6 +62,7 @@ std::optional<std::filesystem::path> FindInRelatively(const std::filesystem::pat
 }
 
 bool Preprocess(const path& in_file, const path& out_file, const vector<path>& include_directories) {
+    
     std::ifstream in(in_file);
 
     if (!in.is_open()) {
@@ -76,7 +85,7 @@ bool Preprocess(const path& in_file, const path& out_file, const vector<path>& i
                 include_path = FindInAbsolutely(m, include_directories);
                 if (!include_path) {
                     std::filesystem::path file = std::string(m[1]);
-                    std::cout << "unknown include file " << file.filename().string() << " at file " << in_file.string() << " at line " << row;
+                    std::cout << "unknown include file " << file.string() << " at file " << in_file.string() << " at line " << row << std::endl;
                     return false;
                 }
             }
@@ -88,7 +97,7 @@ bool Preprocess(const path& in_file, const path& out_file, const vector<path>& i
             std::optional<std::filesystem::path> include_path = FindInAbsolutely(m, include_directories);
             if (!include_path) {
                 std::filesystem::path file = std::string(m[1]);
-                std::cout << "unknown include file " << file.filename().string() << " at file " << in_file.string() << " at line " << row;
+                std::cout << "unknown include file " << file.filename().string() << " at file " << in_file.string() << " at line " << row << std::endl;
                 return false;
             }
             if (!Preprocess(*include_path, out_file, include_directories)) {
@@ -109,7 +118,7 @@ string GetFileContentsPraktikum(string file) {
     return { (istreambuf_iterator<char>(stream)), istreambuf_iterator<char>() };
 }
 
-void TestStrangeInclude() {
+void TestStrangeIncludeCustom() {
     error_code err;
     filesystem::remove_all("sources"_p, err);
     filesystem::create_directories("sources"_p, err);
@@ -117,7 +126,7 @@ void TestStrangeInclude() {
     {
         ofstream file("sources/a.cpp");
         file << "// this comment before include\n"
-            "#  \t include \t  \"b.h\"\n"
+            "#  \t include \t  \" b . h \"\n"
             "// text between b.h and c.h\n"
             "#  \t include \t  <c.h>\n"
             "\n"
@@ -134,7 +143,7 @@ void TestStrangeInclude() {
             "// text from c.h after include"sv;
     }
 
-    assert((Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p, { "sources"_p / "include_dir"_p })));
+    assert((!Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p, { "sources"_p / "include_dir"_p })));
 
     ostringstream test_out;
     test_out << "// this comment before include\n"
@@ -148,7 +157,7 @@ void TestStrangeInclude() {
         "    cout << \"hello, world!\" << endl;\n"
         "}\n"sv;
 
-    assert(GetFileContentsPraktikum("sources/a.in"s) == test_out.str());
+    //assert(GetFileContentsPraktikum("sources/a.in"s) == test_out.str());
 }
 
 void Test() {
@@ -197,8 +206,8 @@ void Test() {
         file << "// std2\n"sv;
     }
 
-    assert((!Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p,
-        { "sources"_p / "include1"_p,"sources"_p / "include2"_p })));
+    assert(!Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p,
+        { "sources"_p / "include1"_p,"sources"_p / "include2"_p }));
 
     ostringstream test_out;
     test_out << "// this comment before include\n"
@@ -219,5 +228,6 @@ void Test() {
 }
 
 int main() {
-    Test();
+    //Test();
+    TestStrangeIncludeCustom();
 }
