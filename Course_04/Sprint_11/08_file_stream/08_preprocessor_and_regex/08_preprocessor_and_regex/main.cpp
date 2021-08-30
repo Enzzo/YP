@@ -9,19 +9,13 @@
 #include <vector>
 #include <optional>
 
+//#include " transport_directory/geo.h ";
+
 using namespace std;
 using filesystem::path;
 
 path operator""_p(const char* data, std::size_t sz) {
     return path(data, data + sz);
-}
-
-std::string_view TrimString(const std::string& line) {
-    std::string_view result;
-    auto l = line.find_last_not_of(' ');
-    auto r = line.find_first_not_of(' ');
-    int y = 2;
-    return result;
 }
 
 std::optional<std::filesystem::path> FindIncludeFile(const std::filesystem::path& filename, const std::filesystem::path& catalog) {
@@ -85,7 +79,7 @@ bool Preprocess(const path& in_file, const path& out_file, const vector<path>& i
                 include_path = FindInAbsolutely(m, include_directories);
                 if (!include_path) {
                     std::filesystem::path file = std::string(m[1]);
-                    std::cout << "unknown include file " << file.string() << " at file " << in_file.string() << " at line " << row << std::endl;
+                    std::cout << "unknown include file " << file << " at file " << in_file.string() << " at line " << row << std::endl;
                     return false;
                 }
             }
@@ -97,7 +91,7 @@ bool Preprocess(const path& in_file, const path& out_file, const vector<path>& i
             std::optional<std::filesystem::path> include_path = FindInAbsolutely(m, include_directories);
             if (!include_path) {
                 std::filesystem::path file = std::string(m[1]);
-                std::cout << "unknown include file " << file.filename().string() << " at file " << in_file.string() << " at line " << row << std::endl;
+                std::cout << "unknown include file " << file << " at file " << in_file.string() << " at line " << row << std::endl;
                 return false;
             }
             if (!Preprocess(*include_path, out_file, include_directories)) {
@@ -143,7 +137,7 @@ void TestStrangeIncludeCustom() {
             "// text from c.h after include"sv;
     }
 
-    assert((!Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p, { "sources"_p / "include_dir"_p })));
+    assert((Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p, { "sources"_p / "include_dir"_p })));
 
     ostringstream test_out;
     test_out << "// this comment before include\n"
@@ -176,7 +170,7 @@ void Test() {
             "\n"
             "int SayHello() {\n"
             "    cout << \"hello, world!\" << endl;\n"
-            "#   include<dummy.txt>\n"
+            "#   include<d u mm y.txt>\n"
             "}\n"sv;
     }
     {
@@ -188,13 +182,13 @@ void Test() {
     {
         ofstream file("sources/dir1/subdir/c.h");
         file << "// text from c.h before include\n"
-            "#include <std1.h>\n"
+            "#include  < std 1.h > \n"
             "// text from c.h after include\n"sv;
     }
     {
         ofstream file("sources/dir1/d.h");
         file << "// text from d.h before include\n"
-            "#include \"lib/std2.h\"\n"
+            "#include \"lib/ std 2.h\"\n"
             "// text from d.h after include\n"sv;
     }
     {
@@ -228,6 +222,6 @@ void Test() {
 }
 
 int main() {
-    //Test();
+    Test();
     TestStrangeIncludeCustom();
 }
