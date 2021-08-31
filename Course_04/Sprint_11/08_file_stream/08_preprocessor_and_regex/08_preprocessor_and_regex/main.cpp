@@ -23,16 +23,18 @@ std::string TrimString(const std::string& line) {
 }
 
 std::optional<std::filesystem::path> FindIncludeFile(const std::filesystem::path& filename, const std::filesystem::path& catalog) {
-    
-    for (const std::filesystem::path& c : std::filesystem::directory_iterator(catalog)) {
-        std::filesystem::file_status status = std::filesystem::status(c);
-        if (status.type() == std::filesystem::file_type::regular) {
-            if (c.filename() == filename.filename()) {
-                return c;
+    int x = 2;
+    if (std::filesystem::exists(catalog)) {
+        for (const std::filesystem::path& c : std::filesystem::directory_iterator(catalog)) {
+            std::filesystem::file_status status = std::filesystem::status(c);
+            if (status.type() == std::filesystem::file_type::regular) {
+                if (c.filename() == filename.filename()) {
+                    return c;
+                }
             }
-        }
-        else {
-            return FindIncludeFile(filename, c);
+            else {
+                return FindIncludeFile(filename, c);
+            }
         }
     }
     return nullopt;
@@ -186,6 +188,54 @@ void TestStrangeIncludeCustom() {
     assert(GetFileContentsPraktikum("sources/a.in"s) == test_out.str());
 }
 
+void TestLocalIncludeNoExists() {
+    error_code err;
+    filesystem::remove_all("sources"_p, err);
+    filesystem::create_directories("sources"_p, err);
+    {
+        ofstream file("sources/a.cpp");
+        file << "// this comment before include\n"
+            "#include \"b.h\"\n"
+            "// text between b.h and c.h\n"
+            "\n"
+            "int SayHello() {\n"
+            "    cout << \"hello, world!\" << endl;\n"
+            "}\n"sv;
+    }
+
+    assert(!(Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p,
+        { "sources"_p / "include_dir"_p })));
+
+    ostringstream test_out;
+    test_out << "// this comment before include\n"sv;
+
+    assert(GetFileContentsPraktikum("sources/a.in"s) == test_out.str());
+}
+
+void TestGlobalIncludeNoExists() {
+    error_code err;
+    filesystem::remove_all("sources"_p, err);
+    filesystem::create_directories("sources"_p / "include_dir"_p, err);
+    {
+        ofstream file("sources/a.cpp");
+        file << "// this comment before include\n"
+            "#include <b.h>\n"
+            "// text between b.h and c.h\n"
+            "\n"
+            "int SayHello() {\n"
+            "    cout << \"hello, world!\" << endl;\n"
+            "}\n"sv;
+    }
+
+    assert(!(Preprocess("sources"_p / "a.cpp"_p, "sources"_p / "a.in"_p,
+        { "sources"_p / "include_dir"_p })));
+
+    ostringstream test_out;
+    test_out << "// this comment before include\n"sv;
+
+    assert(GetFileContentsPraktikum("sources/a.in"s) == test_out.str());
+}
+
 void Test() {
     error_code err;
     filesystem::remove_all("sources"_p, err);
@@ -256,5 +306,7 @@ void Test() {
 int main() {
     //Test();
     //TestStrangeIncludeCustom();
-    TestSimpleLocalInclude();
+    /*TestSimpleLocalInclude();*/
+    TestLocalIncludeNoExists();
+    TestGlobalIncludeNoExists();
 }

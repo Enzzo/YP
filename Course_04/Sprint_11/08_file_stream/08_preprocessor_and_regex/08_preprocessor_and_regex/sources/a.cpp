@@ -1,5 +1,5 @@
 // this comment before include
-#include "b.h"
+#include <b.h>
 // text between b.h and c.h
 
 int SayHello() {
