@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstddef>  // нужно для nullptr_t
+#include <utility>
 
 using namespace std;
 
@@ -7,13 +8,14 @@ using namespace std;
 template <typename T>
 class UniquePtr {
 private:
-    // ???
+    T* ptr_ = nullptr;
 public:
-    UniquePtr();
-    explicit UniquePtr(T* ptr);
-    UniquePtr(const UniquePtr&);
+    UniquePtr() = default;
+    explicit UniquePtr(T* ptr) : ptr_(ptr) {}
+
+    UniquePtr(const UniquePtr&) = delete;
     UniquePtr(UniquePtr&& other);
-    UniquePtr& operator=(const UniquePtr&);
+    UniquePtr& operator=(const UniquePtr&) = delete;
     UniquePtr& operator=(nullptr_t);
     UniquePtr& operator=(UniquePtr&& other);
     ~UniquePtr();
@@ -22,9 +24,76 @@ public:
     T* operator->() const;
     T* Release();
     void Reset(T* ptr);
-    void Swap(UniquePtr& other);
+    void Swap(UniquePtr&);
     T* Get() const;
 };
+
+template<typename T>
+UniquePtr<T>::UniquePtr(UniquePtr&& other) {
+    UniquePtr<T> temp;
+    temp.ptr_ = std::move(other.Release());
+    Swap(temp);
+}
+
+template<typename T>
+UniquePtr<T>& UniquePtr<T>::operator=(UniquePtr&& other) {
+    UniquePtr<T> temp;
+    temp.ptr_ = std::move(other.Release());
+    Swap(temp);
+    return *this;
+}
+
+template<typename T>
+UniquePtr<T>& UniquePtr<T>::operator=(nullptr_t) {
+    UniquePtr<T> temp(nullptr);
+    Swap(temp);
+    return *this;
+}
+
+template<typename T>
+UniquePtr<T>::~UniquePtr() {
+    if (ptr_) {
+        delete(ptr_);
+    }
+}
+
+template<typename T>
+T& UniquePtr<T>::operator*() const {
+    return *ptr_;
+}
+
+template<typename T>
+T* UniquePtr<T>::operator->()const {
+    return ptr_;
+}
+
+template<typename T>
+T* UniquePtr<T>::Release() {
+    T* out = ptr_;
+    ptr_ = nullptr;
+    return out;    
+}
+
+template<typename T>
+void UniquePtr<T>::Reset(T* ptr) {
+    if (ptr_) {
+        delete ptr_;
+    }
+    ptr_ = ptr;
+}
+
+template<typename T>
+void UniquePtr<T>::Swap(UniquePtr& other) {
+    T* temp;
+    temp = other.ptr_;
+    other.ptr_ = ptr_;
+    ptr_ = temp;
+}
+
+template<typename T>
+T* UniquePtr<T>::Get() const {
+    return ptr_;
+}
 
 struct Item {
     static int counter;
