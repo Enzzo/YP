@@ -1,13 +1,54 @@
-#include <iostream>
+﻿#include <iostream>
+#include <queue>
+#include <map>
+#include <memory>
+#include <set>
 
 using namespace std;
 
 class HotelManager {
-public:
-    void Book(const int64_t /*time*/, const std::string& /*hotel name*/, const int /*client id*/, const int /*rooms count*/);
-    int ComputeClientCount(const std::string& /*hotel name*/);
-    int ComputeRoomCount(const std::string& /*hotel name*/);
+    std::queue<int64_t> time_;
+    //1. time   2. name     3. id   4. rooms
+    std::map<int64_t, std::map<std::pair<std::string, int>, int>> registration_;
 
+public:
+    void Book(const int64_t time, const std::string& hotel_name, const int client_id, const int rooms_count) {
+        time_.push(time);
+        registration_[time][{hotel_name, client_id}] += rooms_count;
+
+        while(time - 86400 >= time_.front()) {
+            time_.pop();
+        }
+    };
+
+    int ComputeClientCount(const std::string& hotel_name) {
+        //вывести количество клиентов, забронировавших номера за последние сутки (current_time − 86400 < time ⩽ current_time)
+        std::set<int64_t> ids;
+        for (const auto [time, data] : registration_) {
+            if (time <= time_.back() && time >= time_.front()) {
+                for (const auto [p, rooms] : data) {
+                    if (p.first == hotel_name) {
+                        ids.emplace(p.second);
+                    }
+                }
+            }
+        }
+        return ids.size();
+    }
+    int ComputeRoomCount(const std::string& hotel_name) {
+        //вывести количество номеров, забронированных за последние сутки (current_time − 86400 < time ⩽ current_time)
+        int result = 0;
+        for (const auto [time, data] : registration_) {
+            if (time <= time_.back() && time >= time_.front()) {
+                for (const auto [p, rooms] : data) {
+                    if (p.first == hotel_name) {
+                        result += rooms;
+                    }
+                }
+            }
+        }
+        return result;
+    }
 private:
     
 };
