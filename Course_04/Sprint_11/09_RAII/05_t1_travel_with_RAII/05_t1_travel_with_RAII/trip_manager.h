@@ -15,17 +15,72 @@ public:
 
     Trip(HotelProvider& hp, FlightProvider& fp) : hp_(&hp), fp_(&fp) {};
     
-    Trip(const Trip& other) {
-        Trip temp(HotelProvider, FlightProvider);
-    }
+    Trip(const Trip&);
     
-    Trip(Trip&&);
+    Trip(Trip&&) noexcept;
     
     Trip& operator=(const Trip&);
-    Trip& operator=(Trip&&);
+    Trip& operator=(Trip&&) noexcept;
+
+    void Swap(Trip&);
+
     void Cancel();
     ~Trip();
 };
+
+void Trip::Swap(Trip& other) {
+    std::swap(this->flights, other.flights);
+    std::swap(this->hotels, other.hotels);
+    std::swap(this->hp_, other.hp_);
+    std::swap(this->fp_, other.fp_);
+};
+
+Trip::Trip(const Trip& other) {
+    FlightProvider fp;
+    HotelProvider hp;
+    Trip temp(hp, fp);
+    temp.flights = other.flights;
+    temp.hotels = other.hotels;
+    temp.hp_ = other.hp_;
+    temp.fp_ = other.fp_;
+    Swap(temp);
+};
+
+Trip::Trip(Trip&& other) noexcept{
+    FlightProvider fp;
+    HotelProvider hp;
+    Trip temp(hp, fp);
+    temp.flights = std::move(other.flights);
+    temp.hotels = std::move(other.hotels);
+    temp.hp_ = std::move(other.hp_);
+    temp.fp_ = std::move(other.fp_);
+    Swap(temp);
+};
+
+Trip& Trip::operator=(const Trip& other) {
+    Trip temp(other);
+    Swap(temp);
+    return *this;
+};
+
+Trip& Trip::operator=(Trip&& other) noexcept {
+    Trip temp(std::move(other));
+    Swap(temp);
+    return *this;
+};
+
+void Trip::Cancel() {
+    for (const HotelProvider::BookingId id : hotels) {
+        
+    }
+    for (const FlightProvider::BookingId id : flights) {
+
+    }
+}
+
+Trip::~Trip() {
+    Cancel();
+}
 
 class TripManager {
 public:
@@ -38,7 +93,7 @@ public:
     };
 
     Trip Book(const BookingData& data) {
-        Trip trip(? ? ? );
+        Trip trip(hotel_provider_, flight_provider_);
         {
             FlightProvider::BookingData flight_booking_data;
             trip.flights.push_back(flight_provider_.Book(flight_booking_data));
