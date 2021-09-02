@@ -8,8 +8,6 @@ namespace json {
 	class Builder {
 		Node node_;
 		Document document_;
-		std::string key_;
-		std::istringstream ist;
 
 	public:
 		Builder& StartDict();
