@@ -2,6 +2,7 @@
 
 namespace json {
 	Builder& Builder::StartDict() {
+		
 		return *this;
 	};
 	Builder& Builder::EndDict() {
@@ -13,13 +14,14 @@ namespace json {
 	Builder& Builder::EndArray() {
 		return *this;
 	};
-	Builder& Builder::Key(const std::string&) {
+	Builder& Builder::Key(const Node& node) {
 		return *this;
 	};
 	Builder& Builder::Value(const Node& node) {
+		ist.
 		return *this;
 	};
-	Node Builder::Build() {
-
+	Document Builder::Build() {
+		return document_;
 	};
 }

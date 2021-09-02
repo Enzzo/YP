@@ -1,19 +1,25 @@
 #pragma once
 
+#include <sstream>
+
 #include "json.h"
 
 namespace json {
 	class Builder {
 		Node node_;
+		Document document_;
 		std::string key_;
+		std::istringstream ist;
 
 	public:
 		Builder& StartDict();
 		Builder& EndDict();
 		Builder& StartArray();
 		Builder& EndArray();
-		Builder& Key(const std::string&);
+		Builder& Key(const Node&);
 		Builder& Value(const Node&);
-		Node Build();
+
+		//создаёт документ
+		Document Build();
 	};
 }
