@@ -6,7 +6,7 @@
 
 namespace json {
 	class Builder {
-		Node node_;
+		Node node_ = nullptr;
 		std::vector<std::unique_ptr<Node>> nodes_stack_;
 
 	public:
@@ -22,9 +22,12 @@ namespace json {
 		Builder& AddNode(const Node&);
 		bool UnableAdd() const;
 		bool MakingNode() const;
+		bool UnableUseKey() const;
 		bool UnableUseValue() const;
 		bool UnableUseStartDict() const;
 		bool UnableUseEndDict() const;
-		bool UnableUseBuild() const;		
+		bool UnableUseBuild() const;	
+		bool UnableUseStartArray() const;
+		bool UnableUseEndArray() const;
 	};
 }

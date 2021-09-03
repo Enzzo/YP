@@ -5,9 +5,9 @@
 using namespace std::literals;
 
 void JSONreader::ReadRequest(const json::Document& doc){
-    const auto load = doc.GetRoot().AsDict();
+    const auto load = doc.GetRoot().AsMap();
     base_requests_ = load.at("base_requests"s).AsArray();
-    map_renderer_.SetSettings(MakeRenderSettings(load.at("render_settings").AsDict()));
+    map_renderer_.SetSettings(MakeRenderSettings(load.at("render_settings").AsMap()));
 
     LoadStops();
     LoadDistances();
@@ -19,7 +19,7 @@ void JSONreader::ReadRequest(const json::Document& doc){
 }
 void JSONreader::LoadStops() {
     for (const auto& request : base_requests_) {
-        const auto& description = request.AsDict();
+        const auto& description = request.AsMap();
         if (description.at("type"s).AsString() == "Stop"s) {
             base_.AddStop(MakeStop(description));
         }
@@ -28,7 +28,7 @@ void JSONreader::LoadStops() {
 
 void JSONreader::LoadBuses() {
     for (const auto& request : base_requests_) {
-        const auto& description = request.AsDict();
+        const auto& description = request.AsMap();
         if (description.at("type"s).AsString() == "Bus"s) {
             base_.AddBus(MakeBus(description));
         }
@@ -37,10 +37,10 @@ void JSONreader::LoadBuses() {
 
 void JSONreader::LoadDistances() {
     for (const auto& request : base_requests_) {
-        const auto& description = request.AsDict();
+        const auto& description = request.AsMap();
         if (description.at("type"s).AsString() == "Stop"s) {
             const auto from = base_.FindStop(description.at("name"s).AsString());
-            for (const auto& [stop_name, distance] : description.at("road_distances"s).AsDict()) {
+            for (const auto& [stop_name, distance] : description.at("road_distances"s).AsMap()) {
                 const auto to = base_.FindStop(stop_name);
                 base_.AddDistanceBetweenStops(from, to, static_cast<float>(distance.AsInt()));
                 if (base_.GetDistanceBetweenStops(to, from) == 0) {
@@ -70,13 +70,13 @@ Bus JSONreader::MakeBus(const json::Dict& description) {
 }
 
 void JSONreader::ReadRequests(const json::Document& doc) {
-    const auto load = doc.GetRoot().AsDict();
+    const auto load = doc.GetRoot().AsMap();
     stat_requests_ = load.at("stat_requests"s).AsArray();
 }
 
 void JSONreader::ReadTransportCatalogue(std::ostream& ost){
     for (const auto& request : stat_requests_) {
-        const auto& description = request.AsDict();
+        const auto& description = request.AsMap();
         const auto& type = description.at("type"s).AsString();
         if (type == "Stop"s) {
             answers_.push_back(ReadStop(description));

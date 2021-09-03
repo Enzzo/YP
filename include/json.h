@@ -35,14 +35,14 @@ namespace json {
 
         bool IsBool() const;
         bool AsBool() const;
-
+        
         bool IsString() const;
         const std::string& AsString() const;
 
-        bool IsDict() const;
+        bool IsMap() const;
 
-        const Dict& AsDict() const;
-        Dict& AsDict();
+        const Dict& AsMap() const;
+        Dict& AsMap();
 
         bool IsNull() const;
 

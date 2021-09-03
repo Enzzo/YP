@@ -324,7 +324,7 @@ namespace json {
                 node.GetValue());
         }
     }  // namespace
-
+    
     bool Node::IsArray() const {
         return std::holds_alternative<Array>(*this);
     }
@@ -362,10 +362,10 @@ namespace json {
         return IsInt() || IsPureDouble();
     }
 
-    double Node::AsDouble() const {
+    double Node::AsDouble() const{
         return IsPureDouble() ? std::get<double>(*this) : AsInt();
     }
-
+    
     bool Node::IsBool() const {
         return std::holds_alternative<bool>(*this);
     }
@@ -388,19 +388,19 @@ namespace json {
         return std::get<std::string>(*this);
     }
 
-    bool Node::IsDict() const {
+    bool Node::IsMap() const {
         return std::holds_alternative<Dict>(*this);
     }
 
-    const Dict& Node::AsDict() const {
-        if (!IsDict()) {
+    const Dict& Node::AsMap() const {
+        if (!IsMap()) {
             throw logic_error("Not a dict"s);
         }
         return std::get<Dict>(*this);
     }
 
-    Dict& Node::AsDict() {
-        if (!IsDict()) {
+    Dict& Node::AsMap() {
+        if (!IsMap()) {
             throw logic_error("Not a dict"s);
         }
         return std::get<Dict>(*this);

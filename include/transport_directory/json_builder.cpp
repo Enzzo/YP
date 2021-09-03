@@ -19,14 +19,25 @@ namespace json {
 	};
 
 	Builder& Builder::StartArray() {
+		if (UnableUseStartArray()) {
+			throw std::logic_error("StartArray can't be applied"s);
+		}
+		nodes_stack_.push_back(std::make_unique<Node>(Array()));
 		return *this;
 	};
 
 	Builder& Builder::EndArray() {
-		return *this;
+		if (UnableUseEndArray()) {
+			throw std::logic_error("EndArray can't be applied"s);
+		}
+		return AddNode(*nodes_stack_.back().release());
 	};
 	
 	Builder& Builder::Key(const std::string& node) {
+		if (UnableUseKey()) {
+			throw std::logic_error("Key can't be applied"s);
+		}
+		nodes_stack_.push_back(std::make_unique<Node>(node));
 		return *this;
 	};
 	
@@ -53,13 +64,24 @@ namespace json {
 			nodes_stack_.pop_back();
 			nodes_stack_.back()->AsDict().emplace(key.AsString(), node);
 		}
+		return *this;
 	}
 
 	bool Builder::UnableAdd()const {
-		return !(nodes_stack_.empty()) || nodes_stack_.back()->IsArray() || nodes_stack_.back()->IsString();
+		if (!nodes_stack_.empty()) {
+			return true;
+		}
+		return (nodes_stack_.back()->IsArray() || nodes_stack_.back()->IsString());
 	}
 	bool Builder::MakingNode() const {
 		return !node_.IsNull();
+	}
+
+	bool Builder::UnableUseKey() const {
+		if (MakingNode()) {
+			return true;
+		}
+		return nodes_stack_.empty() || !nodes_stack_.back()->IsDict();
 	}
 
 	bool Builder::UnableUseValue() const {
@@ -76,5 +98,13 @@ namespace json {
 
 	bool Builder::UnableUseBuild() const {
 		return !MakingNode();
-	}	
+	}
+
+	bool Builder::UnableUseStartArray() const {
+		return UnableUseValue();
+	}
+
+	bool Builder::UnableUseEndArray() const {
+		return MakingNode() || nodes_stack_.empty() || !nodes_stack_.back()->IsArray();
+	}
 }
