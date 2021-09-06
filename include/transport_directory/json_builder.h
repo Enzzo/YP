@@ -114,25 +114,16 @@ namespace json {
 
     private:
         bool UnableAdd() const;
-
         bool IsMakeObj() const;
-
         bool UnableUseKey() const;
-
         bool UnableUseValue() const;
-
         bool UnableUseStartDict() const;
-
         bool UnableUseEndDict() const;
-
         bool UnableUseStartArray() const;
-
         bool UnableUseEndArray() const;
-
         bool UnableUseBuild() const;
 
         Builder& AddNode(const Node& node);
-
         void PushNode(Node::Value value);
 
     private:

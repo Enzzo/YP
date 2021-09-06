@@ -1,4 +1,5 @@
 #include "json_reader.h"
+#include "json_builder.h"
 
 #include <sstream>
 
@@ -52,9 +53,7 @@ void JSONreader::LoadDistances() {
 }
 
 Stop JSONreader::MakeStop(const json::Dict& description) {
-    return { description.at("name"s).AsString(),
-            description.at("latitude"s).AsDouble(),
-            description.at("longitude"s).AsDouble() };
+    return { description.at("name"s).AsString(), description.at("latitude"s).AsDouble(), description.at("longitude"s).AsDouble() };
 }
 
 Bus JSONreader::MakeBus(const json::Dict& description) {
@@ -93,49 +92,49 @@ void JSONreader::ReadTransportCatalogue(std::ostream& ost){
 }
 
 json::Node JSONreader::ReadStop(const json::Dict& description) {
-    json::Dict dict;
-    dict["request_id"s] = description.at("id"s).AsInt();
-
+    json::Builder builder;
+    builder.StartDict().Key("request_id"s).Value(description.at("id"s).AsInt());
     const auto buses = request_handler_.GetBusesByStop(description.at("name"s).AsString());
+
     if (buses) {
-        json::Array arr;
+        builder.Key("buses"s).StartArray();
 
         for (const auto& bus : *buses) {
-            arr.push_back(bus->number);
+            builder.Value(bus->number);
         }
-        dict["buses"s] = arr;
+        builder.EndArray();
     }
     else {
-        dict["error_message"s] = "not found"s;
+        builder.Key("error_message"s).Value("not found"s);
     }
-    return dict;
+    return builder.EndDict().Build();
 }
 
 json::Node JSONreader::ReadBus(const json::Dict& description) {
-    json::Dict dict;
-    dict["request_id"s] = description.at("id"s).AsInt();
+    json::Builder builder;
+    builder.StartDict().Key("request_id"s).Value(description.at("id"s).AsInt());
 
     const auto& info = request_handler_.GetBusInfo(description.at("name"s).AsString());
     if (info) {
-        dict["curvature"s] = info->curvature;
-        dict["route_length"s] = static_cast<float>(info->route_length);
-        dict["stop_count"s] = static_cast<int>(info->stops);
-        dict["unique_stop_count"s] = static_cast<int>(info->unique_stops);
+        builder.Key("curvature"s).Value(info->curvature)
+               .Key("route_length"s).Value(static_cast<float>(info->route_length))
+               .Key("stop_count"s).Value(static_cast<int>(info->stops))
+               .Key("unique_stop_count"s).Value(static_cast<int>(info->unique_stops));
     }
     else {
-        dict["error_message"s] = "not found"s;
+        builder.Key("error_message"s).Value("not found"s);
     }
-    return dict;
+    return builder.EndDict().Build();
 }
 
 json::Node JSONreader::ReadMap(const json::Dict& description) {
-    json::Dict dict;
-    dict["request_id"s] = description.at("id"s).AsInt();
+    json::Builder builder;
+    builder.StartDict().Key("request_id"s).Value(description.at("id"s).AsInt());
 
     std::ostringstream ost;
     map_renderer_.GetDocument().Render(ost);
-    dict["map"s] = ost.str();
-    return dict;
+    builder.Key("map"s).Value(ost.str());
+    return builder.EndDict().Build();
 }
 
 svg::Point JSONreader::SetPoint(const json::Node& node)const {
