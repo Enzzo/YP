@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <stack>
+#include <vector>
 #include <string>
 
 #include "json.h"
@@ -18,98 +18,67 @@ namespace json {
     class ArrayContext;
     class Builder;
 
-    //------------ BuildConstructor ---------------
-
     class BuildConstructor {
     public:
         explicit BuildConstructor(Builder& builder);
-
     protected:
         Builder& builder_;
     };
 
-    //------------ BuildContextFirst ---------------
-
     class BuildContextFirst : public BuildConstructor {
     public:
         explicit BuildContextFirst(Builder& builder);
-
         DictContext& StartDict();
-
         ArrayContext& StartArray();
     };
-
-    //------------ BuildContextSecond ---------------
 
     class BuildContextSecond : public BuildConstructor {
     public:
         explicit BuildContextSecond(Builder& builder);
-
         KeyContext& Key(std::string key);
-
         Builder& EndDict();
     };
-
-    //------------ KeyContext ---------------
 
     class KeyContext : public BuildContextFirst {
     public:
         explicit KeyContext(Builder& builder);
-
         ValueKeyContext& Value(Node::Value value);
     };
-
-    //------------ ValueKeyContext ---------------
 
     class ValueKeyContext : public BuildContextSecond {
     public:
         explicit ValueKeyContext(Builder& builder);
     };
 
-    //------------ ValueArrayContext ---------------
-
     class ValueArrayContext : public BuildContextFirst {
     public:
         explicit ValueArrayContext(Builder& builder);
-
         ValueArrayContext& Value(Node::Value value);
-
         Builder& EndArray();
     };
-
-    //------------ DictContext ---------------
 
     class DictContext : public BuildContextSecond {
     public:
         explicit DictContext(Builder& builder);
     };
 
-    //------------ ArrayContext ---------------
-
     class ArrayContext : public ValueArrayContext {
     public:
         explicit ArrayContext(Builder& builder);
     };
 
-    //------------ Builder ---------------
+    class Builder final : virtual public KeyContext, virtual public ValueKeyContext, virtual public DictContext, virtual public ArrayContext {
+        Node node_ = nullptr;
+        std::vector<std::unique_ptr<Node>> nodes_stack_;
 
-    class Builder final : virtual public KeyContext, virtual public ValueKeyContext,
-        virtual public DictContext, virtual public ArrayContext {
     public:
         Builder();
-
         KeyContext& Key(std::string key);
-
         Builder& Value(Node::Value value);
-
         DictContext& StartDict();
-
         Builder& EndDict();
-
         ArrayContext& StartArray();
-
         Builder& EndArray();
-
         Node Build() const;
 
     private:
@@ -122,13 +91,7 @@ namespace json {
         bool UnableUseStartArray() const;
         bool UnableUseEndArray() const;
         bool UnableUseBuild() const;
-
         Builder& AddNode(const Node& node);
         void PushNode(Node::Value value);
-
-    private:
-        Node root_ = nullptr;
-        std::stack<std::unique_ptr<Node>> nodes_;
     };
-
 }
