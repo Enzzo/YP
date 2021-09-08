@@ -4,15 +4,15 @@
 
 
 class ReadersManager {
-	std::vector<int> ids_;
-	std::vector<int> pages_;
+	std::vector<uint64_t> ids_;
+	std::vector<uint64_t> pages_;
 
 public:
-	void inline Read(const int id, const int page) noexcept;
-	[[nodiscard]] inline float Cheer(const int id) const noexcept;
+	void inline Read(const uint64_t id, const uint64_t page) noexcept;
+	[[nodiscard]] inline double Cheer(const uint64_t id) const noexcept;
 };
 
-void inline ReadersManager::Read(const int id, const int page) noexcept {
+void inline ReadersManager::Read(const uint64_t id, const uint64_t page) noexcept {
 	if (ids_.size() <= id) {
 		ids_.resize(id + 1);
 	}
@@ -20,26 +20,40 @@ void inline ReadersManager::Read(const int id, const int page) noexcept {
 		pages_.resize(page + 1);
 	}
 
-	const int last_page = ids_[id];
+	const uint64_t last_page = ids_[id];
 	if (last_page < page) {
 		ids_[id] = page;
 	}
 
-	for (int i = 0; i <= page; ++i) {
+	for (uint64_t i = last_page + 1; i <= page; ++i) {
 		pages_[i]++;
 	}
 }
 
-[[nodiscard]] inline float ReadersManager::Cheer(const int id) const noexcept {
+[[nodiscard]] inline double ReadersManager::Cheer(const uint64_t id) const noexcept {
 	if (ids_.size() <= id) {
 		return 0.0;
 	}
-	return 1 / static_cast<float>(pages_[ids_[id]]);
+
+	uint64_t total_readers = pages_[1];
+	if (total_readers == 1) {
+		return static_cast<double>(1);
+	}
+
+	const uint64_t last_page = ids_[id];
+	const uint64_t top_readers = pages_[last_page];
+
+	if (total_readers == top_readers) {
+		return 0.0;
+	}
+
+	double result = (total_readers - top_readers)/static_cast<double>(total_readers-1);
+	return result;
 }
 
 int main() {
 	ReadersManager rm;
-	int q = 0;
+	uint32_t q = 0;
 	std::string mode;
 
 	std::cin >> q;	
@@ -47,17 +61,14 @@ int main() {
 	while (q-- > 0) {
 		std::cin >> mode;
 		if (mode == "READ") {
-			int id, page;
+			uint64_t id, page;
 			std::cin >> id >> page;
 			rm.Read(id, page);
 		}
 		else if (mode == "CHEER") {
-			int id;
+			uint64_t id;
 			std::cin >> id;
-			std::cout << rm.Cheer(id);
-		}
-		else {
-			//throw
+			std::cout << rm.Cheer(id) << std::endl;
 		}
 	}
 
