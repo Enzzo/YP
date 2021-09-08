@@ -1,6 +1,41 @@
 #include <iostream>
+#include <vector>
+#include <iomanip>
 
-class ReadersManager;
+
+class ReadersManager {
+	std::vector<int> ids_;
+	std::vector<int> pages_;
+
+public:
+	void inline Read(const int id, const int page) noexcept;
+	[[nodiscard]] inline float Cheer(const int id) const noexcept;
+};
+
+void inline ReadersManager::Read(const int id, const int page) noexcept {
+	if (ids_.size() <= id) {
+		ids_.resize(id + 1);
+	}
+	if (pages_.size() <= page) {
+		pages_.resize(page + 1);
+	}
+
+	const int last_page = ids_[id];
+	if (last_page < page) {
+		ids_[id] = page;
+	}
+
+	for (int i = 0; i <= page; ++i) {
+		pages_[i]++;
+	}
+}
+
+[[nodiscard]] inline float ReadersManager::Cheer(const int id) const noexcept {
+	if (ids_.size() <= id) {
+		return 0.0;
+	}
+	return 1 / static_cast<float>(pages_[ids_[id]]);
+}
 
 int main() {
 	ReadersManager rm;
@@ -27,18 +62,4 @@ int main() {
 	}
 
 	return 0;
-}
-
-class ReadersManager {
-public:
-	void inline Read(const int id, const int page) noexcept;
-	[[nodiscard]] inline double Cheer(const int id) const noexcept;
-};
-
-void inline ReadersManager::Read(const int id, const int page) noexcept{
-
-}
-
-[[nodiscard]] inline double ReadersManager::Cheer(const int id) const noexcept{
-	return 0.0;
 }
