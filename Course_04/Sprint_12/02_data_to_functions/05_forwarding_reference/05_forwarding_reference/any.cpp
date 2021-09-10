@@ -1,39 +1,50 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 using namespace std;
 
+//----------------AnyStorageBase----------------
 class AnyStorageBase {
 public:
-    AnyStorageBase() = delete;
-    AnyStorageBase(const AnyStorageBase&) = delete;
-    AnyStorageBase(AnyStorageBase&&) = delete;
-    AnyStorageBase& operator=(const AnyStorageBase&) = delete;
-    AnyStorageBase& operator=(AnyStorageBase&&) = delete;
-
     virtual void Print(std::ostream&) const = 0;
-    virtual ~AnyStorageBase() = 0;
+    virtual ~AnyStorageBase() = default;
 };
 
+//------------------AnyStorage------------------
 template<typename T>
 class AnyStorage : public AnyStorageBase {
     T data_;
 
 public:
-    AnyStorage<T>(T&& data) : data_(data) {};
-};
+    AnyStorage<T>(T&& data): data_(std::forward<T>(data)) {
+        
+    }
 
-
-class Any final : public AnyStorage{
-    std::unique_ptr<AnyStorageBase> storage_ptr_;
-
-public:
     void Print(std::ostream& out) const override {
-
+        out << data_;
     }
 };
 
+//----------------------Any----------------------
+class Any{
+    std::unique_ptr<AnyStorageBase> storage_ptr_;
+
+public:
+    template<typename T>
+    Any(T&& value){
+        //storage_ptr_ = std::make_unique<AnyStorage<T>>(std::forward<T>(value));
+        using Initial = std::remove_reference<T>;
+        storage_ptr_ = std::make_unique<AnyStorage<T>>(std::forward<T>(value));
+    }
+
+    void Print(std::ostream& out) const {
+        storage_ptr_->Print(out);
+    }
+};
+
+//----------------------Dumper----------------------
 class Dumper {
 public:
     Dumper() {
