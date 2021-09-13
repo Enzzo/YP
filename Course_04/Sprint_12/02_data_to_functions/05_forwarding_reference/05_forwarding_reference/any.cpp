@@ -2,6 +2,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <memory>
 
 using namespace std;
 
@@ -18,10 +19,7 @@ class AnyStorage : public AnyStorageBase {
     T data_;
 
 public:
-    AnyStorage<T>(T&& data): data_(std::forward<T>(data)) {
-        
-    }
-
+    AnyStorage(T&& data) : data_(std::forward<T>(data)) {}
     void Print(std::ostream& out) const override {
         out << data_;
     }
@@ -34,9 +32,8 @@ class Any{
 public:
     template<typename T>
     Any(T&& value){
-        //storage_ptr_ = std::make_unique<AnyStorage<T>>(std::forward<T>(value));
-        using Initial = std::remove_reference<T>;
-        storage_ptr_ = std::make_unique<AnyStorage<T>>(std::forward<T>(value));
+        using Initial = std::remove_reference_t<T&&>;
+        storage_ptr_ = std::make_unique<AnyStorage<Initial>>(std::forward<Initial>(value));
     }
 
     void Print(std::ostream& out) const {
@@ -56,14 +53,14 @@ public:
     Dumper(const Dumper&) {
         std::cout << "copy"sv << std::endl;
     }
-    Dumper(Dumper&&) {
+    Dumper(Dumper&&) noexcept{
         std::cout << "move"sv << std::endl;
     }
     Dumper& operator=(const Dumper&) {
         std::cout << "= copy"sv << std::endl;
         return *this;
     }
-    Dumper& operator=(Dumper&&) {
+    Dumper& operator=(Dumper&&) noexcept{
         std::cout << "= move"sv << std::endl;
         return *this;
     }
