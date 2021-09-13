@@ -20,6 +20,9 @@ class AnyStorage : public AnyStorageBase {
 
 public:
     AnyStorage(T&& data) : data_(std::forward<T>(data)) {}
+
+    AnyStorage(const T& data) : data_(data) {}
+
     void Print(std::ostream& out) const override {
         out << data_;
     }
@@ -33,7 +36,7 @@ public:
     template<typename T>
     Any(T&& value){
         using Initial = std::remove_reference_t<T&&>;
-        storage_ptr_ = std::make_unique<AnyStorage<Initial>>(std::forward<Initial>(value));
+        storage_ptr_ = std::make_unique<AnyStorage<Initial>>(std::forward<T>(value));
     }
 
     void Print(std::ostream& out) const {
