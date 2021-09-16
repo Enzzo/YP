@@ -4,7 +4,6 @@
 #include <sstream>
 #include <string_view>
 #include <vector>
-#include <set>
 
 using namespace std;
 
@@ -12,18 +11,16 @@ class Domain {
     std::string domain_;
 
 public:
-    // разработайте класс домена
+
     Domain() = delete;
 
-    // конструктор должен позволять конструирование из string, с сигнатурой определитесь сами
     Domain(std::string domain) : domain_(domain) {};    
 
-    // разработайте operator==
     bool operator==(const Domain& other) {
         return this->domain_ == other.domain_;
     }
 
-    // разработайте метод IsSubdomain, принимающий другой домен и возвращающий true, если this его поддомен
+    // Посимвольно сверяем, содержится ли имя домена в имени гостевого экземпляра домена (в other)
     bool IsSubdomain(const Domain& other) const {
         std::string_view l_name = other.GetName();
         std::string_view r_name = this->GetName();        
@@ -72,19 +69,33 @@ public:
         forbidden_domains_.erase(it, forbidden_domains_.end());
     }
 
-    // разработайте метод IsForbidden, возвращающий true, если домен запрещён
+
     bool IsForbidden(const Domain& checked_domain) {
-        //std::string_view domain_name = checked_domain.GetName();
-        auto it = std::lower_bound(forbidden_domains_.begin(), forbidden_domains_.end(), checked_domain);
-        bool result = false;
-        if (it != forbidden_domains_.end() && it != forbidden_domains_.begin()) {
-            result = checked_domain.IsSubdomain(*it);
+
+        //Если список запрещённых доменов пустой, то проверяемый домен не зарпещён
+        if (forbidden_domains_.begin() == forbidden_domains_.end()) {
+            return false;
         }
-        return result;
+
+        //Итератор, указывающий на домен, следующий за запрещённым
+        auto it = std::upper_bound(forbidden_domains_.begin(), forbidden_domains_.end(), checked_domain);
+        
+        //Если префикс не найден
+        if (it == forbidden_domains_.begin()) {
+            //то домен не запрещён
+            return false;
+        }
+
+        //Если итератор указывает не на начало, то откатываем указатель на один элемент назад
+        if (it == forbidden_domains_.end()) {
+            it = forbidden_domains_.end() - 1;
+        }
+        else {
+            --it;
+        }
+        return checked_domain.IsSubdomain(*it);
     }
 };
-
-// разработайте функцию ReadDomains, читающую заданное количество доменов из стандартного входа
 
 std::vector<Domain> ReadDomains(std::istream& in, const size_t domains_count) {
     std::vector<Domain> domains;
@@ -101,6 +112,8 @@ std::vector<Domain> ReadDomains(std::istream& in, const size_t domains_count) {
 
 template <typename Number>
 Number ReadNumberOnLine(istream& input) {
+    //Эту функцию я переделал
+    //Убрал считывание через getline
     Number num;
     input >> num;
     return num;
