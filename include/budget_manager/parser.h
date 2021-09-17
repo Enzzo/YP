@@ -1,5 +1,9 @@
 #pragma once
 #include "date.h"
+#include "budget_manager.h"
+
+#include <iostream>
+#include <sstream>
 
 // напишите в этом классе код, ответственный за чтение запросов
 
@@ -7,78 +11,33 @@
 // “акже можно создать два его наследника : запрос - чтение и запрос - модификаци€.
 // ќт них можно наследоватьс€ всем остальным запросам.
 
-//------------------------- Request Interface -------------------------
-class Request {
+class Parser {
+	BudgetManager& budget_manager_;
+	std::unique_ptr<Request> request_;
+
 public:
-	virtual void ReadRequest(const std::string_view) = 0;
-};
-
-
-//------------------------- Requests -------------------------
-class ReadableRequest : public Request {
-public:
-	virtual void ReadRequest(const std::string_view) override = 0;
-};
-
-class WriteableRequest : public Request {
-public:
-	virtual void ReadRequest(const std::string_view) override = 0;
-};
-
-
-//------------------------- Writeable Requests -------------------------
-class ComputeIncomeRequest final : public WriteableRequest {
-public:
-	void ReadRequest(const std::string_view request) override {
-
-	}
-};
-
-class PayTaxRequest final : public WriteableRequest {
-public:
-	void ReadRequest(const std::string_view request) override {
-
-	}
-};
-
-//------------------------- Readable Requests -------------------------
-class EarnRequest final : public ReadableRequest {
-public:
-	void ReadRequest(const std::string_view request) override {/*
-		std::istringstream istr(std::move(std::string(request.begin(), request.end())));
+	Parser(BudgetManager& budget_manager, std::string_view request) : budget_manager_(budget_manager) {
+		std::istringstream istr(std::string(request.begin(), request.end()));
+		std::string mode;
 		std::string date_from;
 		std::string date_to;
 
-		std::getline(istr, date_from, ' ');
-		std::getline(istr, date_to, ' ');
-		auto start_date = Date::ComputeDistance(START_DATE, from);
-		auto to_date = Date::ComputeDistance(START_DATE, to);
-		for (int i = start_date; i <= to_date; ++i) {
-			general_info_[i].earned_ += (income / (to_date - start_date + 1));
-		}*/
-	}
-};
-
-class Parser {
-	Request* request_;
-
-public:
-	Parser() = delete;
-
-	Parser(const std::string_view request) {
-		std::istringstream iss(std::move(std::string(request.begin(), request.end())));
-		std::string mode;
-
-		iss >> mode;
+		istr >> mode >> date_from >> date_to;
 
 		if (mode == "ComputeIncome") {
-			request_ = ComputeIncomeRequest();
+			request_ = std::make_unique<ComputeIncomeRequest>(Date::FromString(date_from), Date::FromString(date_to));
 		}
 		else if (mode == "Earn") {
-			request_ = EarnRequest();
+			int earned;
+			istr >> earned;
+			request_ = std::make_unique<EarnRequest>(Date::FromString(date_from), Date::FromString(date_to), earned);
 		}
 		else if (mode == "PayTax") {
-			request_ = PayTaxRequest();
+			request_ = std::make_unique<PayTaxRequest>(Date::FromString(date_from), Date::FromString(date_to));
 		}
-	};
+		auto x = budget_manager_.Manage(request_->GetResult());
+		if (*x) {
+			std::cout << *x << std::endl;
+		}
+	}
 };
