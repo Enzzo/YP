@@ -1,43 +1,120 @@
 #pragma once
-#include "date.h"
 #include "budget_manager.h"
+#include "date.h"
 
 #include <iostream>
-#include <sstream>
+#include <memory>
+#include <optional>
+#include <regex>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <vector>
 
-// напишите в этом классе код, ответственный за чтение запросов
+struct ReadResult {
+    void Print(std::ostream& out) {
+        out << total_income << std::endl;
+    }
 
-// ¬ этой задаче удобно создать абстрактный класс дл€ запроса.
-// “акже можно создать два его наследника : запрос - чтение и запрос - модификаци€.
-// ќт них можно наследоватьс€ всем остальным запросам.
-
-class Parser {
-	BudgetManager& budget_manager_;
-	std::unique_ptr<Request> request_;
-
-public:
-	Parser(BudgetManager& budget_manager, std::string_view request) : budget_manager_(budget_manager) {
-		std::istringstream istr(std::string(request.begin(), request.end()));
-		std::string mode;
-		std::string date_from;
-		std::string date_to;
-
-		istr >> mode >> date_from >> date_to;
-
-		if (mode == "ComputeIncome") {
-			request_ = std::make_unique<ComputeIncomeRequest>(Date::FromString(date_from), Date::FromString(date_to));
-		}
-		else if (mode == "Earn") {
-			int earned;
-			istr >> earned;
-			request_ = std::make_unique<EarnRequest>(Date::FromString(date_from), Date::FromString(date_to), earned);
-		}
-		else if (mode == "PayTax") {
-			request_ = std::make_unique<PayTaxRequest>(Date::FromString(date_from), Date::FromString(date_to));
-		}
-		auto x = budget_manager_.Manage(request_->GetResult());
-		if (*x) {
-			std::cout << *x << std::endl;
-		}
-	}
+    double total_income;
 };
+
+inline std::pair<std::string_view, std::optional<std::string_view>> SplitFirst(std::string_view input, char c) {
+    auto cpos = input.find(c);
+    if (cpos == input.npos) {
+        return { input, {} };
+    }
+
+    return { input.substr(0, cpos), input.substr(cpos + 1) };
+}
+
+inline std::vector<std::string_view> Split(std::string_view input, char c) {
+    std::vector<std::string_view> res;
+    while (true) {
+        auto [l, r] = SplitFirst(input, c);
+        res.push_back(l);
+        if (!r) {
+            return res;
+        }
+        input = *r;
+    }
+}
+
+//---------------------------- Query ----------------------------
+class Query {
+public:
+    virtual ~Query() = default;
+
+    Query(Date from, Date to)
+        : from_(from)
+        , to_(to) {
+    }
+
+    Date GetFrom() const {
+        return from_;
+    }
+
+    Date GetTo() const {
+        return to_;
+    }
+
+    virtual void ProcessAndPrint(BudgetManager& budget, std::ostream& out) const = 0;
+
+private:
+    Date from_, to_;
+};
+
+//---------------------------- ComputeQuery ----------------------------
+class ComputeQuery : public Query {
+public:
+    using Query::Query;
+    virtual ~ComputeQuery() = default;
+    virtual ReadResult Process(const BudgetManager& budget) const = 0;
+
+    void ProcessAndPrint(BudgetManager& budget, std::ostream& out) const override {
+        Process(budget).Print(out);
+    }
+};
+
+//---------------------------- ModifyQuery ----------------------------
+class ModifyQuery : public Query {
+public:
+    using Query::Query;
+    virtual ~ModifyQuery() = default;
+    virtual void Process(BudgetManager& budget) const = 0;
+
+    void ProcessAndPrint(BudgetManager& budget, std::ostream&) const override {
+        Process(budget);
+    }
+};
+
+
+class QueryFactory {
+public:
+    virtual std::unique_ptr<Query> Construct(std::string_view config) const = 0;
+    virtual ~QueryFactory() = default;
+
+    static const QueryFactory& GetFactory(std::string_view id);
+};
+
+inline std::unique_ptr<Query> ParseQuery(std::string_view line) {
+    auto [command, pconfig] = SplitFirst(line, ' ');
+
+    const auto& factory = QueryFactory::GetFactory(command);
+    return factory.Construct(pconfig.value_or(std::string_view{}));
+}
+
+inline std::vector<std::unique_ptr<Query>> ReadQueries(std::istream& input) {
+    std::vector<std::unique_ptr<Query>> result;
+    std::string line;
+    std::getline(input, line);
+    const int query_count = std::stoi(line);
+    result.reserve(query_count);
+
+    for (int i = 0; i < query_count; ++i) {
+        std::getline(input, line);
+        result.push_back(ParseQuery(line));
+    }
+
+    return result;
+}
