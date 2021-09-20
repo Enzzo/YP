@@ -65,8 +65,7 @@ private:
     }
 
     template <typename Visitor>
-    static typename Visitor::ResultType TraverseWithQuery(const NodeHolder& node, IndexSegment query_segment,
-        Visitor visitor) {
+    static typename Visitor::ResultType TraverseWithQuery(const NodeHolder& node, IndexSegment query_segment, Visitor visitor) {
         if (!node || !IndexSegment::AreIntersected(node->segment, query_segment)) {
             return visitor.ProcessEmpty(node);
         }
@@ -90,6 +89,9 @@ private:
         }
     }
 
+    //------------------------------- OPERATIONS -------------------------------
+
+    //------------------------------- compute -------------------------------
     class ComputeSumVisitor {
     public:
         using ResultType = Data;
@@ -107,6 +109,7 @@ private:
         }
     };
 
+    //------------------------------- add -------------------------------
     class AddBulkOperationVisitor {
     public:
         using ResultType = void;

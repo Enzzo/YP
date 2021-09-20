@@ -4,8 +4,15 @@
 #include "entities.h"
 
 #include <vector>
+//
+//struct Budget {
+//    double income;
+//    double spend;
+//};
 
 class BudgetManager {
+    
+
 public:
     inline static const Date START_DATE{ 2000, 1, 1 };
     inline static const Date END_DATE{ 2100, 1, 1 };

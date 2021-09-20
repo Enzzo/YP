@@ -12,6 +12,7 @@ void ParseAndProcessQuery(BudgetManager& manager, string_view line) {
     }
 
     query->ProcessAndPrint(manager, cout);
+    int x = 2;
 }
 
 int ReadNumberOnLine(istream& input) {

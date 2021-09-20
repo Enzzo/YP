@@ -11,12 +11,11 @@ struct BulkMoneyAdder {
 };
 
 struct BulkTaxApplier {
-    double ComputeFactor() const {
+    /*double ComputeFactor() const {
         static const double factor = 0.87;
         return std::pow(factor, count);
-    }
-
-    int count = 0;
+    }*/
+    //int count = 0;
 };
 
 class BulkLinearUpdater {
