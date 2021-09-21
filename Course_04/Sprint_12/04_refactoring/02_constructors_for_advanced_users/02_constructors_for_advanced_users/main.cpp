@@ -5,32 +5,46 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <unordered_map>
+#include <sstream>
 
 using namespace std;
 
 class RouteManager {
 public:
     void AddRoute(int start, int finish) {
-        reachable_lists_[start].emplace(finish);
-        reachable_lists_[finish].emplace(start);
+        reachable_lists_[start].insert(finish);
+        reachable_lists_[finish].insert(start);
     }
+
     int FindNearestFinish(int start, int finish) const {
         int result = abs(start - finish);
+
         if (reachable_lists_.count(start) < 1) {
             return result;
         }
+
         const set<int>& reachable_stations = reachable_lists_.at(start);
+
         if (!reachable_stations.empty()) {
-            auto it = std::lower_bound(reachable_stations.begin(), reachable_stations.end(), finish);
-            result = min(
-                result, abs(*it - finish)
-                /*abs(finish - *min_element(reachable_stations.begin(), reachable_stations.end(), [finish](int lhs, int rhs) {
-                            return abs(lhs - finish) < abs(rhs - finish);
-                        }
-                    )
-                )*/
-            );
+            auto it = reachable_stations.lower_bound(finish);
+            if (*it == finish) {
+                return 0;
+            }
+            if (it == reachable_stations.end()) {
+                result = std::min(result, std::abs(*(--it) - finish));
+            }
+            else if (it == reachable_stations.begin()) {
+                result = std::min(result, std::abs(*it - finish));
+            }
+            else {
+                result = std::min({ result,
+                    std::abs(*it - finish),
+                    std::abs(*(--it) - finish)
+                    });
+            }
         }
+
         return result;
     }
 
