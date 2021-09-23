@@ -121,8 +121,6 @@ struct DateTime {
     int year, month, day, hour, minute, second;
 };
 
-//---------------------- CheckDateTimeValidity ----------------------
-
 #define CHECK_LOWER_BORDER(value, name, border)     \
     if(value < border){                             \
         throw domain_error(name+" is too small"s);  \
@@ -151,114 +149,68 @@ void CheckDateTimeValidity(const DateTime& dt) {
     CHECK_UPPER_BORDER(dt.second,"second",59);
 }
 //---------------------- Function 3 ----------------------
-class Language;
+struct CountryParams {
+    std::string name;
+    std::string iso_code;
+    std::string phone_code;
+    std::string time_zone;
+    std::vector<Language> languages;
+};
+
+struct CityParams{
+    std::string country_name;
+    std::string counrty_iso_code;
+    std::string name;
+    std::string iso_code;
+    std::string phone_code;
+    std::string time_zone;
+    std::vector<Language> languages;
+};
 
 class City {
 public:
-    std::string name, iso_code, phone_code, country_name, country_iso_code, country_time_zone;
-    std::vector<Language> languages;
+    CityParams params;
 };
 
 struct Country {
-    std::string name, iso_code, phone_code, time_zone;
-    std::vector<Language> languages;
+    CountryParams params;
 };
 
-class Language {
-
-};
-
-class Json;
-using List = std::list<Json>;
-using Object = std::map<std::string, Json>;
-
-class Json : private std::variant<std::nullptr_t, List, Object, std::string> {
-public:
-    using variant::variant;
-    using Value = variant;
-
-    const List& AsList() const {
-        return std::get<List>(*this);
-    }
-
-    const Object& AsObject() const {
-        return std::get<Object>(*this);
-    }
-
-    const std::string& AsString() const {
-        return std::get<std::string>(*this);
-    }
-};
-
-template<typename T>
-T FromString(std::string_view line) {
-    T construct(line);
-    return construct;
-}
-//---------------------- Function 3 ----------------------
-// Оцените, насколько удобно пользоваться, тестировать и поддерживать функцию ParseCitySubjson, 
-// выберите наиболее подходящий способ рефакторинга и переделайте ParseCitySubjson, не меняя функционал. 
-// При необходимости измените способ вызова этой функции из ParseCountryJson. Сохраните решение в файл ParseCitySubjson.cpp.
-// 
-//ПРОБЛЕМА:
-//слишком много аргументов у функции ParseCitySubjson
-//слишком много аргументов у конструктора City
-//РЕШЕНИЕ:
-//
-// Дана функция ParseCitySubjson, обрабатывающая JSON-объект со списком городов конкретной страны:
-void ParseCitySubjson(  vector<City>& cities, 
-                        const Json& json, 
-                        const string& country_name,
-                        const string& country_iso_code, 
-                        const string& country_phone_code, 
-                        const string& country_time_zone,
-                        const vector<Language>& languages) {
+void ParseCitySubjson(
+    vector<City>& cities,
+    const Json& json,
+    const CountryParams country_params
+    ) {
 
     for (const auto& city_json : json.AsList()) {
         const auto& city_obj = city_json.AsObject();
-        cities.push_back({  /*city_obj["name"s].AsString(), 
-                            city_obj["iso_code"s].AsString(),
-                            country_phone_code + city_obj["phone_code"s].AsString(), */
-                            city_obj.at("name"s).AsString(),
-                            city_obj.at("iso_code"s).AsString(),
-                            country_phone_code + city_obj.at("phone_code"s).AsString(),
-                            country_name, 
-                            country_iso_code,
-                            country_time_zone, 
-                            languages });
+
+        cities.push_back({country_params.name,
+            country_params.iso_code,
+            city_obj["name"s].AsString(),
+            city_obj["iso_code"s].AsString(),
+            country_params.phone_code + city_obj["phone_code"s].AsString(),
+            country_params.time_zone,
+            country_params.languages });
     }
 }
 
-// ParseCitySubjson вызывается только из функции ParseCountryJson следующим образом:
 void ParseCountryJson(vector<Country>& countries, vector<City>& cities, const Json& json) {
     for (const auto& country_json : json.AsList()) {
         const auto& country_obj = country_json.AsObject();
         countries.push_back({
-            country_obj.at("name"s).AsString(),
-            country_obj.at("iso_code"s).AsString(),
-            country_obj.at("phone_code"s).AsString(),
-            country_obj.at("time_zone"s).AsString(),
-            //country_obj["name"s].AsString(),
-            //country_obj["iso_code"s].AsString(),
-            //country_obj["phone_code"s].AsString(),
-            //country_obj["time_zone"s].AsString(),
+            country_obj["name"s].AsString(),
+            country_obj["iso_code"s].AsString(),
+            country_obj["phone_code"s].AsString(),
+            country_obj["time_zone"s].AsString(),
             });
         Country& country = countries.back();
-        //for (const auto& lang_obj : country_obj["languages"s].AsList()) {
-        for (const auto& lang_obj : country_obj.at("languages"s).AsList()) {
-            country.languages.push_back(FromString<Language>(lang_obj.AsString()));
+        for (const auto& lang_obj : country_obj["languages"s].AsList()) {
+            country.params.languages.push_back(FromString<Language>(lang_obj.AsString()));
         }
-        //ParseCitySubjson(cities, country_obj["cities"s], country.name, country.iso_code, country.phone_code,
-        ParseCitySubjson(   cities, 
-                            country_obj.at("cities"s), 
-                            country.name, 
-                            country.iso_code, 
-                            country.phone_code,
-                            country.time_zone, 
-                            country.languages);
+        ParseCitySubjson(
+            cities, 
+            country_obj["cities"s], 
+            country.params);
     }
-}
-
-int main() {
-    return 0;
 }
