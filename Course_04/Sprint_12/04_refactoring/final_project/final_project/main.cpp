@@ -6,6 +6,7 @@
 #include "json.h"
 #include "json_reader.h"
 #include "map_renderer.h"
+#include "transport_router.h"
 
 #define DEBUG
 
@@ -13,9 +14,10 @@ using namespace std::literals;
 
 int main(int args, char* argv[]) try {
 	tc::TransportCatalogue base;
-	MapRenderer renderer;
-	RequestHandler request(base, renderer);
-	JSONreader reader(base, renderer, request);
+	TransportRouter router(base);
+	renderer::MapRenderer renderer;
+	RequestHandler request(base, renderer, router);
+	JSONreader reader(base, renderer, request, router);
 
 #ifdef DEBUG
 	std::ifstream ifst("input.txt");
@@ -31,10 +33,12 @@ int main(int args, char* argv[]) try {
 	const json::Document doc = json::Load(ist);
 	const auto& mode = doc.GetRoot().AsDict();
 
-	if (mode.count("base_requests") || mode.count("render_settings")) {
+	if (mode.count("base_requests") || 
+		mode.count("render_settings") || 
+		mode.count("routing_settings")) {
 		reader.ReadRequest(doc);
 	}
-	if (mode.count("stat_requests")) {
+ 	if (mode.count("stat_requests")) {
 		reader.ReadRequests(doc);
 	}
 

@@ -9,10 +9,11 @@ void JSONreader::ReadRequest(const json::Document& doc){
     const auto load = doc.GetRoot().AsDict();
     base_requests_ = load.at("base_requests"s).AsArray();
     map_renderer_.SetSettings(MakeRenderSettings(load.at("render_settings").AsDict()));
-
+    transport_router_.SetSettings(MakeRouterSettings(load.at("routing_settings").AsDict()));
     LoadStops();
     LoadDistances();
-    LoadBuses();        
+    LoadBuses();    
+    //LoadTransportRouter();
 
     map_renderer_.SetBorder(base_.GetStops());
     map_renderer_.SetTrail(base_.GetBuses());
@@ -52,6 +53,10 @@ void JSONreader::LoadDistances() {
     }
 }
 
+void JSONreader::LoadTransportRouter() {
+    transport_router_.MakeGraph();
+}
+
 Stop JSONreader::MakeStop(const json::Dict& description) {
     return { description.at("name"s).AsString(), description.at("latitude"s).AsDouble(), description.at("longitude"s).AsDouble() };
 }
@@ -71,6 +76,7 @@ Bus JSONreader::MakeBus(const json::Dict& description) {
 void JSONreader::ReadRequests(const json::Document& doc) {
     const auto load = doc.GetRoot().AsDict();
     stat_requests_ = load.at("stat_requests"s).AsArray();
+    //LoadTransportRouter();
 }
 
 void JSONreader::ReadTransportCatalogue(std::ostream& ost){
@@ -85,6 +91,9 @@ void JSONreader::ReadTransportCatalogue(std::ostream& ost){
         }
         else if (type == "Map"s) {
             answers_.push_back(ReadMap(description));
+        }
+        else if (type == "Route"s) {
+            answers_.push_back(ReadRoute(description));
         }
     }
     const json::Document answer(answers_);
@@ -139,7 +148,7 @@ json::Node JSONreader::ReadMap(const json::Dict& description) {
 
 svg::Point JSONreader::SetPoint(const json::Node& node)const {
     const auto& array = node.AsArray();
-    return MakePoint(array.front().AsDouble(),
+    return renderer::MakePoint(array.front().AsDouble(),
         array.back().AsDouble());
 }
 
@@ -147,21 +156,21 @@ svg::Color JSONreader::SetColor(const json::Node& node)const {
     if (node.IsArray()) {
         const auto& array = node.AsArray();
         if (array.size() == 3) {
-            return MakeColor(array.at(0).AsInt(),
+            return renderer::MakeColor(array.at(0).AsInt(),
                 array.at(1).AsInt(), array.at(2).AsInt());
         }
         else if (array.size() == 4) {
-            return MakeColor(array.at(0).AsInt(),
+            return renderer::MakeColor(array.at(0).AsInt(),
                 array.at(1).AsInt(), array.at(2).AsInt(),
                 array.at(3).AsDouble());
         }
     }
-    return MakeColor(node.AsString());
+    return renderer::MakeColor(node.AsString());
 }
 
-Settings JSONreader::MakeRenderSettings(const json::Dict& description) const {
+renderer::Settings JSONreader::MakeRenderSettings(const json::Dict& description) const {
 
-    Settings settings;
+    renderer::Settings settings;
     settings.width = description.at("width"s).AsDouble();
     settings.height = description.at("height"s).AsDouble();
     settings.padding = description.at("padding"s).AsDouble();
@@ -179,4 +188,39 @@ Settings JSONreader::MakeRenderSettings(const json::Dict& description) const {
         settings.color_palette.push_back(SetColor(color));
     }
     return settings;
+}
+
+Settings JSONreader::MakeRouterSettings(const json::Dict& description) const {
+    return { description.at("bus_wait_time"s).AsInt(), description.at("bus_velocity"s).AsDouble() };
+}
+
+json::Node JSONreader::ReadRoute(const json::Dict& description) {
+    using namespace graph;
+    json::Builder builder_node;
+    builder_node.StartDict()
+        .Key("request_id"s).Value(description.at("id"s).AsInt());
+    const auto& report = request_handler_.GetReportRouter(description.at("from"s).AsString(),
+        description.at("to"s).AsString());
+    if (report) {
+        builder_node.Key("total_time"s).Value(report->total_minutes)
+            .Key("items"s).StartArray();
+        for (const auto& info : report->information) {
+            builder_node.StartDict()
+                .Key("type"s).Value("Wait"s)
+                .Key("time"s).Value(info.wait.minutes)
+                .Key("stop_name"s).Value(info.wait.stop_name)
+                .EndDict()
+                .StartDict()
+                .Key("type"s).Value("Bus"s)
+                .Key("time"s).Value(info.bus.minutes)
+                .Key("bus"s).Value(info.bus.number)
+                .Key("span_count"s).Value(info.bus.span_count)
+                .EndDict();
+        }
+        builder_node.EndArray();
+    }
+    else {
+        builder_node.Key("error_message"s).Value("not found"s);
+    }
+    return builder_node.EndDict().Build();
 }

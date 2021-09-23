@@ -25,7 +25,7 @@ namespace tc {
 		std::unordered_map<std::string_view, std::shared_ptr<Stop>> index_stops_;
 		std::unordered_map<std::shared_ptr<Bus>, BusInfo> buses_info_;
 		std::unordered_map<std::shared_ptr<Stop>, Buses> buses_for_stops_;
-		std::unordered_map<std::pair<std::shared_ptr<Stop>, std::shared_ptr<Stop>>, float, DistanceHasher> distance_between_stops_;	
+		std::unordered_map<std::pair<std::shared_ptr<Stop>, std::shared_ptr<Stop>>, float, DistanceHasher> distance_between_stops_;
 
 	public:
 		void AddBus(const Bus&);

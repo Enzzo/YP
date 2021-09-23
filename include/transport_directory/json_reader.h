@@ -6,21 +6,24 @@
 #include "map_renderer.h"
 #include "json.h"
 #include "domain.h"
+#include "transport_router.h"
 
 class JSONreader final {
 	tc::TransportCatalogue& base_;
 	RequestHandler& request_handler_;
-	MapRenderer& map_renderer_;
+	TransportRouter& transport_router_;
+	renderer::MapRenderer& map_renderer_;
 	json::Array base_requests_;
 	json::Array stat_requests_;
 	json::Array answers_;
 
 public:
 	JSONreader() = default;
-	explicit JSONreader(tc::TransportCatalogue& base, MapRenderer& map_renderer, RequestHandler& request)
+	explicit JSONreader(tc::TransportCatalogue& base, renderer::MapRenderer& map_renderer, RequestHandler& request, TransportRouter& transport_router)
 		: base_(base)		
 		, request_handler_(request)
-		, map_renderer_(map_renderer) {};
+		, map_renderer_(map_renderer)
+		, transport_router_(transport_router) {};
 
 	void ReadRequest(const json::Document&);
 	void ReadRequests(const json::Document&);
@@ -29,14 +32,17 @@ public:
 private:
 	Stop MakeStop(const json::Dict&);
 	Bus MakeBus(const json::Dict&);
-	Settings MakeRenderSettings(const json::Dict&) const;
+	renderer::Settings MakeRenderSettings(const json::Dict&) const;
+	Settings MakeRouterSettings(const json::Dict&) const;
 	json::Node ReadStop(const json::Dict&);
 	json::Node ReadBus(const json::Dict&);
-	json::Node ReadMap(const json::Dict& description);
+	json::Node ReadMap(const json::Dict&);
+	json::Node ReadRoute(const json::Dict&);
 
 	void LoadStops();
 	void LoadBuses();
 	void LoadDistances();
+	void LoadTransportRouter();
 
 	svg::Point SetPoint(const json::Node&)const;
 	svg::Color SetColor(const json::Node&)const;

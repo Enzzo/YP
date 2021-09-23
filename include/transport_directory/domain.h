@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <memory>
@@ -57,3 +58,40 @@ namespace detail {
 		}
 	};
 }
+
+struct Road {
+	Road() = default;
+	double minutes = 0;
+	std::string name;
+	int span_count = 0;
+};
+
+Road operator+(const Road& lhs, const Road& rhs);
+bool operator<(const Road& lhs, const Road& rhs);
+bool operator>(const Road& lhs, const Road& rhs);
+
+struct Settings {
+	int bus_wait_time = 1;
+	double bus_velocity = 1;
+};
+
+struct Info {
+	struct Wait {
+		double minutes = 0;
+		std::string stop_name;
+	};
+
+	struct Bus {
+		double minutes = 0;
+		std::string number;
+		int span_count = 0;
+	};
+
+	Wait wait;
+	Bus bus;
+};
+
+struct ReportRouter {
+	std::vector<Info> information;
+	double total_minutes = 0;
+};

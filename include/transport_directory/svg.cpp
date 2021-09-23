@@ -265,11 +265,11 @@ namespace svg {
 
     // ---------- Document ------------------ 
 
-    void Document::AddPtr(std::shared_ptr<Object>&& obj) {
+    void Document::AddPtr(shared_ptr<Object>&& obj) {
         objects_.emplace_back(move(obj));
     }
 
-    void Document::Render(std::ostream& out) const {
+    void Document::Render(ostream& out) const {
         out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"sv;
         out << "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n"sv;
         for (const auto& obj : objects_) {
@@ -277,4 +277,5 @@ namespace svg {
         }
         out << "</svg>"sv;
     }
+
 }
