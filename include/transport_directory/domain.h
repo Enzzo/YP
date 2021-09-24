@@ -1,97 +1,109 @@
 #pragma once
 
-#include <string>
-#include <vector>
+#include <cstdint>
 #include <memory>
 #include <set>
+#include <string>
+#include <string_view>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "geo.h"
 
-struct Stop {
-	std::string name;
-	geo::Coordinates coord;
-	bool free = true;
-};
+namespace router::tc {
 
-struct Bus {
-	std::string number;
-	bool is_ring = false;
-	std::vector<std::shared_ptr<Stop>> stops;
-};
+    //--------------Stop----------------    
 
-struct BusInfo {
-	uint64_t stops = 0;
-	uint64_t unique_stops = 0;
-	float route_length = 0;
-	double curvature = 1.0;
-};
+    struct Stop {
+        std::string name;
+        geo::Coordinates coords;
+        bool free = true;
+    };
 
-struct BusComparator {
-	bool operator()(std::shared_ptr<Bus> lhs,
-		std::shared_ptr<Bus> rhs) const {
-		return lexicographical_compare(
-			lhs->number.begin(), lhs->number.end(),
-			rhs->number.begin(), rhs->number.end());
-	}
-};
+    //--------------Bus----------------    
 
-struct StopComparator {
-	bool operator()(std::shared_ptr<Stop> lhs,
-		std::shared_ptr<Stop> rhs) const {
-		return lexicographical_compare(
-			lhs->name.begin(), lhs->name.end(),
-			rhs->name.begin(), rhs->name.end());
-	}
-};
+    struct Bus {
+        bool is_ring = true;
+        std::string number;
+        std::vector<std::shared_ptr<Stop>> stops;
+    };
 
-using Buses = std::set<std::shared_ptr<Bus>, BusComparator>;
-using Stops = std::set<std::shared_ptr<Stop>, StopComparator>;
+    //--------------BusComparator----------------    
 
-namespace detail {
-	class DistanceHasher {
-	public:
-		size_t operator()(const std::pair<std::shared_ptr<Stop>, std::shared_ptr<Stop>>& p) const {
-			std::hash<void*> hasher;
-			size_t h1 = hasher(p.first.get());
-			size_t h2 = hasher(p.second.get()) * 37 ^ 3;
-			return h1 + h2;
-		}
-	};
+    struct BusComparator {
+        bool operator()(std::shared_ptr<Bus> lhs, std::shared_ptr<Bus> rhs) const;
+    };
+    using Buses = std::set<std::shared_ptr<Bus>, BusComparator>;
+
+    //--------------StopComparator----------------    
+
+    struct StopComparator {
+        bool operator()(std::shared_ptr<Stop> lhs, std::shared_ptr<Stop> rhs) const;
+    };
+
+    using Stops = std::set<std::shared_ptr<Stop>, StopComparator>;
+
+    //--------------BusStat----------------    
+
+    struct BusStat {
+        uint64_t count_stops = 0;
+        uint64_t count_unique_stops = 0;
+        uint64_t route_length = 0;
+        double curvature = 1;
+    };
+
+    //--------------HashPairStops----------------    
+
+    struct HashPairStops {
+    public:
+        size_t operator() (const std::pair<std::shared_ptr<Stop>, std::shared_ptr<Stop>>& pair) const;
+    private:
+        std::hash<void*> p_hasher;
+    };
+
 }
 
-struct Road {
-	Road() = default;
-	double minutes = 0;
-	std::string name;
-	int span_count = 0;
-};
+namespace router::tr {
 
-Road operator+(const Road& lhs, const Road& rhs);
-bool operator<(const Road& lhs, const Road& rhs);
-bool operator>(const Road& lhs, const Road& rhs);
+    //--------------Road----------------
 
-struct Settings {
-	int bus_wait_time = 1;
-	double bus_velocity = 1;
-};
+    struct Road {
+        Road() = default;
+        double minutes = 0;
+        std::string name;
+        int span_count = 0;
+    };
 
-struct Info {
-	struct Wait {
-		double minutes = 0;
-		std::string stop_name;
-	};
+    Road operator+(const Road& lhs, const Road& rhs);
+    bool operator<(const Road& lhs, const Road& rhs);
+    bool operator>(const Road& lhs, const Road& rhs);
 
-	struct Bus {
-		double minutes = 0;
-		std::string number;
-		int span_count = 0;
-	};
+    //--------------Settings----------------
 
-	Wait wait;
-	Bus bus;
-};
+    struct Settings {
+        int bus_wait_time = 1;
+        double bus_velocity = 1;
+    };
 
-struct ReportRouter {
-	std::vector<Info> information;
-	double total_minutes = 0;
-};
+    struct Info {
+        struct Wait {
+            double minutes = 0;
+            std::string stop_name;
+        };
+
+        struct Bus {
+            double minutes = 0;
+            std::string number;
+            int span_count = 0;
+        };
+
+        Wait wait;
+        Bus bus;
+    };
+
+    struct ReportRouter {
+        std::vector<Info> information;
+        double total_minutes = 0;
+    };
+}

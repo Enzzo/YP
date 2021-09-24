@@ -14,8 +14,8 @@
 #include "geo.h"
 #include "domain.h"
 
-namespace tc {
-	using namespace detail;
+namespace router::tc {
+
 	class TransportCatalogue {
 		std::deque<Bus> buses_;
 		std::deque<Stop> stops_;

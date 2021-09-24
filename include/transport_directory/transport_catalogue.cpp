@@ -4,8 +4,7 @@
 
 #include "transport_catalogue.h"
 
-namespace tc {
-	using namespace detail;
+namespace router::tc {
 	void TransportCatalogue::AddStop(const Stop& stop) {
 		const auto& iter_stop = stops_.emplace(stops_.end(), stop);
 		const auto ptr_stop = std::make_shared<Stop>(*iter_stop);

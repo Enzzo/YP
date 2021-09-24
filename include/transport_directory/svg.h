@@ -277,39 +277,32 @@ namespace svg {
     class Text final : public Object, public PathProps<Text> {
     public:
         Text& SetPosition(Point pos);
-
         Text& SetOffset(Point offset);
-
         Text& SetFontSize(uint32_t size);
-
         Text& SetFontFamily(const std::string_view font_family);
-
         Text& SetFontWeight(const std::string_view font_weight);
-
         Text& SetData(const std::string_view data);
 
     private:
-        void                                     RenderObject(const RenderContext& context) const override;
+        void RenderObject(const RenderContext& context) const override;
 
-        Point                                    pos_;
-        Point                                    offset_;
-        uint32_t                                 font_size_ = 1;
-        std::optional<std::string>               font_family_;
-        std::optional<std::string>               font_weight_;
-        std::string                              data_;
+        Point pos_;
+        Point offset_;
+        uint32_t font_size_ = 1;
+        std::optional<std::string> font_family_;
+        std::optional<std::string> font_weight_;
+        std::string data_;
 
-        TypeChar                                 GetTypeChar(char c) const;
-
-        void                                     ScreenString(std::ostream& out) const;
+        TypeChar GetTypeChar(char c) const;
+        void ScreenString(std::ostream& out) const;
     };
 
     // ---------- Document ------------------    
 
     class Document final : public ObjectContainer {
     public:
-        void                                     AddPtr(std::shared_ptr<Object>&& obj) override;
-
-        void                                     Render(std::ostream& out) const;
+        void AddPtr(std::shared_ptr<Object>&& obj) override;
+        void Render(std::ostream& out) const;
     };
 
 }

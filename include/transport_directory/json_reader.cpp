@@ -12,8 +12,8 @@ void JSONreader::ReadRequest(const json::Document& doc){
     transport_router_.SetSettings(MakeRouterSettings(load.at("routing_settings").AsDict()));
     LoadStops();
     LoadDistances();
-    LoadBuses();    
-    //LoadTransportRouter();
+    LoadBuses();
+    LoadTransportRouter();
 
     map_renderer_.SetBorder(base_.GetStops());
     map_renderer_.SetTrail(base_.GetBuses());
