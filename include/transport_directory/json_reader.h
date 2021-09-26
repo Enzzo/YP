@@ -6,24 +6,23 @@
 #include "map_renderer.h"
 #include "json.h"
 #include "domain.h"
-#include "transport_router.h"
 
 class JSONreader final {
 	tc::TransportCatalogue& base_;
-	RequestHandler& request_handler_;
-	TransportRouter& transport_router_;
 	renderer::MapRenderer& map_renderer_;
+	RequestHandler& request_handler_;
+	tr::TransportRouter& router_;
 	json::Array base_requests_;
 	json::Array stat_requests_;
 	json::Array answers_;
 
 public:
-	JSONreader() = default;
-	explicit JSONreader(tc::TransportCatalogue& base, renderer::MapRenderer& map_renderer, RequestHandler& request, TransportRouter& transport_router)
-		: base_(base)		
-		, request_handler_(request)
+	JSONreader() = delete;
+	explicit JSONreader(tc::TransportCatalogue& base, renderer::MapRenderer& map_renderer, RequestHandler& request, tr::TransportRouter& router)
+		: base_(base)
 		, map_renderer_(map_renderer)
-		, transport_router_(transport_router) {};
+		, request_handler_(request)		
+		, router_(router) {};
 
 	void ReadRequest(const json::Document&);
 	void ReadRequests(const json::Document&);
@@ -32,8 +31,10 @@ public:
 private:
 	Stop MakeStop(const json::Dict&);
 	Bus MakeBus(const json::Dict&);
+	void SetDistancesFromStop(const json::Dict& description);
+
 	renderer::Settings MakeRenderSettings(const json::Dict&) const;
-	Settings MakeRouterSettings(const json::Dict&) const;
+	tr::Settings MakeRouterSettings(const json::Dict&) const;
 	json::Node ReadStop(const json::Dict&);
 	json::Node ReadBus(const json::Dict&);
 	json::Node ReadMap(const json::Dict&);

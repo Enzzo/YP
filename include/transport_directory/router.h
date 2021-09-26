@@ -16,14 +16,14 @@ namespace graph {
         using Graph = DirectedWeightedGraph<Weight>;
 
     public:
-        explicit                        Router(const Graph& graph);
+        explicit Router(const Graph& graph);
 
         struct RouteInfo {
-            Weight                weight;
-            std::vector<EdgeId>   edges;
+            Weight weight;
+            std::vector<EdgeId> edges;
         };
 
-        std::optional<RouteInfo>        BuildRoute(VertexId from, VertexId to) const;
+        std::optional<RouteInfo> BuildRoute(VertexId from, VertexId to) const;
 
     private:
         struct RouteInternalData {

@@ -13,7 +13,7 @@
 #include "router.h"
 #include "transport_catalogue.h"
 
-namespace router::tr {
+namespace tr {
     class TransportRouter {
     public:
         using Graph = graph::DirectedWeightedGraph<Road>;
@@ -22,15 +22,16 @@ namespace router::tr {
     private:
         const tc::TransportCatalogue& transport_catalogue_;
         Settings settings_;
-        std::shared_ptr<Router> router_;
         Graph graph_;
+        std::shared_ptr<Router> router_;        
         std::unordered_map<std::string_view, graph::VertexId> name_id_;
         std::unordered_map<graph::VertexId, std::string_view> id_name_;
         std::unordered_set<std::string> names_;
 
     public:
-        explicit TransportRouter(const tc::TransportCatalogue& transport_catalogue) : transport_catalogue_(transport_catalogue) {};
+        explicit TransportRouter(const tc::TransportCatalogue& transport_catalogue) : transport_catalogue_(transport_catalogue), graph_(450) {};
         void SetSettings(const Settings& settings);
+        Settings GetSettings() const;
         void MakeGraph();
         std::optional<ReportRouter> GetReportRouter(const std::string_view from, const std::string_view to) const;
 

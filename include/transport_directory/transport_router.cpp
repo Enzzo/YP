@@ -1,8 +1,12 @@
 #include "transport_router.h"
 
-namespace router::tr {
+namespace tr {
     void TransportRouter::SetSettings(const Settings& settings) {
         settings_ = settings;
+    }
+
+    Settings TransportRouter::GetSettings() const {
+        return settings_;
     }
 
     void TransportRouter::MakeGraph() {

@@ -4,7 +4,8 @@
 
 #include "transport_catalogue.h"
 
-namespace router::tc {
+namespace tc {
+	using namespace detail;
 	void TransportCatalogue::AddStop(const Stop& stop) {
 		const auto& iter_stop = stops_.emplace(stops_.end(), stop);
 		const auto ptr_stop = std::make_shared<Stop>(*iter_stop);
@@ -23,7 +24,7 @@ namespace router::tc {
 		}
 		SetBusStat(ptr_bus);
 		index_buses_[ptr_bus->number] = ptr_bus;
-		
+
 	}
 
 	[[nodiscard]] std::shared_ptr<Bus> TransportCatalogue::FindBus(const std::string_view bus) const {
@@ -57,7 +58,7 @@ namespace router::tc {
 		return std::make_shared<Buses>(buses_for_stops_.at(stop));
 	}
 
-	void TransportCatalogue::AddDistanceBetweenStops(std::shared_ptr<Stop> from, std::shared_ptr<Stop> to, float distance) {
+	void TransportCatalogue::AddDistanceBetweenStops(std::shared_ptr<Stop> from, std::shared_ptr<Stop> to, size_t distance) {
 		distance_between_stops_[std::make_pair(from, to)] = distance;
 	}
 
@@ -77,7 +78,7 @@ namespace router::tc {
 	void TransportCatalogue::SetBusStat(std::shared_ptr<Bus> bus) {
 		std::unordered_set<std::string> unique_stops;
 		BusInfo info;
-		const std::vector<std::shared_ptr<Stop>>& v_stops = bus->stops;		
+		const std::vector<std::shared_ptr<Stop>>& v_stops = bus->stops;
 		std::for_each(v_stops.begin(), v_stops.end(), [&unique_stops](auto stop) {
 			unique_stops.insert(stop->name);
 			});
@@ -100,7 +101,7 @@ namespace router::tc {
 		if (!bus->is_ring) {
 			geographical_length *= 2;
 			info.stops = info.stops * 2 - 1;
-			info.route_length += std::transform_reduce(bus->stops.rbegin()+1, bus->stops.rend(),
+			info.route_length += std::transform_reduce(bus->stops.rbegin() + 1, bus->stops.rend(),
 				bus->stops.rbegin(), 0, std::plus<>{}, [this](const auto s2, const auto s1) {
 					return GetDistanceBetweenStops(s1, s2);
 				}

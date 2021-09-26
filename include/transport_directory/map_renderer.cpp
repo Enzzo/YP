@@ -2,10 +2,9 @@
 #include <iterator>
 
 #include "map_renderer.h"
+using namespace std;
 
 namespace renderer {
-    using namespace std;
-
     // ---------- Utilities ------------------    
 
     bool IsZero(double value) {

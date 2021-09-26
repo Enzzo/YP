@@ -14,7 +14,7 @@ using namespace std::literals;
 
 int main(int args, char* argv[]) try {
 	tc::TransportCatalogue base;
-	TransportRouter router(base);
+	tr::TransportRouter router(base);
 	renderer::MapRenderer renderer;
 	RequestHandler request(base, renderer, router);
 	JSONreader reader(base, renderer, request, router);
@@ -34,8 +34,7 @@ int main(int args, char* argv[]) try {
 	const auto& mode = doc.GetRoot().AsDict();
 
 	if (mode.count("base_requests") || 
-		mode.count("render_settings") || 
-		mode.count("routing_settings")) {
+		mode.count("render_settings")) {
 		reader.ReadRequest(doc);
 	}
  	if (mode.count("stat_requests")) {
