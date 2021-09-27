@@ -12,9 +12,18 @@ std::optional<T> SafeAdd(const T l, const T r) {
     const T MAX = std::numeric_limits<T>::max();
     const T MIN = std::numeric_limits<T>::min();
 
-    if (MAX < (l + r) ||
-        MIN >(l + r))
-        return std::nullopt;
-    
+    //if (MAX < (l + r) ||
+    //    MIN >(l + r))
+    //    return std::nullopt;
+    if (l < 0) {
+        if (l < MIN - r) {
+            return std::nullopt;
+        }
+    }
+    else {
+        if (l > MAX - r) {
+            return std::nullopt;
+        }
+    }
     return l + r;
 }
