@@ -53,11 +53,13 @@ private:
 template<typename T>
 Optional<T>::Optional(const T& value) {
     value_ = new(&data_[0]) T(value);
+    is_initialized_ = true;
 }
 
 template<typename T>
 Optional<T>::Optional(T&& value) {
     value_ = new(&data_[0]) T(std::move(value));
+    is_initialized_ = true;
 }
 
 template<typename T>
