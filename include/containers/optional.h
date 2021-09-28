@@ -62,7 +62,11 @@ Optional<T>::Optional(T&& value) {
 
 template<typename T>
 Optional<T>::Optional(const Optional& other){
+    //assert(this != other)
+    Optional temp;
 
+    temp.is_initialized_ = other.is_initialized_;
+    temp.value_ = other.value_;
 }
 
 template<typename T>
@@ -128,7 +132,9 @@ T& Optional<T>::operator*() {
 };
 
 template<typename T>
-const T& Optional<T>::operator*() const {};
+const T& Optional<T>::operator*() const {
+    return *value_;
+};
 
 template<typename T>
 T* Optional<T>::operator->() {
@@ -136,4 +142,6 @@ T* Optional<T>::operator->() {
 };
 
 template<typename T>
-const T* Optional<T>::operator->() const {};
+const T* Optional<T>::operator->() const {
+    return value_;
+};
