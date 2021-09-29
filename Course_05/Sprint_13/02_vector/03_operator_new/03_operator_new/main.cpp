@@ -200,7 +200,7 @@ int main() {
     try {
         TestInitialization();
         TestAssignment();
-        //TestMoveAssignment();
+        TestMoveAssignment();
         //TestValueAccess();
         //TestReset();
     }
