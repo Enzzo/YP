@@ -199,7 +199,7 @@ void TestReset() {
 int main() {
     try {
         TestInitialization();
-        //TestAssignment();
+        TestAssignment();
         //TestMoveAssignment();
         //TestValueAccess();
         //TestReset();

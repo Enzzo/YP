@@ -65,20 +65,32 @@ Optional<T>::Optional(T&& value) {
 template<typename T>
 Optional<T>::Optional(const Optional& other){
     //assert(this != other)
-    Optional temp;
+    if (!other.HasValue()) {
+        throw BadOptionalAccess();
+    }
 
-    temp.is_initialized_ = other.is_initialized_;
-    temp.value_ = other.value_;
+    Optional temp(other.Value());
+
+    std::swap(is_initialized_, temp.is_initialized_);
+    std::swap(value_, temp.value_);
 }
 
 template<typename T>
-Optional<T>::Optional(Optional&& other) {
+Optional<T>::Optional(Optional&& other){
+    if (!other.HasValue()) {
+        throw BadOptionalAccess();
+    }
 
+    Optional temp(std::move(other.Value()));
+    std::swap(is_initialized_, temp.is_initialized_);
+    std::swap(value_, temp.value_);
 }
 
 //----------------------------------assignment----------------------------------
 template<typename T>
-Optional<T>& Optional<T>::operator=(const T& value) {
+Optional<T>& Optional<T>::operator=(const T& value) { 
+    value_ = new(&data_[0]) T(value);
+    is_initialized_ = true;
     return *this;
 }
 
@@ -118,7 +130,7 @@ T& Optional<T>::Value() {
 
 template<typename T>
 const T& Optional<T>::Value() const {
-
+    return *value_;
 }
 
 template<typename T>
