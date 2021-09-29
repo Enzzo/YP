@@ -201,8 +201,8 @@ int main() {
         TestInitialization();
         TestAssignment();
         TestMoveAssignment();
-        //TestValueAccess();
-        //TestReset();
+        TestValueAccess();
+        TestReset();
     }
     catch (...) {
         assert(false);

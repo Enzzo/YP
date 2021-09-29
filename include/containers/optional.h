@@ -46,7 +46,7 @@ private:
     // alignas нужен для правильного выравнивания блока памяти
     alignas(T) char data_[sizeof(T)];
     bool is_initialized_ = false;
-    T* value_;
+    T* value_ = nullptr;
 };
 
 //----------------------------------ctor----------------------------------
@@ -65,58 +65,69 @@ Optional<T>::Optional(T&& value) {
 template<typename T>
 Optional<T>::Optional(const Optional& other){
     //assert(this != other)
-    if (this->HasValue() && !other.HasValue()) {
-        value_->~T();
-        is_initialized_ = false;
+    if (HasValue() && !other.HasValue()) {
+        Reset();
     }
     else if (!this->HasValue() && other.HasValue()) {
-        this->value_ = new(&data_[0]) T(other.Value());
-        this->is_initialized_ = true;
+        value_ = new(&data_[0]) T(other.Value());
+        is_initialized_ = true;
     }
-    else {
-
-        Optional temp(other.Value());
-        std::swap(value_, temp.value_);
+    else if (HasValue() && other.HasValue()) {
+        *value_ = other.Value();
         is_initialized_ = true;
     }
 }
 
 template<typename T>
-Optional<T>::Optional(Optional&& other){
-    if (!other.HasValue()) {
-        throw BadOptionalAccess();
+Optional<T>::Optional(Optional&& other) {
+    if (this->HasValue() && !other.HasValue()) {
+        Reset();
     }
-    Optional temp(std::move(other.Value()));
-    std::swap(value_, temp.value_);
-    is_initialized_ = true;
+    else if (!HasValue() && other.HasValue()) {
+        value_ = new(&data_[0]) T(std::move(other.Value()));
+        is_initialized_ = true;
+    }
+    else if(HasValue() && other.HasValue()){        
+        *value_ = std::move(other.Value());
+        is_initialized_ = true;
+    }
 }
 
 //----------------------------------assignment----------------------------------
 template<typename T>
-Optional<T>& Optional<T>::operator=(const T& value) { 
-    value_ = new(&data_[0]) T(value);
-    is_initialized_ = true;
+Optional<T>& Optional<T>::operator=(const T& value) {
+    if (!HasValue()) {
+        value_ = new(&data_[0]) T(value);
+        is_initialized_ = true;
+    }
+    else {
+        *value_ = value;
+    }
     return *this;
 }
 
 template<typename T>
 Optional<T>& Optional<T>::operator=(T&& value) {
-    value_ = new(&data_[0]) T(std::move(value));
-    is_initialized_ = true;
+    if (!HasValue()) {
+        value_ = new(&data_[0]) T(std::move(value));
+        is_initialized_ = true;
+    }
+    else {
+        *value_ = std::move(value);
+    }
     return *this;
 }
 
 template<typename T>
-Optional<T>& Optional<T>::operator=(const Optional& rhs) {
-    if (!HasValue() && rhs.HasValue()) {
-        value_ = new(&data_[0]) T(rhs.Value());
-        is_initialized_ = true;
-        return *this;
-    }
-    else if (HasValue() && !rhs.HasValue()) {
+Optional<T>& Optional<T>::operator=(const Optional& rhs)  {
+    if (HasValue() && !rhs.HasValue()) {
         Reset();
     }
-    else {
+    else if (!HasValue() && rhs.HasValue()) {
+        value_ = new(&data_[0]) T(rhs.Value());
+        is_initialized_ = true;
+    }    
+    else if (HasValue() && rhs.HasValue()) {
         *value_ = rhs.Value();
         is_initialized_ = true;
     }
@@ -125,19 +136,26 @@ Optional<T>& Optional<T>::operator=(const Optional& rhs) {
 
 template<typename T>
 Optional<T>& Optional<T>::operator=(Optional&& rhs) {
-    if (!rhs.HasValue()) {
-        throw BadOptionalAccess();
+    if (HasValue() && !rhs.HasValue()) {
+        Reset();
     }
-
-    *value_ = std::move(rhs.Value());
+    else if (!HasValue() && rhs.HasValue()) {
+        value_ = new(&data_[0]) T(std::move(rhs.Value()));
+        is_initialized_ = true;
+    }
+    else if (HasValue() && rhs.HasValue()) {
+        *value_ = std::move(rhs.Value());
+        is_initialized_ = true;
+    }
     return *this;
 }
 
 //----------------------------------dtor----------------------------------
 template<typename T>
 Optional<T>::~Optional() {
-    if(value_ != nullptr)
+    if (is_initialized_) {
         value_->~T();
+    }
 }
 
 //----------------------------------methods----------------------------------
@@ -149,55 +167,45 @@ bool Optional<T>::HasValue() const {
 
 template<typename T>
 T& Optional<T>::Value() {
-    /*if (value_ == nullptr) {
+    if (!is_initialized_) {
         throw BadOptionalAccess();
-    }*/
+    }
     return *value_;
 }
 
 template<typename T>
 const T& Optional<T>::Value() const {
-    //if (value_ == nullptr) {
-    //    throw BadOptionalAccess();
-    //}
+    if (!is_initialized_) {
+        throw BadOptionalAccess();
+    }
     return *value_;
 }
 
 template<typename T>
 void Optional<T>::Reset() {
-    is_initialized_ = false;
-    value_->~T();
+    if (is_initialized_) {
+        is_initialized_ = false;
+        value_->~T();
+    }
 }
 
 //----------------------------------operators----------------------------------
 template<typename T>
 T& Optional<T>::operator*() {
-    if (value_ == nullptr) {
-        throw BadOptionalAccess();
-    }
-    return *value_;
-};
+    return Value();
+}
 
 template<typename T>
 const T& Optional<T>::operator*() const {
-    if (value_ == nullptr) {
-        throw BadOptionalAccess();
-    }
-    return *value_;
-};
+    return Value();
+}
 
 template<typename T>
 T* Optional<T>::operator->() {
-    if (value_ == nullptr) {
-        throw BadOptionalAccess();
-    }
-    return value_;
-};
+    return &Value();
+}
 
 template<typename T>
 const T* Optional<T>::operator->() const {
-    if (value_ == nullptr) {
-        throw BadOptionalAccess();
-    }
-    return value_;
-};
+    return &Value();
+}
