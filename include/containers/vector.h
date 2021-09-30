@@ -12,11 +12,24 @@ class RawMemory {
 	size_t capacity_ = 0;
 
 public:
+	RawMemory(const RawMemory&) = delete;
+	RawMemory& operator=(const RawMemory&) = delete;
+
 	RawMemory() = default;
 
 	explicit RawMemory(size_t capacity)
-		: buffer_(Allocate(capacity))
+		: buffer_(Allocate(capacity))		
 		, capacity_(capacity){}
+
+	RawMemory(RawMemory&& other) noexcept {
+		capacity_ = other.capacity_;
+		buffer_ = std::move(other.buffer_);		
+	}
+
+	RawMemory& operator=(RawMemory&& rhs) noexcept {
+		capacity_ = std::move(rhs.capacity_);
+		buffer_ = std::move(rhs.buffer_);
+	}
 
 	~RawMemory() {
 		Deallocate(buffer_);
@@ -89,18 +102,30 @@ public:
 	Vector(const Vector& other)
 		: data_(other.size_)
 		, size_(other.size_) //
-	{
-		try {
-			
-				std::uninitialized_copy_n(other.data_.GetAddress(), size_, data_.GetAddress());
+	{		
+		std::uninitialized_copy_n(other.data_.GetAddress(), size_, data_.GetAddress());
+	}
 
-				
+	Vector(Vector&& other) {
+		size_ = std::move(other.size_);
+		data_(std::move(other.data_));
+	}
+
+	Vector& operator=(const Vector& rhs) {
+		if (this != &rhs) {
+			if (rhs.size_ > data_.Capacity()) {
+				//copy-and-swap
+			}
+			else {
+				//скопировать элементы из rhs, создав при необходимости новые
+				//или удалив существующие
+			}
 		}
-		catch (...) {
-			//DestroyN(data_.GetAddress(), i);
-			std::destroy_n(data_.GetAddress(), size_);
-			throw;
-		}
+		return *this;
+	}
+
+	Vector& operator=(Vector&& rhs) {
+		return *this;
 	}
 
 	//------------------------------dtor------------------------------
@@ -161,5 +186,10 @@ private:
 	//Вызывает деструктор объекта по адресу buf
 	static void Destroy(T* buf) noexcept {
 		buf->~T();
+	}
+
+	void Swap(Vector& other) noexcept {
+		std::swap(size_, other.size_);
+		std::swap(data_, other.data_);
 	}
 };

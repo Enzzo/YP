@@ -130,12 +130,14 @@ void Test2() {
     }
     Obj::ResetCounters();
     {
-        int size = Obj::GetAliveObjectCount();
-        Vector<Obj> v(SIZE);
         
+        Vector<Obj> v(SIZE);
+        int size = Obj::GetAliveObjectCount();
         try {
             v[SIZE / 2].throw_on_copy = true;
+            size = Obj::GetAliveObjectCount();
             Vector<Obj> v_copy(v);
+            size = Obj::GetAliveObjectCount();
             assert(false && "Exception is expected");
         }
         catch (const std::runtime_error&) {
