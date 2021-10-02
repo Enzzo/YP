@@ -141,33 +141,33 @@ public:
 	}
 
 	//------------------------------methods------------------------------
-	//void Reserve(size_t new_capacity) {
-
-	//	if (new_capacity <= data_.Capacity()) {
-	//		return;
-	//	}
-
-	//	RawMemory<T> new_data(new_capacity);
-
-	//	if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>) {
-	//		std::uninitialized_move_n(data_.GetAddress(), size_, new_data.GetAddress());
-	//	}
-	//	else {
-	//		std::uninitialized_copy_n(data_.GetAddress(), size_, new_data.GetAddress());
-	//	}
-
-	//	std::destroy_n(data_.GetAddress(), size_);
-	//	data_.Swap(new_data);
-	//}
-
 	void Reserve(size_t new_capacity) {
-		if (new_capacity > Capacity()) {
-			RawMemory<T> temp(new_capacity);
- 			std::uninitialized_move_n(data_.GetAddress(), size_, temp.GetAddress());
-			std::destroy_n(data_.GetAddress(), size_);
-			data_.Swap(temp);
+
+		if (new_capacity <= data_.Capacity()) {
+			return;
 		}
+
+		RawMemory<T> new_data(new_capacity);
+
+		if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>) {
+			std::uninitialized_move_n(data_.GetAddress(), size_, new_data.GetAddress());
+		}
+		else {
+			std::uninitialized_copy_n(data_.GetAddress(), size_, new_data.GetAddress());
+		}
+
+		std::destroy_n(data_.GetAddress(), size_);
+		data_.Swap(new_data);
 	}
+
+	//void Reserve(size_t new_capacity) {
+	//	if (new_capacity > Capacity()) {
+	//		RawMemory<T> temp(new_capacity);
+	//		std::uninitialized_move_n(data_.GetAddress(), size_, temp.GetAddress());
+	//		std::destroy_n(data_.GetAddress(), size_);
+	//		data_.Swap(temp);
+	//	}
+	//}
 
 	void Resize(size_t new_size) {   
 		Reserve(new_size);
@@ -183,19 +183,50 @@ public:
 
 	
 	void PushBack(const T& value) {
-
 		if (size_ == data_.Capacity()) {
-			Reserve(size_ == 0 ? 1 : size_ * 2);
+			size_t temp_size = (size_ == 0) ? 1 : size_ * 2;
+
+			RawMemory<T> new_data(temp_size);
+
+			new(new_data.GetAddress() + size_) T(value);
+
+			if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>) {
+				std::uninitialized_move_n(data_.GetAddress(), size_, new_data.GetAddress());
+			}
+			else {
+				std::uninitialized_copy_n(data_.GetAddress(), size_, new_data.GetAddress());
+			}
+
+			std::destroy_n(data_.GetAddress(), size_);
+			data_.Swap(new_data);
 		}
-		new (data_.GetAddress() + size_) T(value);
+		else {
+			new (data_.GetAddress() + size_) T(value);
+		}
 		++size_;
 	}
 
 	void PushBack(T&& value) {
 		if (size_ == data_.Capacity()) {
-			Reserve(size_ == 0 ? 1 : size_ * 2);
+			size_t temp_size = (size_ == 0) ? 1 : size_ * 2;
+
+			RawMemory<T> new_data(temp_size);
+
+			new(new_data.GetAddress() + size_) T(std::move(value));
+
+			if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>) {
+				std::uninitialized_move_n(data_.GetAddress(), size_, new_data.GetAddress());
+			}
+			else {
+				std::uninitialized_copy_n(data_.GetAddress(), size_, new_data.GetAddress());
+			}
+
+			std::destroy_n(data_.GetAddress(), size_);
+			data_.Swap(new_data);
 		}
-		new (data_.GetAddress() + size_) T(std::move(value));
+		else {
+			new (data_.GetAddress() + size_) T(std::move(value));
+		}
 		++size_;
 	}
 
