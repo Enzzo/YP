@@ -42,6 +42,9 @@ public:
 
     void Reset();
 
+    template<typename... Args>
+    void Emplace(Args&&...);
+
 private:
     // alignas нужен для правильного выравнивания блока памяти
     alignas(T) char data_[sizeof(T)];
@@ -58,13 +61,12 @@ Optional<T>::Optional(const T& value) {
 
 template<typename T>
 Optional<T>::Optional(T&& value) {
-    value_ = new(&data_[0]) T(std::move(value));
+    value_ = new(&data_[0]) T(std::forward<T>(value));
     is_initialized_ = true;
 }
 
 template<typename T>
 Optional<T>::Optional(const Optional& other){
-    //assert(this != other)
     if (HasValue() && !other.HasValue()) {
         Reset();
     }
@@ -84,11 +86,11 @@ Optional<T>::Optional(Optional&& other) {
         Reset();
     }
     else if (!HasValue() && other.HasValue()) {
-        value_ = new(&data_[0]) T(std::move(other.Value()));
+        value_ = new(&data_[0]) T(std::forward<T>(other.Value()));
         is_initialized_ = true;
     }
     else if(HasValue() && other.HasValue()){        
-        *value_ = std::move(other.Value());
+        *value_ = std::forward<T>(other.Value());
         is_initialized_ = true;
     }
 }
@@ -109,11 +111,11 @@ Optional<T>& Optional<T>::operator=(const T& value) {
 template<typename T>
 Optional<T>& Optional<T>::operator=(T&& value) {
     if (!HasValue()) {
-        value_ = new(&data_[0]) T(std::move(value));
+        value_ = new(&data_[0]) T(std::forward<T>(value));
         is_initialized_ = true;
     }
     else {
-        *value_ = std::move(value);
+        *value_ = std::forward<T>(value);
     }
     return *this;
 }
@@ -140,11 +142,11 @@ Optional<T>& Optional<T>::operator=(Optional&& rhs) {
         Reset();
     }
     else if (!HasValue() && rhs.HasValue()) {
-        value_ = new(&data_[0]) T(std::move(rhs.Value()));
+        value_ = new(&data_[0]) T(std::forward<T>(rhs.Value()));
         is_initialized_ = true;
     }
     else if (HasValue() && rhs.HasValue()) {
-        *value_ = std::move(rhs.Value());
+        *value_ = std::forward<T>(rhs.Value());
         is_initialized_ = true;
     }
     return *this;
@@ -187,6 +189,16 @@ void Optional<T>::Reset() {
         is_initialized_ = false;
         value_->~T();
     }
+}
+
+template<typename T>
+template<typename... Args>
+void Optional<T>::Emplace(Args&&... args) {
+    if (is_initialized_) {
+        Reset();
+    }
+    value_ = new(&data_[0]) T(std::forward<Args>(args)...);
+    is_initialized_ = true;
 }
 
 //----------------------------------operators----------------------------------
