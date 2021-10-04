@@ -12,19 +12,6 @@ class RawMemory {
 	size_t capacity_ = 0;
 
 public:
-	using iterator = T*;
-	using const_iterator = const T*;
-
-	iterator begin() noexcept;
-	iterator end() noexcept;
-	const_iterator begin() const noexcept;
-	const_iterator end() const noexcept;
-	const_iterator cbegin() const noexcept;
-	const_iterator cent() const noexcept;
-
-	iterator Insert(const_iterator pos, const T& value);
-	iterator Insert(const_iterator pos, T&& value);
-
 	RawMemory(const RawMemory&) = delete;
 	RawMemory& operator=(const RawMemory&) = delete;
 
@@ -99,6 +86,9 @@ class Vector {
 	size_t size_ = 0;
 
 public:
+	using iterator = T*;
+	using const_iterator = const T*;
+
 	Vector() = default;
 
 	//------------------------------ctor------------------------------
@@ -151,7 +141,32 @@ public:
 	//------------------------------dtor------------------------------
 	~Vector() {
 		std::destroy_n(data_.GetAddress(), size_);
-	}
+	};
+
+	//------------------------------iterators------------------------------
+	iterator begin() noexcept {
+		return data_.GetAddress();
+	};
+
+	iterator end() noexcept {
+		return data_.GetAddress() + size_;
+	};
+	
+	const_iterator begin() const noexcept {
+		return data_.GetAddress();
+	};
+
+	const_iterator end() const noexcept {
+		return data_.GetAddress() + size_;
+	};
+
+	const_iterator cbegin() const noexcept {
+		return data_.GetAddress();
+	};
+	
+	const_iterator cend() const noexcept {
+		return data_.GetAddress() + size_;
+	};
 
 	//------------------------------methods------------------------------
 	void Reserve(size_t new_capacity) {
@@ -275,6 +290,35 @@ public:
 	void Swap(Vector& other) noexcept {
 		data_.Swap(other.data_);
 		std::swap(size_, other.size_);		
+	}
+
+	iterator Insert(const_iterator pos, const T& value) {
+		auto t = end() - pos;
+		return data_.GetAddress();
+	}
+	
+	iterator Insert(const_iterator pos, T&& value) {
+		auto t = end() - pos;
+		return data_.GetAddress();
+	}
+
+	template<typename... Args>
+	iterator Emplace(const_iterator pos, Args&&... args) {
+		RawMemory<T> temp_data(end() - pos);
+		std::move_backward(pos, end()-1, end());
+
+		if (size_ == Capacity()) {
+			//realloc
+		}
+		else {
+
+		}
+		size_++;
+		return data_.GetAddress();
+	}
+
+	iterator Erase(const_iterator pos) {
+		return data_.GetAddress();
 	}
 
 	//------------------------------index------------------------------
