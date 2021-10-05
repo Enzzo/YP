@@ -31,7 +31,8 @@ public:
 	}
 
 	~RawMemory() {
-		Deallocate(buffer_);
+		if(buffer_ != nullptr)
+			Deallocate(buffer_);
 	}
 
 	T* operator+(size_t offset) noexcept {
@@ -75,6 +76,7 @@ private:
 
 	//Освобождает сырую память, выделенную ранее по адресу buf при помощи Allocate
 	static void Deallocate(T* buf) noexcept {
+		assert(buf != nullptr);
 		operator delete(buf);
 	}
 };
@@ -250,7 +252,9 @@ public:
 	}
 
 	void PopBack() noexcept {
-		std::destroy_at(data_ + --size_);
+		assert(size_ > 0);
+		--size_;
+		std::destroy_at(data_ + size_);
 	}
 
 	template<typename... Args>
@@ -297,7 +301,7 @@ public:
 	}
 	
 	iterator Insert(const_iterator pos, T&& value) {
-		return Emplace(pos, value);
+		return Emplace(pos, std::move(value));
 	}
 
 	template<typename... Args>
@@ -305,35 +309,61 @@ public:
 
 		iterator pos = const_cast<iterator>(p);
 		int dist = std::distance(begin(), pos);
+		iterator it = &data_[dist];
 
 		if (size_ == Capacity()) {
 			//realloc
 			size_t temp_size = (size_ == 0) ? 1 : size_ * 2;
-
 			RawMemory<T> new_data(temp_size);
 
-			if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>) {
-				std::uninitialized_move_n(data_.GetAddress(), size_, new_data.GetAddress());
+			try {
+				new(new_data.GetAddress() + dist) T(std::forward<Args>(args)...);
+
+				if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>) {
+					std::uninitialized_move_n(data_.GetAddress(), dist, new_data.GetAddress());
+					std::uninitialized_move_n(data_.GetAddress() + dist, size_ - dist, new_data.GetAddress() + (dist + 1));
+				}
+				else {
+					std::uninitialized_copy_n(data_.GetAddress(), dist, new_data.GetAddress());
+					std::uninitialized_copy_n(data_.GetAddress() + dist, size_ - dist, new_data.GetAddress() + (dist + 1));
+				}
+				std::destroy_n(data_.GetAddress(), size_);
+				data_.Swap(new_data);
+				it = &data_[dist];
+				++size_;
+			}
+			catch (...) {
+				//if(new_data.GetAddress() != nullptr)
+				new_data.~RawMemory();
+			}
+		}
+		else {
+
+			if (pos == nullptr || pos == end()) {
+				new(end()) T(std::forward<Args>(args)...);
 			}
 			else {
-				std::uninitialized_copy_n(data_.GetAddress(), size_, new_data.GetAddress());
+				new(end()) T(std::forward<T>(*(end() - 1)));
+				std::move_backward(it, end()-1, end());
+				*it = T(std::forward<Args>(args)...);
 			}
-			std::destroy_n(data_.GetAddress(), size_);
-			data_.Swap(new_data);
-		}
-
-		iterator it = &data_[dist];
-
-		new(end()) T(std::forward<T>(*(end() - 1)));
-		std::move_backward(it, end(), end() +1);
-
-		++size_;
-		*it = T(std::forward<Args>(args)...);
+			++size_;
+		}		
 		return it;
 	}
 
-	iterator Erase(const_iterator pos) {
-		return data_.GetAddress();
+	iterator Erase(const_iterator p) {
+		iterator pos = const_cast<iterator>(p);
+		if (p == begin()) {
+			std::destroy_at(p);
+		}
+		else {			
+			std::move(pos+1, end(), pos);
+			std::destroy_at(end() - 1);
+		}
+
+		--size_;
+		return pos;
 	}
 
 	//------------------------------index------------------------------
@@ -343,9 +373,7 @@ public:
 
 	T& operator[](size_t index) noexcept {
 		return data_[index];
-	}
-
-	
+	}	
 
 private:
 	//Вызывает деструкторы n объектов массива по адресу buf

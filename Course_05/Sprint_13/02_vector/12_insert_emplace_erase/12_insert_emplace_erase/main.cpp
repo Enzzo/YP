@@ -433,7 +433,6 @@ void Test6() {
         assert(v[1].id == obj.id);
         assert(Obj::num_copied == 1);
         assert(Obj::num_default_constructed == SIZE);
-        int get_alive = Obj::GetAliveObjectCount();
         assert(Obj::GetAliveObjectCount() == SIZE + 2);
     }
     {
@@ -448,7 +447,6 @@ void Test6() {
         assert(Obj::num_copied == 0);
         assert(Obj::num_assigned == 0);
         assert(Obj::num_move_assigned == 0);
-        int get_alive = Obj::GetAliveObjectCount();
         assert(Obj::GetAliveObjectCount() == 1);
     }
     {
