@@ -31,14 +31,17 @@ public:
 
     // Операторы * и -> не должны делать никаких проверок на пустоту Optional.
     // Эти проверки остаются на совести программиста
-    T& operator*();
-    const T& operator*() const;
+    T& operator*()&;
+    const T& operator*() const&;
     T* operator->();
     const T* operator->() const;
 
+    T&& operator*()&&;
+    T&& Value()&&;
+
     // Метод Value() генерирует исключение BadOptionalAccess, если Optional пуст
-    T& Value();
-    const T& Value() const;
+    T& Value()&;
+    const T& Value() const&;
 
     void Reset();
 
@@ -168,7 +171,7 @@ bool Optional<T>::HasValue() const {
 }
 
 template<typename T>
-T& Optional<T>::Value() {
+T& Optional<T>::Value()& {
     if (!is_initialized_) {
         throw BadOptionalAccess();
     }
@@ -176,7 +179,15 @@ T& Optional<T>::Value() {
 }
 
 template<typename T>
-const T& Optional<T>::Value() const {
+T&& Optional<T>::Value()&& {
+    if (!is_initialized_) {
+        throw BadOptionalAccess();
+    }
+    return std::move(*value_);
+}
+
+template<typename T>
+const T& Optional<T>::Value() const& {
     if (!is_initialized_) {
         throw BadOptionalAccess();
     }
@@ -203,13 +214,18 @@ void Optional<T>::Emplace(Args&&... args) {
 
 //----------------------------------operators----------------------------------
 template<typename T>
-T& Optional<T>::operator*() {
+T& Optional<T>::operator*()& {
     return Value();
 }
 
 template<typename T>
-const T& Optional<T>::operator*() const {
+const T& Optional<T>::operator*() const& {
     return Value();
+}
+
+template<typename T>
+T&& Optional<T>::operator*()&& {
+    return std::move(Value());
 }
 
 template<typename T>

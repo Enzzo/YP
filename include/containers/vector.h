@@ -201,7 +201,6 @@ public:
 		}
 		size_ = new_size;
 	}
-
 	
 	void PushBack(const T& value) {
 		if (size_ == data_.Capacity()) {
@@ -333,7 +332,6 @@ public:
 				++size_;
 			}
 			catch (...) {
-				//if(new_data.GetAddress() != nullptr)
 				new_data.~RawMemory();
 			}
 		}
@@ -354,14 +352,8 @@ public:
 
 	iterator Erase(const_iterator p) {
 		iterator pos = const_cast<iterator>(p);
-		if (p == begin()) {
-			std::destroy_at(p);
-		}
-		else {			
-			std::move(pos+1, end(), pos);
-			std::destroy_at(end() - 1);
-		}
-
+		Destroy(pos);
+		std::move(pos + 1, end(), pos);
 		--size_;
 		return pos;
 	}
