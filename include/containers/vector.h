@@ -297,7 +297,7 @@ public:
 	}
 	
 	iterator Insert(const_iterator pos, T&& value) {
-		return Emplace(std::move(pos), std::move(value));
+		return Emplace(pos, value);
 	}
 
 	template<typename... Args>
@@ -323,12 +323,12 @@ public:
 		}
 
 		iterator it = &data_[dist];
-		iterator last = end() + 1;
-		new(end()) T();
-		std::move_backward(it, end(), last);
+
+		new(end()) T(std::forward<T>(*(end() - 1)));
+		std::move_backward(it, end(), end() +1);
 
 		++size_;
-		*it = std::move(T(std::forward<Args>(args)...));
+		*it = T(std::forward<Args>(args)...);
 		return it;
 	}
 
