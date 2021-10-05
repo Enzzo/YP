@@ -297,19 +297,20 @@ public:
 	}
 	
 	iterator Insert(const_iterator pos, T&& value) {
-		return Emplace(pos, std::move(value));
+		return Emplace(std::move(pos), std::move(value));
 	}
 
 	template<typename... Args>
-	iterator Emplace(const_iterator pos, Args&&... args) {
+	iterator Emplace(const_iterator p, Args&&... args) {
+
+		iterator pos = const_cast<iterator>(p);
+		int dist = std::distance(begin(), pos);
 
 		if (size_ == Capacity()) {
 			//realloc
 			size_t temp_size = (size_ == 0) ? 1 : size_ * 2;
 
 			RawMemory<T> new_data(temp_size);
-
-			new(new_data.GetAddress() + size_) T({});
 
 			if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>) {
 				std::uninitialized_move_n(data_.GetAddress(), size_, new_data.GetAddress());
@@ -321,14 +322,14 @@ public:
 			data_.Swap(new_data);
 		}
 
-		iterator first = const_cast<iterator>(pos);
-		iterator last = end() - 1;
-		std::move_backward(first, last, end());
+		iterator it = &data_[dist];
+		iterator last = end() + 1;
+		new(end()) T();
+		std::move_backward(it, end(), last);
 
-		new (first) T(std::forward<Args>(args)...);
-
-		size_++;
-		return data_.GetAddress();
+		++size_;
+		*it = std::move(T(std::forward<Args>(args)...));
+		return it;
 	}
 
 	iterator Erase(const_iterator pos) {
