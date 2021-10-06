@@ -19,11 +19,13 @@ struct Nucleotide {
 };
 
 struct CompactNucleotide {
-    uint8_t symbol : 2;         //0..4      2 bit
-    char service_info : 6;   //          6 bit
-    uint8_t is_marked : 1;      //          1 bit
+    uint8_t service_info;   //          8 bit
+    
     uint8_t chromosome_num : 6; //1..46     6 bit
+    uint8_t symbol : 2;         //0..4      2 bit
+    
     uint16_t gene_num : 15;     //0..25k    15 bit
+    uint16_t is_marked : 1;      //          1 bit
     uint32_t position : 32;     //0..3kkk   32 bit
 };
 
@@ -74,6 +76,7 @@ void TestCompressDecompress() {
     CompactNucleotide compressedSource = Compress(source);
     Nucleotide decompressedSource = Decompress(compressedSource);
 
+
     assert(source == decompressedSource);    
 
     Nucleotide s1;
@@ -94,7 +97,7 @@ void TestCompressDecompress() {
     s2.chromosome_num = 50;
     s2.gene_num = 5615;
     s2.is_marked = false;
-    s2.service_info = '0';
+    s2.service_info = char(255);
 
     Nucleotide r2 = Decompress(Compress(s2));
 
@@ -106,7 +109,7 @@ void TestCompressDecompress() {
     s3.chromosome_num = 0;
     s3.gene_num = 0;
     s3.is_marked = false;
-    s3.service_info = '0';
+    s3.service_info = char(0);
 
     Nucleotide r3 = Decompress(Compress(s3));
 
