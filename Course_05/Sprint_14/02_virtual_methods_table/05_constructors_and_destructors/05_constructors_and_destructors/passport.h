@@ -88,4 +88,8 @@ private:
     }
 };
 
-Passport::VTable Passport::vtable_ = {};
+Passport::VTable Passport::vtable_ = {
+    &Passport::PrintID,
+    &Passport::PrintVisa,
+    &Passport::Delete
+};

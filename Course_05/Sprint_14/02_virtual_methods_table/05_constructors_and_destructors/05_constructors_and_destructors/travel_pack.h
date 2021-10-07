@@ -78,4 +78,7 @@ private:
     DrivingLicence additional_dr_licence_;
 };
 
-TravelPack::VTable TravelPack::vtable_ = {};
+TravelPack::VTable TravelPack::vtable_ = {
+    &TravelPack::PrintID,
+    &TravelPack::Delete
+};

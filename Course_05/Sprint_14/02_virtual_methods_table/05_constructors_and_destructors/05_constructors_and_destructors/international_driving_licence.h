@@ -55,4 +55,7 @@ private:
     DrivingLicence parent_;
 };
 
-InternationalDrivingLicence::VTable InternationalDrivingLicence::vtable_ = {};
+InternationalDrivingLicence::VTable InternationalDrivingLicence::vtable_ = {
+    &InternationalDrivingLicence::PrintID,
+    &InternationalDrivingLicence::Delete
+};

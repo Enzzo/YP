@@ -57,4 +57,7 @@ private:
 
 };
 
-DrivingLicence::VTable DrivingLicence::vtable_ = {};
+DrivingLicence::VTable DrivingLicence::vtable_ = {
+    &DrivingLicence::PrintID,
+    &DrivingLicence::Delete
+};

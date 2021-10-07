@@ -78,6 +78,9 @@ private:
     static VTable vtable_;
     void* vtable_ptr_ = { &vtable_ };
 };
-IdentityDocument::VTable IdentityDocument::vtable_ = {};
+IdentityDocument::VTable IdentityDocument::vtable_ = {
+    &IdentityDocument::PrintID,
+    &IdentityDocument::Delete
+};
 
 int IdentityDocument::unique_id_count_ = 0;
