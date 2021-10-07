@@ -42,25 +42,33 @@ public:
     }
 
     operator IdentityDocument() {
-        IdentityDocument id;
-        id.ResetVTablePtr();
-        return id;
+        return { parent_ };
     }
 
-    void PrintID() {
+    void PrintID() const {
         identity_doc1_->PrintID();
         identity_doc2_->PrintID();
         additional_pass_.PrintID();
         additional_dr_licence_.PrintID();
     }
+
+    void Delete() {        
+        this->~TravelPack();
+    }
+
 private:
+
     struct VTable {
-        using PrintIDType = void (TravelPack::*)();
+        using PrintIDType = void (TravelPack::*)() const;
         PrintIDType print_id = { &TravelPack::PrintID };
+
+        using DeleteType = void (TravelPack::*)();
+        DeleteType del = { &TravelPack::Delete };
     };
 
 private:
     static VTable vtable_;
+
     IdentityDocument parent_;
 
 private:

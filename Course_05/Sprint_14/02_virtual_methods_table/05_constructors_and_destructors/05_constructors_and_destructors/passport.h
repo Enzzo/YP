@@ -20,6 +20,7 @@ public:
         : IdentityDocument(other)
         , expiration_date_(other.expiration_date_)
     {
+        parent_.SetVTablePtr(&vtable_);
         std::cout << "Passport::CCtor()"sv << std::endl;
     }
 
@@ -33,33 +34,39 @@ public:
     }
 
     operator IdentityDocument() {
-        IdentityDocument id;
-        id.ResetVTablePtr();
-        return id;
+        return { parent_ };
     }
 
-    void PrintID(){
+    void PrintID()const {
         std::cout << "Passport::PrintID() : "sv << GetID();
         std::cout << " expiration date : "sv << expiration_date_.tm_mday << "/"sv << expiration_date_.tm_mon << "/"sv
             << expiration_date_.tm_year + 1900 << std::endl;
     }
 
-    /*virtual*/ void PrintVisa(const std::string& country){
+    /*virtual*/ void PrintVisa(const std::string& country) const {
         auto print_visa_ptr = static_cast<VTable*>(vtable_ptr_)->print_visa;
-        (this->*print_visa_ptr)();
+        (this->*print_visa_ptr)(country);
     }
+
+    void Delete() {
+        this->~Passport();
+    }
+
 private:
-    void PrintVisaImpl(const std::string& country) {
+    void PrintVisaImpl(const std::string& country) const {
         std::cout << "Passport::PrintVisa("sv << country << ") : "sv << GetID() << std::endl;
     }
 
 private:
     struct VTable {
-        using PrintIDType = void(Passport::*)();
+        using PrintIDType = void(Passport::*)() const;
         PrintIDType print_id = { &Passport::PrintID };
 
-        using PrintVisaType = void(Passport::*)();
-        PrintVisaType print_visa = { &Passport::PrintVisaImpl(const std::string&) };
+        using PrintVisaType = void(Passport::*)(const std::string&) const;
+        PrintVisaType print_visa = { &Passport::PrintVisaImpl };
+
+        using DeleteType = void(Passport::*)();
+        DeleteType del = { &Passport::Delete };
     };
 
 private:
@@ -73,6 +80,7 @@ private:
 
     tm GetExpirationDate() {
         time_t t = time(nullptr);
+        #pragma warning(suppress : 4996)
         tm exp_date = *localtime(&t);
         exp_date.tm_year += 10;
         mktime(&exp_date);

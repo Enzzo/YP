@@ -26,7 +26,7 @@ public:
 
     IdentityDocument& operator=(const IdentityDocument&) = delete;
 
-    /*virtual*/ void PrintID(){
+    /*virtual*/ void PrintID()const{
         auto print_ptr = static_cast<VTable*>(vtable_ptr_)->print_id;
         (this->*print_ptr)();
     }
@@ -43,21 +43,32 @@ public:
         vtable_ptr_ = &vtable_;
     }
 
+    void Delete() {
+        auto delete_ptr = static_cast<VTable*>(vtable_ptr_)->del;
+        (this->*delete_ptr)();
+    }
+
 protected:
     int GetID() const {
         return unique_id_;
     }
 
 private:
-    void PrintIDImpl() {
+    void PrintIDImpl() const{
         std::cout << "IdentityDocument::PrintID() : "sv << unique_id_ << std::endl;
+    }
+
+    void DeleteImpl() {
+        this->~IdentityDocument();
     }
 
 private:
     struct VTable {
-        using PrintIDType = void (IdentityDocument::*)();
+        using PrintIDType = void (IdentityDocument::*)() const;
+        PrintIDType print_id = {&IdentityDocument::PrintIDImpl};
 
-        PrintIDType print_id = { &IdentityDocument::PrintIDImpl};
+        using DeleteType = void(IdentityDocument::*)();
+        DeleteType del = { &IdentityDocument::DeleteImpl };
     };
 
 private:

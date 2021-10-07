@@ -20,19 +20,35 @@ public:
         std::cout << "DrivingLicence::CCtor()"sv << std::endl;
     }
 
+    operator const IdentityDocument* () const {
+        return &parent_;
+    }
+
+    operator IdentityDocument() {
+        return { parent_ };
+    }
+
     ~DrivingLicence() {
         parent_.ResetVTablePtr();
         std::cout << "DrivingLicence::Dtor()"sv << std::endl;
     }
 
-    void PrintID() {
+    void PrintID() const {
         std::cout << "DrivingLicence::PrintID() : "sv << GetID() << std::endl;
     }
 
+    void Delete() {
+        this->~DrivingLicence();
+    }
+
 private:
+
     struct VTable {
-        using PrintIDType = void(DrivingLicence::*)();
+        using PrintIDType = void(DrivingLicence::*)()const ;
         PrintIDType print_id = { &DrivingLicence::PrintID };
+
+        using DeleteType = void(DrivingLicence::*)();
+        DeleteType del = { &DrivingLicence::Delete };
     };
 
 private:
