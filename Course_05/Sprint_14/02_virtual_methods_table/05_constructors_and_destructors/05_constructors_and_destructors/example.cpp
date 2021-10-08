@@ -1,106 +1,197 @@
 //#include <iostream>
+//#include <string>
+//#include <limits>
+//#include <array>
 //
-//using namespace std;
+//using namespace std::literals;
 //
-//// ----------------------------------------------------------------------------
+//class Base {
+//private:
+//	struct VTable;
 //
-//class MagicHat {
 //public:
-//    MagicHat() {
-//    };
+//	void Foo1() const {
+//		auto foo1_impl = static_cast<VTable*>(vtable_ptr_)->vfoo;
+//		(this->*foo1_impl)();
+//	}
 //
-//    ~MagicHat() {
-//    }
+//	int Foo2(const int arg) const {
+//		auto foo2_impl = static_cast<VTable*>(vtable_ptr_)->ifoo;
+//		return (this->*foo2_impl)(arg);
+//	}
 //
-//    void SetVTablePtr(void* new_ptr) {
-//        vtable_ptr_ = new_ptr;
-//    }
+//	void SetVtablePtr(void* deriv) {
+//		vtable_ptr_ = deriv;
+//	}
 //
-//    void ResetVTablePtr() {
-//        vtable_ptr_ = &vtable_;
-//    }
-//
-//    // virtual method
-//    void WhatInside() {
-//        auto what_ptr = static_cast<VTable*>(vtable_ptr_)->what_inside;
-//        (this->*what_ptr)();
-//    }
+//	void FreeVtablePtr() {
+//		vtable_ptr_ = &vtable_;
+//	}
 //
 //private:
-//    void WhatInsideImpl() {
-//        cout << "Nothing"s << endl;
-//    }
+//	void Foo1Impl()const {
+//		std::cout << "base"sv << std::endl;
+//	}
+//
+//	int Foo2Impl(const int arg)const {
+//		return arg;
+//	}
+//	struct VTable {
+//		using VoidFooType = void(Base::*)()const;
+//		using IntFooType = int(Base::*)(const int) const;
+//
+//		VoidFooType vfoo;
+//		IntFooType ifoo;
+//	};
 //
 //private:
-//    struct VTable {
-//        using WhatInsideType = void (MagicHat::*)();
-//
-//        WhatInsideType what_inside = { &MagicHat::WhatInsideImpl };
-//    };
-//
-//private:
-//    static VTable vtable_;
-//    void* vtable_ptr_ = { &vtable_ };
+//	static VTable vtable_;
+//	void* vtable_ptr_ = &vtable_;
 //};
 //
-//// Init vtable
-//MagicHat::VTable MagicHat::vtable_ = {};
-//
-//// ----------------------------------------------------------------------------
-//
-//class HatWithApples {
-//public:
-//    HatWithApples() {
-//        parent_.SetVTablePtr(&vtable_);
-//    };
-//
-//    ~HatWithApples() {
-//        parent_.ResetVTablePtr();
-//    }
-//
-//    void WhatInside() {
-//        cout << "Apple"s << endl;
-//    }
-//
-//    operator const MagicHat* () const {
-//        return &parent_;
-//    }
-//
-//    operator MagicHat() {
-//        MagicHat mh;
-//        mh.ResetVTablePtr();
-//        return mh;
-//    }
-//
-//private:
-//    struct VTable {
-//        using WhatInsideType = void (HatWithApples::*)();
-//
-//        WhatInsideType what_inside = { &HatWithApples::WhatInside };
-//    };
-//
-//private:
-//    static VTable vtable_;
-//    MagicHat parent_;
+//Base::VTable Base::vtable_ = {
+//	&Base::Foo1Impl,
+//	&Base::Foo2Impl
 //};
 //
-//HatWithApples::VTable HatWithApples::vtable_ = {};
+//class Deriv {
+//public:
 //
-//// ----------------------------------------------------------------------------
+//	Deriv() {
+//		parent_.SetVtablePtr(&vtable_);
+//	}
+//
+//	~Deriv() {
+//		parent_.FreeVtablePtr();
+//	}
+//
+//	//для наследников
+//	void SetVtablePtr(void* deriv) {
+//		vtable_ptr_ = deriv;
+//	}
+//
+//	//для наследников
+//	void FreeVtablePtr() {
+//		vtable_ptr_ = &vtable_;
+//	}
+//
+//	//virtual from base
+//	void Foo1()const {
+//		auto foo1_impl = static_cast<VTable*>(vtable_ptr_)->vfoo;
+//		return (this->*foo1_impl)();
+//	}
+//
+//	//virtual from base
+//	int Foo2(const int arg)const {
+//		auto foo2_impl = static_cast<VTable*>(vtable_ptr_)->ifoo;
+//		return (this->*foo2_impl)(arg);
+//	}
+//
+//	void Foo3()const {
+//		auto foo3_impl = static_cast<VTable*>(vtable_ptr_)->v3foo;
+//		return (this->*foo3_impl)();
+//	}
+//
+//private:
+//	void Foo1Impl()const {
+//		std::cout << "deriv"sv << std::endl;
+//	}
+//	int Foo2Impl(const int arg)const {
+//		return arg * arg;
+//	}
+//	void Foo3Impl()const {
+//		std::cout << "derived own" << std::endl;
+//	}
+//
+//	struct VTable {
+//		using VoidFooType = void(Deriv::*)()const;
+//		using IntFooType = int(Deriv::*)(const int) const;
+//
+//		VoidFooType vfoo;
+//		IntFooType ifoo;
+//		VoidFooType v3foo;
+//	};
+//
+//private:
+//	static VTable vtable_;
+//	void* vtable_ptr_ = &vtable_;
+//	Base parent_;
+//};
+//
+//Deriv::VTable Deriv::vtable_ = {
+//	&Deriv::Foo1Impl,
+//	&Deriv::Foo2Impl
+//};
+//
+//class SubDeriv {
+//public:
+//	SubDeriv() {
+//		parent_.SetVtablePtr(&vtable_);
+//	}
+//	~SubDeriv() {
+//		parent_.FreeVtablePtr();
+//	}
+//
+//	void Foo1()const {
+//		auto foo_impl = static_cast<VTable*>(vtable_ptr_)->foo1;
+//		return (this->*foo_impl)();
+//	}
+//
+//	int Foo2(const int arg) const {
+//		auto foo2_impl = static_cast<VTable*>(vtable_ptr_)->foo2;
+//		return (this->*foo2_impl)(arg);
+//	}
+//	void Foo3()const {
+//		auto foo_impl = static_cast<VTable*>(vtable_ptr_)->foo3;
+//		return (this->*foo_impl)();
+//	}
+//
+//private:
+//	void Foo1Impl()const {
+//		std::cout << "sub"sv << std::endl;
+//	}
+//	int Foo2Impl(const int arg)const {
+//		return arg * arg * arg;
+//	}
+//	void Foo3Impl()const {
+//		std::cout << "sub own" << std::endl;
+//	}
+//private:
+//	struct VTable {
+//		using VoidFooType = void(SubDeriv::*)()const;
+//		using IntFooType = int(SubDeriv::*)(const int) const;
+//		VoidFooType foo1;
+//		IntFooType foo2;
+//		VoidFooType foo3;
+//	};
+//
+//private:
+//	static VTable vtable_;
+//	void* vtable_ptr_ = &vtable_;
+//	Deriv parent_;
+//};
+//
+//SubDeriv::VTable SubDeriv::vtable_ = {
+//	&SubDeriv::Foo1Impl,
+//	&SubDeriv::Foo2Impl,
+//	&SubDeriv::Foo3Impl
+//};
 //
 //int main() {
-//    {
-//        MagicHat* mh = (MagicHat*)(new HatWithApples);
+//	Base b;
+//	b.Foo1();
+//	std::cout << b.Foo2(3) << std::endl;
 //
-//        mh->WhatInside();
-//        delete mh;
-//    }
+//	Base* c = (Base*)(new Deriv);
+//	c->Foo1();
+//	std::cout << c->Foo2(3) << std::endl;
+//	delete c;
 //
-//    {
-//        MagicHat mh = HatWithApples();
+//	Deriv* d = (Deriv*)(new SubDeriv);
+//	d->Foo1();
+//	std::cout << d->Foo2(3) << std::endl;
+//	d->Foo3();
+//	delete d;
 //
-//        mh.WhatInside();
-//    }
-//
-//    return 0;
+//	return 0;
 //}

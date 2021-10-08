@@ -20,44 +20,47 @@ public:
         std::cout << "DrivingLicence::CCtor()"sv << std::endl;
     }
 
-    operator const IdentityDocument* () const {
-        return &parent_;
-    }
-
-    operator IdentityDocument() {
-        return { parent_ };
-    }
-
     ~DrivingLicence() {
         parent_.ResetVTablePtr();
         std::cout << "DrivingLicence::Dtor()"sv << std::endl;
     }
 
     void PrintID() const {
-        std::cout << "DrivingLicence::PrintID() : "sv << GetID() << std::endl;
+        auto impl = static_cast<VTable*>(vtable_ptr_)->print_id;
+        return (this->*impl)();
     }
 
     void Delete() {
-        this->~DrivingLicence();
+        auto impl = static_cast<VTable*>(vtable_ptr_)->del;
+        return (this->*impl)();
     }
 
 private:
 
+    void PrintIDImpl() const {
+        std::cout << "DrivingLicence::PrintID() : "sv << GetID() << std::endl;
+    }
+
+    void DeleteImpl() {
+        this->~DrivingLicence();
+    }
+
     struct VTable {
         using PrintIDType = void(DrivingLicence::*)()const ;
-        PrintIDType print_id = { &DrivingLicence::PrintID };
-
         using DeleteType = void(DrivingLicence::*)();
-        DeleteType del = { &DrivingLicence::Delete };
+
+        PrintIDType print_id;        
+        DeleteType del;
     };
 
 private:
     static VTable vtable_;
+    void* vtable_ptr_ = &vtable_;
     IdentityDocument parent_;
 
 };
 
 DrivingLicence::VTable DrivingLicence::vtable_ = {
-    &DrivingLicence::PrintID,
-    &DrivingLicence::Delete
+    &DrivingLicence::PrintIDImpl,
+    &DrivingLicence::DeleteImpl
 };

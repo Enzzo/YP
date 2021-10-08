@@ -25,14 +25,6 @@ public:
         std::cout << "InternationalDrivingLicence::Dtor()"sv << std::endl;
     }
 
-    operator const IdentityDocument* () const {
-        return &parent_;
-    }
-
-    operator IdentityDocument() {
-        return { parent_ };
-    }
-
     void PrintID() {
         std::cout << "InternationalDrivingLicence::PrintID() : "sv << GetID() << std::endl;
     }

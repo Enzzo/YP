@@ -65,10 +65,10 @@ private:
 private:
     struct VTable {
         using PrintIDType = void (IdentityDocument::*)() const;
-        PrintIDType print_id = {&IdentityDocument::PrintIDImpl};
-
         using DeleteType = void(IdentityDocument::*)();
-        DeleteType del = { &IdentityDocument::DeleteImpl };
+
+        PrintIDType print_id;
+        DeleteType del;
     };
 
 private:
@@ -76,11 +76,12 @@ private:
     int unique_id_;
 
     static VTable vtable_;
-    void* vtable_ptr_ = { &vtable_ };
+    void* vtable_ptr_ = &vtable_;
 };
+
 IdentityDocument::VTable IdentityDocument::vtable_ = {
-    &IdentityDocument::PrintID,
-    &IdentityDocument::Delete
+    &IdentityDocument::PrintIDImpl,
+    &IdentityDocument::DeleteImpl
 };
 
 int IdentityDocument::unique_id_count_ = 0;

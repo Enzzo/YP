@@ -37,14 +37,6 @@ public:
         std::cout << "TravelPack::Dtor()"sv << std::endl;
     }
 
-    operator const IdentityDocument* () const {
-        return &parent_;
-    }
-
-    operator IdentityDocument() {
-        return { parent_ };
-    }
-
     void PrintID() const {
         identity_doc1_->PrintID();
         identity_doc2_->PrintID();
@@ -60,15 +52,14 @@ private:
 
     struct VTable {
         using PrintIDType = void (TravelPack::*)() const;
-        PrintIDType print_id = { &TravelPack::PrintID };
-
         using DeleteType = void (TravelPack::*)();
+
+        PrintIDType print_id = { &TravelPack::PrintID };
         DeleteType del = { &TravelPack::Delete };
     };
 
 private:
     static VTable vtable_;
-
     IdentityDocument parent_;
 
 private:
