@@ -10,78 +10,93 @@ public:
     IdentityDocument()
         : unique_id_(++unique_id_count_)
     {
+        /* Установка vptr в реальной ситуации происходит до того, как объект сконструирован.
+           Чтобы подчеркнуть это, используем статический метод */
+        IdentityDocument::SetVTable(this);
         std::cout << "IdentityDocument::Ctor() : "sv << unique_id_ << std::endl;
-    }
-
-    /*virtual*/ ~IdentityDocument() {
-        --unique_id_count_;
-        std::cout << "IdentityDocument::Dtor() : "sv << unique_id_ << std::endl;
     }
 
     IdentityDocument(const IdentityDocument& other)
         : unique_id_(++unique_id_count_)
     {
+        IdentityDocument::SetVTable(this);
         std::cout << "IdentityDocument::CCtor() : "sv << unique_id_ << std::endl;
+    }
+
+    ~IdentityDocument() {
+        /* В момент вызова этого деструктора компилятор точно знает тип объекта.
+           Здесь вызов виртуального метода не требуется*/
+        --unique_id_count_;
+        std::cout << "IdentityDocument::Dtor() : "sv << unique_id_ << std::endl;
+    }
+
+    void Delete() {
+        /* Если объект удаляется динамически, то используется позднее связывание,
+           и происходит вызов виртуального метода */
+        GetVtable()->delete_this(this);
     }
 
     IdentityDocument& operator=(const IdentityDocument&) = delete;
 
-    /*virtual*/ void PrintID()const{
-        auto print_ptr = static_cast<VTable*>(vtable_ptr_)->print_id;
-        (this->*print_ptr)();
+    void PrintID() const {
+        /* Это обычный виртуальный метод. Воспользуемся vtpr */
+        GetVtable()->print_id(this);
     }
 
     static void PrintUniqueIDCount() {
+        /* Метод не виртуальный */
         std::cout << "unique_id_count_ : "sv << unique_id_count_ << std::endl;
     }
 
-    void SetVTablePtr(void* new_ptr) {
-        vtable_ptr_ = new_ptr;
-    }
-
-    void ResetVTablePtr() {
-        vtable_ptr_ = &vtable_;
-    }
-
-    void Delete() {
-        auto delete_ptr = static_cast<VTable*>(vtable_ptr_)->del;
-        (this->*delete_ptr)();
-    }
-
-protected:
     int GetID() const {
         return unique_id_;
     }
 
-private:
-    void PrintIDImpl() const{
-        std::cout << "IdentityDocument::PrintID() : "sv << unique_id_ << std::endl;
-    }
+    using DeleteFunction = void(*)(IdentityDocument*);
+    using PrintIDFunction = void(*)(const IdentityDocument*);
 
-    void DeleteImpl() {
-        this->~IdentityDocument();
-    }
-
-private:
-    struct VTable {
-        using PrintIDType = void (IdentityDocument::*)() const;
-        using DeleteType = void(IdentityDocument::*)();
-
-        PrintIDType print_id;
-        DeleteType del;
+    struct Vtable {
+        DeleteFunction delete_this;
+        PrintIDFunction print_id;
     };
 
+    static void SetVTable(IdentityDocument* obj) {
+        /* Указатель vptr хранится в самом начале объекта,
+           поэтому, чтобы получить к нему доступ,
+           можно воспользоваться C-style преобразованием */
+           /* obj - указатель. При этом в начале объекта тоже лежит указатель - vptr.
+              То есть можно сказать, что obj - это указатель на указатель. Иначе говоря,
+              двойной указатель. Укажем это явно, а потом разыменуем, чтобы задать адрес,
+              на который указывает vptr */
+        *(IdentityDocument::Vtable**)obj = &IdentityDocument::VTABLE;
+    }
+
+    const Vtable* GetVtable() const {
+        return vptr_;
+    }
+
+    Vtable* GetVtable() {
+        return vptr_;
+    }
+
+    static IdentityDocument::Vtable VTABLE;
+
 private:
+    IdentityDocument::Vtable* vptr_;
     static int unique_id_count_;
     int unique_id_;
 
-    static VTable vtable_;
-    void* vtable_ptr_ = &vtable_;
-};
+    static void Delete(IdentityDocument* obj) {
+        /* В этот момент тип объекта известен. Просто удаляем указатель.
+        Вызов delete запустит процесс вызовов деструкторов. */
+        delete obj;
+    }
 
-IdentityDocument::VTable IdentityDocument::vtable_ = {
-    &IdentityDocument::PrintIDImpl,
-    &IdentityDocument::DeleteImpl
+    static void PrintID(const IdentityDocument* obj) {
+        std::cout << "IdentityDocument::PrintID() : "sv << obj->unique_id_ << std::endl;
+    }
 };
 
 int IdentityDocument::unique_id_count_ = 0;
+IdentityDocument::Vtable IdentityDocument::VTABLE = { IdentityDocument::Delete,
+                                                      IdentityDocument::PrintID };

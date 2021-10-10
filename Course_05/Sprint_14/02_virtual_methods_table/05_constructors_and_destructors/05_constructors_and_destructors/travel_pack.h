@@ -1,75 +1,100 @@
 #pragma once
 
 #include "identity_document.h"
-#include "passport.h"
-#include "driving_licence.h"
-
 #include <iostream>
 #include <string>
 
 using namespace std::string_view_literals;
 
-class TravelPack : public IdentityDocument {
+class TravelPack {
 public:
     TravelPack()
-        : identity_doc1_(new Passport())
-        , identity_doc2_(new DrivingLicence())
+        : identity_doc_base_()
+        , identity_doc1_((IdentityDocument*)(new Passport()))
+        , identity_doc2_((IdentityDocument*)(new DrivingLicence()))
     {
-        parent_.SetVTablePtr(&vtable_);
+        TravelPack::SetVTable(this);
         std::cout << "TravelPack::Ctor()"sv << std::endl;
     }
 
     TravelPack(const TravelPack& other)
-        : IdentityDocument(other)
-        , identity_doc1_(new Passport(*reinterpret_cast<Passport*>(other.identity_doc1_)))
-        , identity_doc2_(new DrivingLicence(*reinterpret_cast<DrivingLicence*>(other.identity_doc2_)))
+        : identity_doc_base_(other.identity_doc_base_)
+        , identity_doc1_((IdentityDocument*)(new Passport(*(Passport*)(other.identity_doc1_))))
+        , identity_doc2_((IdentityDocument*)(new DrivingLicence(*(DrivingLicence*)(other.identity_doc2_))))
         , additional_pass_(other.additional_pass_)
         , additional_dr_licence_(other.additional_dr_licence_)
     {
-        parent_.SetVTablePtr(&vtable_);
+        TravelPack::SetVTable(this);
         std::cout << "TravelPack::CCtor()"sv << std::endl;
     }
 
     ~TravelPack() {
-        parent_.ResetVTablePtr();
-        delete identity_doc1_;
-        delete identity_doc2_;
+        identity_doc1_->Delete();
+        identity_doc2_->Delete();
         std::cout << "TravelPack::Dtor()"sv << std::endl;
+        IdentityDocument::SetVTable((IdentityDocument*)this);
+    }
+
+    void Delete() {
+        GetVtable()->delete_this(this);
     }
 
     void PrintID() const {
-        identity_doc1_->PrintID();
-        identity_doc2_->PrintID();
-        additional_pass_.PrintID();
-        additional_dr_licence_.PrintID();
+        GetVtable()->print_id(this);
     }
 
-    void Delete() {        
-        this->~TravelPack();
+    void PrintUniqueIDCount() {
+        IdentityDocument::PrintUniqueIDCount();
     }
 
-private:
+    int GetID() const {
+        return identity_doc_base_.GetID();
+    }
 
-    struct VTable {
-        using PrintIDType = void (TravelPack::*)() const;
-        using DeleteType = void (TravelPack::*)();
+    operator IdentityDocument() {
+        return { identity_doc_base_ };
+    }
 
-        PrintIDType print_id = { &TravelPack::PrintID };
-        DeleteType del = { &TravelPack::Delete };
+    using DeleteFunction = void(*)(TravelPack*);
+    using PrintIDFunction = void(*)(const TravelPack*);
+
+    struct Vtable {
+        DeleteFunction delete_this;
+        PrintIDFunction print_id;
     };
 
-private:
-    static VTable vtable_;
-    IdentityDocument parent_;
+    static void SetVTable(TravelPack* obj) {
+        *(TravelPack::Vtable**)obj = &TravelPack::VTABLE;
+    }
+
+    const Vtable* GetVtable() const {
+        return (const TravelPack::Vtable*)identity_doc_base_.GetVtable();
+    }
+
+    Vtable* GetVtable() {
+        return (TravelPack::Vtable*)identity_doc_base_.GetVtable();
+    }
+
+    static TravelPack::Vtable VTABLE;
 
 private:
+    IdentityDocument identity_doc_base_;
     IdentityDocument* identity_doc1_;
     IdentityDocument* identity_doc2_;
     Passport additional_pass_;
     DrivingLicence additional_dr_licence_;
+
+    static void Delete(TravelPack* obj) {
+        delete obj;
+    }
+
+    static void PrintID(const TravelPack* obj) {
+        obj->identity_doc1_->PrintID();
+        obj->identity_doc2_->PrintID();
+        obj->additional_pass_.PrintID();
+        obj->additional_dr_licence_.PrintID();
+    }
 };
 
-TravelPack::VTable TravelPack::vtable_ = {
-    &TravelPack::PrintID,
-    &TravelPack::Delete
-};
+TravelPack::Vtable TravelPack::VTABLE = { TravelPack::Delete,
+                                          TravelPack::PrintID };

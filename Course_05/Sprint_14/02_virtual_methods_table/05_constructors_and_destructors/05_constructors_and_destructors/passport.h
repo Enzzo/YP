@@ -7,63 +7,96 @@
 
 using namespace std::string_view_literals;
 
-class Passport : public IdentityDocument {
+class Passport {
 public:
     Passport()
-        : expiration_date_(GetExpirationDate())
+        : identity_doc_(), expiration_date_(GetExpirationDate())
     {
-        parent_.SetVTablePtr(&vtable_);
+        Passport::SetVTable(this);
         std::cout << "Passport::Ctor()"sv << std::endl;
     }
 
     Passport(const Passport& other)
-        : IdentityDocument(other)
+        : identity_doc_(other.identity_doc_)
         , expiration_date_(other.expiration_date_)
     {
-        parent_.SetVTablePtr(&vtable_);
+        Passport::SetVTable(this);
         std::cout << "Passport::CCtor()"sv << std::endl;
     }
 
     ~Passport() {
-        parent_.ResetVTablePtr();
         std::cout << "Passport::Dtor()"sv << std::endl;
-    }
-
-    void PrintID()const {
-        std::cout << "Passport::PrintID() : "sv << GetID();
-        std::cout << " expiration date : "sv << expiration_date_.tm_mday << "/"sv << expiration_date_.tm_mon << "/"sv
-            << expiration_date_.tm_year + 1900 << std::endl;
-    }
-
-    /*virtual*/ void PrintVisa(const std::string& country) const {
-        std::cout << "Passport::PrintVisa("sv << country << ") : "sv << GetID() << std::endl;
+        IdentityDocument::SetVTable((IdentityDocument*)this);
     }
 
     void Delete() {
-        this->~Passport();
+        GetVtable()->delete_this(this);
     }
 
-private:
-    struct VTable {
-        using PrintIDType = void(Passport::*)() const;
-        using PrintVisaType = void(Passport::*)(const std::string&) const;
-        using DeleteType = void(Passport::*)();
+    void PrintID() const {
+        GetVtable()->print_id(this);
+    }
 
-        PrintIDType print_id;
-        PrintVisaType print_visa;
-        DeleteType del;
+    void PrintUniqueIDCount() {
+        IdentityDocument::PrintUniqueIDCount();
+    }
+
+    void PrintVisa(const std::string& country) const {
+        GetVtable()->print_visa(this, country);
+    }
+
+    int GetID() const {
+        return identity_doc_.GetID();
+    }
+
+    operator IdentityDocument() {
+        return { identity_doc_ };
+    }
+
+    using DeleteFunction = void(*)(Passport*);
+    using PrintIDFunction = void(*)(const Passport*);
+    using PrintVisaFunction = void(*)(const Passport*, const std::string& country);
+
+    struct Vtable {
+        DeleteFunction delete_this;
+        PrintIDFunction print_id;
+        PrintVisaFunction print_visa;
     };
 
-private:
-    static VTable vtable_;
-    IdentityDocument parent_;
+    static void SetVTable(Passport* obj) {
+        *(Passport::Vtable**)obj = &Passport::VTABLE;
+    }
+
+    const Vtable* GetVtable() const {
+        return (const Passport::Vtable*)identity_doc_.GetVtable();
+    }
+
+    Vtable* GetVtable() {
+        return (Passport::Vtable*)identity_doc_.GetVtable();
+    }
+
+    static Passport::Vtable VTABLE;
 
 private:
-    const struct tm expiration_date_;
+    IdentityDocument identity_doc_;
+    const tm expiration_date_;
+
+    static void Delete(Passport* obj) {
+        delete obj;
+    }
+
+    static void PrintID(const Passport* obj) {
+        std::cout << "Passport::PrintID() : "sv << obj->GetID();
+        std::cout << " expiration date : "sv << obj->expiration_date_.tm_mday << "/"sv << obj->expiration_date_.tm_mon << "/"sv
+            << obj->expiration_date_.tm_year + 1900 << std::endl;
+    }
+
+    static void PrintVisa(const Passport* obj, const std::string& country) {
+        std::cout << "Passport::PrintVisa("sv << country << ") : "sv << obj->GetID() << std::endl;
+    }
 
     tm GetExpirationDate() {
         time_t t = time(nullptr);
-        #pragma warning(suppress : 4996)
         tm exp_date = *localtime(&t);
         exp_date.tm_year += 10;
         mktime(&exp_date);
@@ -71,8 +104,6 @@ private:
     }
 };
 
-Passport::VTable Passport::vtable_ = {
-    &Passport::PrintID,
-    &Passport::PrintVisa,
-    &Passport::Delete
-};
+Passport::Vtable Passport::VTABLE = { Passport::Delete,
+                                      Passport::PrintID,
+                                      Passport::PrintVisa };

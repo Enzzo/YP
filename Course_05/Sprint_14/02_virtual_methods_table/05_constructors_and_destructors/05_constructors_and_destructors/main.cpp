@@ -38,29 +38,30 @@ int main() {
     PrintInfo(pass);
     PrintInfo(3).PrintID();
 
-    cout << "Test2"sv << endl;
-    array<IdentityDocument*, 3> docs = { (IdentityDocument*)(new Passport()), (IdentityDocument*)(new DrivingLicence()), (IdentityDocument*)(new Passport()) };
-    for (const auto* doc : docs) {
-        doc->PrintID();
-    }
+    //cout << "Test2"sv << endl;
+    //array<IdentityDocument*, 3> docs = { (IdentityDocument*)(new Passport()), (IdentityDocument*)(new DrivingLicence()), (IdentityDocument*)(new Passport()) };
+    //for (const auto* doc : docs) {
+    //    doc->PrintID();
+    //}
 
-    for (size_t i = 0; i < docs.size(); ++i) {
-        docs[i]->Delete();
-    }
+    //for (size_t i = 0; i < docs.size(); ++i) {
+    //    docs[i]->Delete();
+    //}
 
-    cout << "Test3"sv << endl;
-    array<IdentityDocument, 3> docs2 = { Passport(), DrivingLicence(), IdentityDocument() };
+    //cout << "Test3"sv << endl;
+    //array<IdentityDocument, 3> docs2 = { Passport(), DrivingLicence(), IdentityDocument() };
 
-    for (size_t i = 0; i < docs2.size(); ++i) {
-        docs2[i].PrintID();
-    }
+    //for (size_t i = 0; i < docs2.size(); ++i) {
+    //    docs2[i].PrintID();
+    //}
 
-    PrintInfo(docs2[0]);
+    //PrintInfo(docs2[0]);
 
-    cout << "Test4"sv << endl;
-    IdentityDocument::PrintUniqueIDCount();
+    //cout << "Test4"sv << endl;
+    //IdentityDocument::PrintUniqueIDCount();
 
-    cout << "Test5"sv << endl;
-    Passport pass2;
-    pass2.PrintUniqueIDCount();
+    //cout << "Test5"sv << endl;
+    //Passport pass2;
+    //pass2.PrintUniqueIDCount();
+    return 0;
 }

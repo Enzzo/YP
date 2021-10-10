@@ -6,48 +6,76 @@
 
 using namespace std::string_view_literals;
 
-class InternationalDrivingLicence : public DrivingLicence {
+class InternationalDrivingLicence {
 public:
-    InternationalDrivingLicence() {
-        parent_.SetVTablePtr(&vtable_);
+    InternationalDrivingLicence()
+        : driving_lic_()
+    {
+        InternationalDrivingLicence::SetVTable(this);
         std::cout << "InternationalDrivingLicence::Ctor()"sv << std::endl;
     }
 
     InternationalDrivingLicence(const InternationalDrivingLicence& other)
-        : DrivingLicence(other)
+        : driving_lic_(other.driving_lic_)
     {
-        parent_.SetVTablePtr(&vtable_);
+        InternationalDrivingLicence::SetVTable(this);
         std::cout << "InternationalDrivingLicence::CCtor()"sv << std::endl;
     }
 
     ~InternationalDrivingLicence() {
-        parent_.ResetVTablePtr();
         std::cout << "InternationalDrivingLicence::Dtor()"sv << std::endl;
-    }
-
-    void PrintID() {
-        std::cout << "InternationalDrivingLicence::PrintID() : "sv << GetID() << std::endl;
+        DrivingLicence::SetVTable((DrivingLicence*)this);
     }
 
     void Delete() {
-        this->~InternationalDrivingLicence();
+        GetVtable()->delete_this(this);
     }
 
-private:
-    struct VTable {
-        using PrintIDType = void (InternationalDrivingLicence::*)();
-        PrintIDType print_id = { &InternationalDrivingLicence::PrintID };
+    void PrintID() const {
+        GetVtable()->print_id(this);
+    }
 
-        using DeleteType = void (InternationalDrivingLicence::*)();
-        DeleteType del = { &InternationalDrivingLicence::Delete };
+    int GetID() const {
+        return driving_lic_.GetID();
+    }
+
+    operator DrivingLicence() const {
+        return { driving_lic_ };
+    }
+
+    using DeleteFunction = void(*)(InternationalDrivingLicence*);
+    using PrintIDFunction = void(*)(const InternationalDrivingLicence*);
+
+    struct Vtable {
+        DeleteFunction delete_this;
+        PrintIDFunction print_id;
     };
 
+    static void SetVTable(InternationalDrivingLicence* obj) {
+        *(InternationalDrivingLicence::Vtable**)obj = &InternationalDrivingLicence::VTABLE;
+    }
+
+    const Vtable* GetVtable() const {
+        return (const InternationalDrivingLicence::Vtable*)driving_lic_.GetVtable();
+    }
+
+    Vtable* GetVtable() {
+        return (InternationalDrivingLicence::Vtable*)driving_lic_.GetVtable();
+    }
+
+    static InternationalDrivingLicence::Vtable VTABLE;
+
 private:
-    static VTable vtable_;
-    DrivingLicence parent_;
+    DrivingLicence driving_lic_;
+
+    static void Delete(InternationalDrivingLicence* obj) {
+        delete obj;
+    }
+
+    static void PrintID(const InternationalDrivingLicence* obj) {
+        std::cout << "InternationalDrivingLicence::PrintID() : "sv << obj->GetID() << std::endl;
+    }
 };
 
-InternationalDrivingLicence::VTable InternationalDrivingLicence::vtable_ = {
-    &InternationalDrivingLicence::PrintID,
-    &InternationalDrivingLicence::Delete
-};
+InternationalDrivingLicence::Vtable InternationalDrivingLicence::VTABLE = { InternationalDrivingLicence::Delete,
+                                                                            InternationalDrivingLicence::PrintID };
