@@ -4,6 +4,8 @@
 #include <fstream>
 #include <string_view>
 
+#include <string>
+
 using namespace std;
 
 namespace img_lib {
@@ -18,8 +20,20 @@ namespace img_lib {
         if (!ofs.is_open()) {
             return false;
         }
+        ofs << PPM_SIG << "\n" << image.GetWidth() << " " << image.GetHeight() << "\n" << PPM_MAX << "\n";
 
-
+        std::vector<char> buff(image.GetWidth() * 3);
+        for (int y = 0; y < image.GetHeight(); ++y) {
+            for (int x = 0; x < image.GetWidth(); ++x) {                
+                buff[x * 3 + 0] = static_cast<char>(image.GetPixel(x, y).r);
+                buff[x * 3 + 1] = static_cast<char>(image.GetPixel(x, y).g);
+                buff[x * 3 + 2] = static_cast<char>(image.GetPixel(x, y).b);
+            }
+            if (!ofs.write(buff.data(), image.GetWidth() * 3)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     Image LoadPPM(const Path& file) {
