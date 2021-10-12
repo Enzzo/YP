@@ -6,7 +6,7 @@
 
 using namespace std;
 
-// реализуйте вертикальное отражение
+//реализуйте вертикальное отражение
 void VMirrInplace(img_lib::Image& image);
 
 int main(int argc, const char** argv) {

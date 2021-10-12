@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string_view>
+#include <algorithm>
 
 using namespace std;
 
@@ -28,4 +29,13 @@ int main(int argc, const char** argv) {
     }
 
     cout << "Image saved successfully!"sv << endl;
+}
+
+void HMirrInplace(img_lib::Image& image) {
+    for (int y = 0; y < image.GetHeight(); ++y) {
+        img_lib::Color* row = image.GetLine(y);
+        for (int x = 0; x < image.GetWidth() / 2; ++x) {
+            std::swap(row[x], row[image.GetWidth() - x - 1]);
+        }
+    }
 }
