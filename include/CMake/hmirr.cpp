@@ -34,8 +34,13 @@ int main(int argc, const char** argv) {
 void HMirrInplace(img_lib::Image& image) {
     for (int y = 0; y < image.GetHeight(); ++y) {
         img_lib::Color* row = image.GetLine(y);
+
         for (int x = 0; x < image.GetWidth() / 2; ++x) {
-            std::swap(row[x], row[image.GetWidth() - x - 1]);
+            int r_index = image.GetWidth() - x - 1;
+
+            if (x != r_index) {
+                std::swap(row[x], row[r_index]);
+            }
         }
     }
 }

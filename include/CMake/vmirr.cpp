@@ -30,3 +30,17 @@ int main(int argc, const char** argv) {
 
     cout << "Image saved successfully!"sv << endl;
 }
+
+void VMirrInplace(img_lib::Image& image) {
+    for (int y = 0; y < image.GetHeight() / 2; ++y) {
+        int bottom_index = image.GetHeight() - y - 1;
+
+        if (y != bottom_index) {
+            img_lib::Color* top_row = image.GetLine(y);
+            img_lib::Color* bottom_row = image.GetLine(bottom_index);
+            //std::swap(top_row, bottom_row);
+            std::swap_ranges(top_row, top_row + image.GetWidth(), bottom_row);
+        }
+    }
+}
+

@@ -36,3 +36,36 @@ int main(int argc, const char** argv) {
 
     cout << "Image saved successfully!"sv << endl;
 }
+img_lib::Image Sobel(const img_lib::Image& image) {
+    using namespace img_lib;
+    int height = image.GetHeight();
+    int width = image.GetWidth();
+    Image result_image(height, width, Color::Black());
+
+    //отступаем от краёв по 1 пикселю, чтобы применить крайние значения в формуле
+    for (int y = 1; y < height - 1; ++y) {
+        const Color* t_row = image.GetLine(y - 1);
+        const Color* c_row = image.GetLine(y);
+        const Color* b_row = image.GetLine(y + 1);
+
+        for (int x = 1; x < width - 1; ++x) {
+            const int tl = Sum(t_row[x - 1]);
+            const int tc = Sum(t_row[x]);
+            const int tr = Sum(t_row[x + 1]);
+            const int cl = Sum(c_row[x - 1]);
+            const int cr = Sum(c_row[x + 1]);
+            const int bl = Sum(b_row[x - 1]);
+            const int bc = Sum(b_row[x]);
+            const int br = Sum(b_row[x + 1]);
+
+            const int gx = -(tl + 2 * tc + tr) + bl + 2 * bc + br;
+            const int gy = -(tl + 2 * cl + bl) + tr + 2 * cr + br;
+
+            double sobel_value = std::clamp<double>(static_cast<double>(sqrt(gx * gx + gy * gy)), 0, 255);
+            Color* color = &result_image.GetPixel(x, y);
+            color->r = color->g = color->b = static_cast<byte>(sobel_value);
+        }
+    }
+
+    return result_image;
+}

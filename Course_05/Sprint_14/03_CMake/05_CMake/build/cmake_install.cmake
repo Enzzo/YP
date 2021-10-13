@@ -1,4 +1,4 @@
-# Install script for directory: D:/github/yp/Course_05/Sprint_14/03_CMake/05_CMake
+# Install script for directory: D:/GitHub/yp/Course_05/Sprint_14/03_CMake/05_CMake
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "D:/github/yp/Course_05/Sprint_14/03_CMake/05_CMake/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "D:/GitHub/yp/Course_05/Sprint_14/03_CMake/05_CMake/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

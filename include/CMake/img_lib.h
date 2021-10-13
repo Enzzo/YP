@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cstddef>
 #include <vector>
-
+ 
 namespace img_lib {
 
     struct Size {
