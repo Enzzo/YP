@@ -10,16 +10,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(IMGLIB_FILES img_lib.h img_lib.cpp
             ppm_image.h ppm_image.cpp)
 
-set(HMIRROR_SRC  hmirr.cpp)
-set(VMIRROR_SRC  vmirr.cpp)
-set(SOBEL_SRC sobel.cpp)
-
 if(CMAKE_SYSTEM_NAME MATCHES "^MINGW")
     set(SYSTEM_LIBS -lstdc++)
 else()
     set(SYSTEM_LIBS)
 endif()
 
-add_executable(hmirror "${IMGLIB_FILES}" "${HMIRROR_SRC}")
-add_executable(vmirror "${IMGLIB_FILES}" "${VMIRROR_SRC}")
-add_executable(sobel "${IMGLIB_FILES}" "${SOBEL_SRC}")
+add_executable(hmirror hmirr.cpp "${IMGLIB_FILES}")
+add_executable(vmirror vmirr.cpp "${IMGLIB_FILES}")
+add_executable(sobel sobel.cpp "${IMGLIB_FILES}")
