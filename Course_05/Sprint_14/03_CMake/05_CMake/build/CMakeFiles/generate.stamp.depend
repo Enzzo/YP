@@ -1,19 +1,19 @@
 # CMake generation dependency list for this directory.
-C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeCXXInformation.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeGenericSystem.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeInitializeConfigs.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeLanguageInformation.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeRCInformation.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/Compiler/MSVC-CXX.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC-CXX.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows.cmake
-C:/Program Files/CMake/share/cmake-3.21/Modules/Platform/WindowsPaths.cmake
-D:/GitHub/yp/Course_05/Sprint_14/03_CMake/05_CMake/CMakeLists.txt
-D:/GitHub/yp/Course_05/Sprint_14/03_CMake/05_CMake/build/CMakeFiles/3.21.3/CMakeCXXCompiler.cmake
-D:/GitHub/yp/Course_05/Sprint_14/03_CMake/05_CMake/build/CMakeFiles/3.21.3/CMakeRCCompiler.cmake
-D:/GitHub/yp/Course_05/Sprint_14/03_CMake/05_CMake/build/CMakeFiles/3.21.3/CMakeSystem.cmake
+D:/CMake/share/cmake-3.21/Modules/CMakeCXXInformation.cmake
+D:/CMake/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake
+D:/CMake/share/cmake-3.21/Modules/CMakeGenericSystem.cmake
+D:/CMake/share/cmake-3.21/Modules/CMakeInitializeConfigs.cmake
+D:/CMake/share/cmake-3.21/Modules/CMakeLanguageInformation.cmake
+D:/CMake/share/cmake-3.21/Modules/CMakeRCInformation.cmake
+D:/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake
+D:/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake
+D:/CMake/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+D:/CMake/share/cmake-3.21/Modules/Compiler/MSVC-CXX.cmake
+D:/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC-CXX.cmake
+D:/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC.cmake
+D:/CMake/share/cmake-3.21/Modules/Platform/Windows.cmake
+D:/CMake/share/cmake-3.21/Modules/Platform/WindowsPaths.cmake
+D:/github/yp/Course_05/Sprint_14/03_CMake/05_CMake/CMakeLists.txt
+D:/github/yp/Course_05/Sprint_14/03_CMake/05_CMake/build/CMakeFiles/3.21.3/CMakeCXXCompiler.cmake
+D:/github/yp/Course_05/Sprint_14/03_CMake/05_CMake/build/CMakeFiles/3.21.3/CMakeRCCompiler.cmake
+D:/github/yp/Course_05/Sprint_14/03_CMake/05_CMake/build/CMakeFiles/3.21.3/CMakeSystem.cmake

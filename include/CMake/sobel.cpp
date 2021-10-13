@@ -40,7 +40,7 @@ img_lib::Image Sobel(const img_lib::Image& image) {
     using namespace img_lib;
     int height = image.GetHeight();
     int width = image.GetWidth();
-    Image result_image(height, width, Color::Black());
+    Image result_image(width, height, Color::Black());
 
     //отступаем от краёв по 1 пикселю, чтобы применить крайние значения в формуле
     for (int y = 1; y < height - 1; ++y) {
