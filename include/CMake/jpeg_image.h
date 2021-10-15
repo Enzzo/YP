@@ -6,7 +6,7 @@
 namespace img_lib {
 using Path = std::filesystem::path;
 
-bool SavePPM(const Path& file, const Image& image);
-Image LoadPPM(const Path& file);
+bool SaveJPEG(const Path& file, const Image& image);
+Image LoadJPEG(const Path& file);
 
-}  // namespace img_lib
+} // of namespace img_lib

@@ -2,34 +2,34 @@
 
 namespace img_lib {
 
-    Image::Image(int w, int h, Color fill)
-        : width_(w)
-        , height_(h)
-        , step_(w)
-        , pixels_(step_* height_, fill) {
-    }
+Image::Image(int w, int h, Color fill)
+    : width_(w)
+    , height_(h)
+    , step_(w)
+    , pixels_(step_ * height_, fill) {
+}
 
-    Color* Image::GetLine(int y) {
-        assert(y >= 0 && y < height_);
-        return pixels_.data() + step_ * y;
-    }
+Color* Image::GetLine(int y) {
+    assert(y >= 0 && y < height_);
+    return pixels_.data() + step_ * y;
+}
 
-    const Color* Image::GetLine(int y) const {
-        return const_cast<Image*>(this)->GetLine(y);
-    }
+const Color* Image::GetLine(int y) const {
+    return const_cast<Image*>(this)->GetLine(y);
+}
 
-    int Image::GetWidth() const {
-        return width_;
-    }
+int Image::GetWidth() const {
+    return width_;
+}
 
-    int Image::GetHeight() const {
-        return height_;
-    }
+int Image::GetHeight() const {
+    return height_;
+}
 
-    // шаг задаёт смещение соседних строк изображения
-    // он обычно совпадает с width, но может быть больше
-    int Image::GetStep() const {
-        return step_;
-    }
+// С€Р°Рі Р·Р°РґР°С‘С‚ СЃРјРµС‰РµРЅРёРµ СЃРѕСЃРµРґРЅРёС… СЃС‚СЂРѕРє РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+// РѕРЅ РѕР±С‹С‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ width, РЅРѕ РјРѕР¶РµС‚ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ
+int Image::GetStep() const {
+    return step_;
+}
 
 }  // namespace img_lib
