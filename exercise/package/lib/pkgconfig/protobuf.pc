@@ -1,0 +1,11 @@
+prefix=D:/GitHub/yp/exercise/package
+exec_prefix=D:/GitHub/yp/exercise/package
+libdir=D:/GitHub/yp/exercise/package/lib
+includedir=D:/GitHub/yp/exercise/package/include
+
+Name: Protocol Buffers
+Description: Google's Data Interchange Format
+Version: 3.19.0.1
+Libs: -L${libdir} -lprotobuf 
+Cflags: -I${includedir}
+Conflicts: protobuf-lite
