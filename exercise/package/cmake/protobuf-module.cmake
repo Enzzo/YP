@@ -110,6 +110,16 @@ function(_protobuf_find_libraries name filename)
   endif()
 endfunction()
 
+# Internal function: find threads library
+function(_protobuf_find_threads)
+    set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+    find_package(Threads)
+    if(Threads_FOUND)
+        list(APPEND PROTOBUF_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+        set(PROTOBUF_LIBRARIES "${PROTOBUF_LIBRARIES}" PARENT_SCOPE)
+    endif()
+endfunction()
+
 #
 # Main.
 #
@@ -128,6 +138,10 @@ _protobuf_find_libraries(Protobuf_LITE protobuf-lite)
 
 # The Protobuf Protoc Library
 _protobuf_find_libraries(Protobuf_PROTOC protoc)
+
+if(UNIX)
+  _protobuf_find_threads()
+endif()
 
 # Set the include directory
 get_target_property(Protobuf_INCLUDE_DIRS protobuf::libprotobuf
@@ -154,7 +168,7 @@ if(NOT EXISTS "${Protobuf_PROTOC_EXECUTABLE}")
 endif()
 
 # Version info variable
-set(Protobuf_VERSION "3.19.0.1")
+set(Protobuf_VERSION "3.18.1.0")
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Protobuf

@@ -1,5 +1,5 @@
-set(PACKAGE_VERSION "3.19.0.1")
-set(${PACKAGE_FIND_NAME}_VERSION_PRERELEASE "1" PARENT_SCOPE)
+set(PACKAGE_VERSION "3.18.1.0")
+set(${PACKAGE_FIND_NAME}_VERSION_PRERELEASE "" PARENT_SCOPE)
 
 # Prerelease versions cannot be passed in directly via the find_package command,
 # so we allow users to specify it in a variable
@@ -24,13 +24,13 @@ if(PACKAGE_FIND_VERSION) #Only perform version checks if one is given
     set(PACKAGE_VERSION_COMPATIBLE FALSE)
   elseif(PACKAGE_FIND_VERSION VERSION_EQUAL PACKAGE_VERSION)
     # Do not match prerelease versions to non-prerelease version requests.
-      if(NOT "1" STREQUAL "" AND PACKAGE_FIND_VERSION_PRERELEASE STREQUAL "")
-      message(AUTHOR_WARNING "To use this prerelease version of ${PACKAGE_FIND_NAME}, set ${PACKAGE_FIND_NAME}_FIND_VERSION_PRERELEASE to '1' or greater.")
+      if(NOT "" STREQUAL "" AND PACKAGE_FIND_VERSION_PRERELEASE STREQUAL "")
+      message(AUTHOR_WARNING "To use this prerelease version of ${PACKAGE_FIND_NAME}, set ${PACKAGE_FIND_NAME}_FIND_VERSION_PRERELEASE to '' or greater.")
       set(PACKAGE_VERSION_COMPATIBLE FALSE)
     endif()
 
     # Not robustly SemVer compliant, but protobuf never uses '.' separated prerelease identifiers.
-    if(PACKAGE_FIND_VERSION_PRERELEASE STRGREATER "1")
+    if(PACKAGE_FIND_VERSION_PRERELEASE STRGREATER "")
       set(PACKAGE_VERSION_COMPATIBLE FALSE)
     endif()
   endif()
