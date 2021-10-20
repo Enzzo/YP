@@ -10,6 +10,14 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS contact.proto)
 
 set(PHONEBOOK_FILES iterator_range.h main.cpp phone_book.h phone_book.cpp contact.proto)
 
+# if(MSVC)
+    # add_compile_options(
+        # $<$<CONFIG:>:/MT> #---------|
+        # $<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
+        # $<$<CONFIG:Release>:/MT> #--|
+    # )
+# endif()
+
 add_executable(phonebook ${PROTO_SRCS} ${PROTO_HDRS} ${PHONEBOOK_FILES})
 target_include_directories(phonebook PUBLIC ${Protobuf_INCLUDE_DIRS})
 target_include_directories(phonebook PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

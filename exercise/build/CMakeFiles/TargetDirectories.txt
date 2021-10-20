@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 D:/GitHub/yp/exercise/build/CMakeFiles/person_test.dir
 D:/GitHub/yp/exercise/build/CMakeFiles/ALL_BUILD.dir
 D:/GitHub/yp/exercise/build/CMakeFiles/ZERO_CHECK.dir
+=======
+D:/github/yp/exercise/build/CMakeFiles/phonebook.dir
+D:/github/yp/exercise/build/CMakeFiles/ALL_BUILD.dir
+D:/github/yp/exercise/build/CMakeFiles/ZERO_CHECK.dir
+>>>>>>> 6d51abeeae27b29e399f02284f242d98cec0b6cd
