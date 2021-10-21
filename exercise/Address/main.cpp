@@ -187,8 +187,8 @@ void TestFindNameByPrefix2() {
 }
 
 int main() {
-    TestFindNameByPrefix();
-    TestFindNameByPrefix2();
+    //TestFindNameByPrefix();
+    //TestFindNameByPrefix2();
     TestSerialization();
-    TestDeserialization();
+    //TestDeserialization();
 }

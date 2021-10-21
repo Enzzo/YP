@@ -1,3 +1,0 @@
-D:/GitHub/yp/exercise/build/CMakeFiles/phonebook.dir
-D:/GitHub/yp/exercise/build/CMakeFiles/ALL_BUILD.dir
-D:/GitHub/yp/exercise/build/CMakeFiles/ZERO_CHECK.dir
