@@ -2,6 +2,8 @@
 
 #include "iterator_range.h"
 
+#include <contact.pb.h>
+
 #include <optional>
 #include <sstream>
 #include <string>
@@ -19,6 +21,8 @@ struct Contact {
 };
 
 class PhoneBook {
+    phone_book_serialize::ContactList contacts_;
+
 public:
     explicit PhoneBook(std::vector<Contact> contacts);
 
