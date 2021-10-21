@@ -21,7 +21,7 @@ struct Contact {
 };
 
 class PhoneBook {
-    phone_book_serialize::ContactList contacts_;
+    std::vector<Contact> contacts_;
 
 public:
     explicit PhoneBook(std::vector<Contact> contacts);

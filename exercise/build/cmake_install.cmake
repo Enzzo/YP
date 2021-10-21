@@ -1,12 +1,8 @@
-<<<<<<< HEAD
-# Install script for directory: D:/GitHub/yp/exercise/person
-=======
-# Install script for directory: D:/github/yp/exercise/Address
->>>>>>> 6d51abeeae27b29e399f02284f242d98cec0b6cd
+# Install script for directory: D:/GitHub/yp/exercise/Address
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/PersonTest")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/PhoneBook")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -44,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "D:/github/yp/exercise/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "D:/GitHub/yp/exercise/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

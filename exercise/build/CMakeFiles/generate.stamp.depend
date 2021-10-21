@@ -1,5 +1,4 @@
 # CMake generation dependency list for this directory.
-<<<<<<< HEAD
 C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeCXXInformation.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeGenericSystem.cmake
@@ -9,6 +8,7 @@ C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeRCInformation.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/CheckCXXSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-3.21/Modules/CheckIncludeFile.cxx.in
 C:/Program Files/CMake/share/cmake-3.21/Modules/CheckIncludeFileCXX.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/CheckLibraryExists.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake
@@ -23,37 +23,7 @@ C:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/Platform/WindowsPaths.cmake
 C:/Program Files/CMake/share/cmake-3.21/Modules/SelectLibraryConfigurations.cmake
+D:/GitHub/yp/exercise/Address/CMakeLists.txt
 D:/GitHub/yp/exercise/build/CMakeFiles/3.21.3/CMakeCXXCompiler.cmake
 D:/GitHub/yp/exercise/build/CMakeFiles/3.21.3/CMakeRCCompiler.cmake
 D:/GitHub/yp/exercise/build/CMakeFiles/3.21.3/CMakeSystem.cmake
-D:/GitHub/yp/exercise/person/CMakeLists.txt
-=======
-D:/CMake/share/cmake-3.21/Modules/CMakeCXXInformation.cmake
-D:/CMake/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake
-D:/CMake/share/cmake-3.21/Modules/CMakeGenericSystem.cmake
-D:/CMake/share/cmake-3.21/Modules/CMakeInitializeConfigs.cmake
-D:/CMake/share/cmake-3.21/Modules/CMakeLanguageInformation.cmake
-D:/CMake/share/cmake-3.21/Modules/CMakeRCInformation.cmake
-D:/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake
-D:/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake
-D:/CMake/share/cmake-3.21/Modules/CheckCXXSourceCompiles.cmake
-D:/CMake/share/cmake-3.21/Modules/CheckIncludeFile.cxx.in
-D:/CMake/share/cmake-3.21/Modules/CheckIncludeFileCXX.cmake
-D:/CMake/share/cmake-3.21/Modules/CheckLibraryExists.cmake
-D:/CMake/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake
-D:/CMake/share/cmake-3.21/Modules/Compiler/MSVC-CXX.cmake
-D:/CMake/share/cmake-3.21/Modules/FindPackageHandleStandardArgs.cmake
-D:/CMake/share/cmake-3.21/Modules/FindPackageMessage.cmake
-D:/CMake/share/cmake-3.21/Modules/FindProtobuf.cmake
-D:/CMake/share/cmake-3.21/Modules/FindThreads.cmake
-D:/CMake/share/cmake-3.21/Modules/Internal/CheckSourceCompiles.cmake
-D:/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC-CXX.cmake
-D:/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC.cmake
-D:/CMake/share/cmake-3.21/Modules/Platform/Windows.cmake
-D:/CMake/share/cmake-3.21/Modules/Platform/WindowsPaths.cmake
-D:/CMake/share/cmake-3.21/Modules/SelectLibraryConfigurations.cmake
-D:/github/yp/exercise/Address/CMakeLists.txt
-D:/github/yp/exercise/build/CMakeFiles/3.21.3/CMakeCXXCompiler.cmake
-D:/github/yp/exercise/build/CMakeFiles/3.21.3/CMakeRCCompiler.cmake
-D:/github/yp/exercise/build/CMakeFiles/3.21.3/CMakeSystem.cmake
->>>>>>> 6d51abeeae27b29e399f02284f242d98cec0b6cd
