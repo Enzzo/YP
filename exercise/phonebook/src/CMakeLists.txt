@@ -3,9 +3,6 @@ cmake_minimum_required(VERSION 3.10)
 project(PhoneBook CXX)
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS_RELEASE "/MT")
-set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
-
 find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 
