@@ -1,7 +1,7 @@
-prefix=D:/GitHub/yp/exercise/protobuf_package
-exec_prefix=D:/GitHub/yp/exercise/protobuf_package
-libdir=D:/GitHub/yp/exercise/protobuf_package/lib
-includedir=D:/GitHub/yp/exercise/protobuf_package/include
+prefix=D:/github/yp/exercise/protobuf_package
+exec_prefix=D:/github/yp/exercise/protobuf_package
+libdir=D:/github/yp/exercise/protobuf_package/lib
+includedir=D:/github/yp/exercise/protobuf_package/include
 
 Name: Protocol Buffers
 Description: Google's Data Interchange Format
