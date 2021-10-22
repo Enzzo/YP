@@ -116,6 +116,22 @@ void TestDeserialization() {
     assert(contacts[2].phones.empty());
 }
 
+void TestCustomFindNameByPrefix() {
+    PhoneBook book({
+        {"jjj kkk"s, std::nullopt, {}},
+        {"jjj aaa"s, std::nullopt, {}},
+        {"jjj ccc"s, std::nullopt, {}},
+        {"aaa"s, std::nullopt, {}},
+        {"bbb"s, std::nullopt, {}},
+        {"lll"s, std::nullopt, {}},
+        {"ccc"s, std::nullopt, {}},
+        {""s, std::nullopt, {}},
+        });
+
+    book.FindByNamePrefix("jjj");
+
+}
+
 void TestFindNameByPrefix() {
     PhoneBook book({
         {"Vasiliy Petrov"s, std::nullopt, {}},
@@ -187,8 +203,9 @@ void TestFindNameByPrefix2() {
 }
 
 int main() {
-    //TestFindNameByPrefix();
-    //TestFindNameByPrefix2();
+    TestCustomFindNameByPrefix();
+    TestFindNameByPrefix();
+    TestFindNameByPrefix2();
     TestSerialization();
-    //TestDeserialization();
+    TestDeserialization();
 }

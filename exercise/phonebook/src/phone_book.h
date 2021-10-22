@@ -21,14 +21,14 @@ struct Contact {
 };
 
 class PhoneBook {
-    std::vector<Contact> contacts_;
+    mutable std::vector<Contact> contacts_;
 
 public:
     explicit PhoneBook(std::vector<Contact> contacts);
 
     // Корректный тип итератора определите сами.
     // Можно и нужно поменять этот using:
-    using Iterator = const Contact*;
+    using Iterator = std::vector<Contact>::iterator;
 
     using ContactRange = IteratorRange<Iterator>;
 
