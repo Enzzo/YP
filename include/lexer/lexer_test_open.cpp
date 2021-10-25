@@ -58,8 +58,7 @@ void TestIds() {
     ASSERT_EQUAL(lexer.CurrentToken(), Token(token_type::Id{"x"s}));
     ASSERT_EQUAL(lexer.NextToken(), Token(token_type::Id{"_42"s}));
     ASSERT_EQUAL(lexer.NextToken(), Token(token_type::Id{"big_number"s}));
-    ASSERT_EQUAL(lexer.NextToken(),
-                 Token(token_type::Id{"Return"s}));  // keywords are case-sensitive
+    ASSERT_EQUAL(lexer.NextToken(), Token(token_type::Id{"Return"s}));  // keywords are case-sensitive
     ASSERT_EQUAL(lexer.NextToken(), Token(token_type::Id{"Class"s}));
     ASSERT_EQUAL(lexer.NextToken(), Token(token_type::Id{"dEf"s}));
 }
