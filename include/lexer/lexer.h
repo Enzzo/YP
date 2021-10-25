@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <variant>
+#include <vector>
 
 namespace parse {
 
@@ -86,6 +87,10 @@ public:
 };
 
 class Lexer {
+private:
+    std::vector<Token> line_;
+    size_t head_ = 0;
+
 public:
     explicit Lexer(std::istream& input);
 

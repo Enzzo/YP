@@ -75,18 +75,64 @@ namespace parse {
         return os << "Unknown token :("sv;
     }
 
-    Lexer::Lexer(std::istream& /*input*/) {
+    Lexer::Lexer(std::istream& in) {
         // Реализуйте конструктор самостоятельно
+        using namespace parse;
+        using namespace token_type;
+        char t;
+        while (in.get(t)) {
+            if (isspace(t)) {
+                if (t == '\n') {
+                    line_.push_back(Newline{});
+                }
+                else if (isspace(in.peek())) {
+                    in.get(t);
+                    line_.push_back(Indent{});
+                }
+                else {
+                    continue;
+                }                
+            }
+            if (isdigit(t)) {
+                in.unget();
+                int d;
+                in >> d;
+                line_.push_back(Number{ d });
+            }
+            if (isprint(t)) {
+                switch (t) {
+                case '*':case '/': case '+':case '-':case '=': {
+                    line_.push_back(Char{ t });
+                    break;
+                }
+                }
+            }
+            if(isalpha(t)){
+                in.unget();
+                std::string s;
+                in >> s;
+                line_.push_back(Id{ s });
+            }            
+        }
+        line_.push_back(Eof{});
     }
 
     const Token& Lexer::CurrentToken() const {
         // Заглушка. Реализуйте метод самостоятельно
-        throw std::logic_error("Not implemented"s);
+        if (head_ < line_.size()) {
+            return line_[head_];
+        }
+        //throw std::logic_error("Not implemented"s);
     }
 
     Token Lexer::NextToken() {
         // Заглушка. Реализуйте метод самостоятельно
-        throw std::logic_error("Not implemented"s);
+        if ((head_ + 1) < line_.size()) {
+            head_++;
+        }        
+        return CurrentToken();
+        
+        //throw std::logic_error("Not implemented"s);
     }
 
 }  // namespace parse

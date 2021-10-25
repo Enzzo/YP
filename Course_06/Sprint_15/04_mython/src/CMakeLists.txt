@@ -12,3 +12,5 @@ set(INCLUDE_FILES 	"${INCLUDE_DIR}/lexer.h"
 					"${INCLUDE_DIR}/test_runner_p.h")
 source_group("include" FILES ${INCLUDE_FILES})
 add_executable(lexer ${INCLUDE_FILES} ${MAIN_FILE})
+
+target_include_directories(lexer PRIVATE ${INCLUDE_DIR})
