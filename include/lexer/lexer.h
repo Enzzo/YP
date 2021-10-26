@@ -89,8 +89,9 @@ public:
 
 class Lexer {
 private:
-    std::vector<std::pair<size_t,Token>> line_;
+    std::vector<Token> line_;
     size_t head_ = 0;
+    size_t indent_level_ = 0;
 
 public:
     explicit Lexer(std::istream& input);
@@ -138,7 +139,8 @@ public:
     }
 
 private:
-    // Реализуйте приватную часть самостоятельно
+    size_t CheckAndCutLine(std::string&) const;
+    void SetIndentLevel(const int);
 };
 
 }  // namespace parse

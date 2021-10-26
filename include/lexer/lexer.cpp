@@ -79,117 +79,117 @@ namespace parse {
         // Реализуйте конструктор самостоятельно
         using namespace parse;
         using namespace token_type;
+        std::string inp_line;
         char t;
-        size_t indent_level = 0;
 
-        while (in.get(t)) {
-            if (isspace(t)) {
-                //ВЫЧИСЛИТЬ УРОВЕНЬ INDENT
-                if (isspace(in.peek()) && line_[line_.size() - 1].second.Is<Newline>()) {
-                    in.get(t);
-                    line_.push_back(std::make_pair(indent_level, Indent{}));
-                }
-                else if (t == '\n' && line_.size() != 0) {
-                    if (!line_[line_.size() - 1].second.Is<Newline>()) {
-                        line_.push_back(std::make_pair(indent_level, Newline{}));
-                    }
-                }
-                else {
+        while (getline(in, inp_line)) {
+            if (inp_line.size() == 0) {
+                continue;
+            }
+            size_t next_indent = CheckAndCutLine(inp_line);
+
+            SetIndentLevel(next_indent);
+
+            std::istringstream istring(inp_line);
+
+            while (istring.get(t)) {
+                if (t == ' ') {
                     continue;
-                }                
-            }
-            else if (isdigit(t)) {
-                in.unget();
-                int d;
-                in >> d;
-                line_.push_back(std::make_pair(indent_level, Number{ d }));
-            }
-            else if (isprint(t)) {
-                switch (t) {
-
-                case '=': case '!': case '<': case'>': {
-                    if (in.peek() == '=') {
-                        if (t == '=') {
-                            line_.push_back(std::make_pair(indent_level, Eq({})));
+                }
+                if (isdigit(t)) {
+                    istring.unget();
+                    int d;
+                    istring >> d;
+                    line_.push_back(Number{ d });
+                }
+                else if (isprint(t)) {
+                    switch (t) {
+                    case '=': case '!': case '<': case'>': {
+                        if (istring.peek() == '=') {
+                            if (t == '=') {
+                                line_.push_back(Eq({}));
+                            }
+                            else if (t == '!') {
+                                line_.push_back(NotEq({}));
+                            }
+                            else if (t == '<') {
+                                line_.push_back(LessOrEq({}));
+                            }
+                            else {
+                                line_.push_back(GreaterOrEq({}));
+                            }
+                            istring.get();
+                            break;
                         }
-                        else if(t == '!'){
-                            line_.push_back(std::make_pair(indent_level, NotEq({})));
-                        }
-                        else if (t == '<') {
-                            line_.push_back(std::make_pair(indent_level, LessOrEq({})));
-                        }
-                        else {
-                            line_.push_back(std::make_pair(indent_level, GreaterOrEq({})));
-                        }
-                        in.get();  
+                        [[fallthrough]];
+                    }
+                    case '*': case '/': case '+':case '-': {
+                        line_.push_back(Char{ t });
                         break;
                     }
-                    [[fallthrough]];
-                }
-                case '*': case '/': case '+':case '-': {
-                    line_.push_back(std::make_pair(indent_level, Char{ t }));
-                    break;
-                }
-                case '\'': case '\"': {
-                    std::string str;
-                    std::getline(in, str, t);
-                    line_.push_back(std::make_pair(indent_level, String{ str }));
-                    break;
-                }
-                default: {
-                    in.unget();
-                    std::string s;
-                    in >> s;
-                    if (s == "class") {
-                        line_.push_back(std::make_pair(indent_level, Class({})));
+                    case '\'': case '\"': {
+                        std::string str;
+                        std::getline(istring, str, t);
+                        line_.push_back(String{ str });
+                        break;
                     }
-                    else if (s == "return") {
-                        line_.push_back(std::make_pair(indent_level, Return({})));
+                    default: {
+                        istring.unget();
+                        std::string s;
+                        istring >> s;
+                        if (s == "class") {
+                            line_.push_back(Class({}));
+                        }
+                        else if (s == "return") {
+                            line_.push_back(Return({}));
+                        }
+                        else if (s == "if") {
+                            line_.push_back(If({}));
+                        }
+                        else if (s == "else") {
+                            line_.push_back(Else({}));
+                        }
+                        else if (s == "def") {
+                            line_.push_back(Def({}));
+                        }
+                        else if (s == "print") {
+                            line_.push_back(Print({}));
+                        }
+                        else if (s == "or") {
+                            line_.push_back(Or({}));
+                        }
+                        else if (s == "None") {
+                            line_.push_back(None({}));
+                        }
+                        else if (s == "and") {
+                            line_.push_back(And({}));
+                        }
+                        else if (s == "not") {
+                            line_.push_back(Not({}));
+                        }
+                        else if (s == "True") {
+                            line_.push_back(True({}));
+                        }
+                        else if (s == "False") {
+                            line_.push_back(False({}));
+                        }
+                        else {
+                            line_.push_back(Id{ s });
+                        }
                     }
-                    else if (s == "if") {
-                        line_.push_back(std::make_pair(indent_level, If({})));
                     }
-                    else if (s == "else") {
-                        line_.push_back(std::make_pair(indent_level, Else({})));
-                    }
-                    else if (s == "def") {
-                        line_.push_back(std::make_pair(indent_level, Def({})));
-                    }
-                    else if (s == "print") {
-                        line_.push_back(std::make_pair(indent_level, Print({})));
-                    }
-                    else if (s == "or") {
-                        line_.push_back(std::make_pair(indent_level, Or({})));
-                    }
-                    else if (s == "None") {
-                        line_.push_back(std::make_pair(indent_level, None({})));
-                    }
-                    else if (s == "and") {
-                        line_.push_back(std::make_pair(indent_level, And({})));
-                    }
-                    else if (s == "not") {
-                        line_.push_back(std::make_pair(indent_level, Not({})));
-                    }
-                    else if (s == "True") {
-                        line_.push_back(std::make_pair(indent_level, True({})));
-                    }
-                    else if (s == "False") {
-                        line_.push_back(std::make_pair(indent_level, False({})));
-                    }
-                    else {
-                        line_.push_back(std::make_pair(indent_level, Id{ s }));
-                    }
-                }
                 }
             }
+            line_.push_back(Newline{});
         }
-        line_.push_back(std::make_pair(indent_level, Eof{}));
+        SetIndentLevel(0);
+        line_.push_back(Eof{});
     }
 
     const Token& Lexer::CurrentToken() const {
         // Заглушка. Реализуйте метод самостоятельно
         if (head_ < line_.size()) {
-            return line_[head_].second;
+            return line_[head_];
         }
         //throw std::logic_error("Not implemented"s);
     }
@@ -203,5 +203,25 @@ namespace parse {
         
         //throw std::logic_error("Not implemented"s);
     }
+    size_t Lexer::CheckAndCutLine(std::string& in) const {
+        size_t result = in.find_first_not_of(' ', 0);
+        if (result >= 2) {
+            result /= 2;
+        }
+        in = in.substr(result);
+        return result;
+    }
 
+    void Lexer::SetIndentLevel(const int new_level) {
+        using namespace parse::token_type;
+        for (size_t i = indent_level_; i < new_level; ++i) {
+                line_.push_back(Indent({}));
+            }
+        for (size_t i = indent_level_; i > new_level; --i) {
+            line_.push_back(Dedent({}));
+        }
+        if (indent_level_ != new_level) {
+            indent_level_ = new_level;
+        }
+    }
 }  // namespace parse
