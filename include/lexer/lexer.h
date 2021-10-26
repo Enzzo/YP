@@ -141,6 +141,7 @@ public:
 private:
     size_t CheckAndCutLine(std::string&) const;
     void SetIndentLevel(const int);
+    void ReadLine(std::istream&);
 };
 
 }  // namespace parse

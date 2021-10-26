@@ -80,7 +80,6 @@ namespace parse {
         using namespace parse;
         using namespace token_type;
         std::string inp_line;
-        char t;
 
         while (getline(in, inp_line)) {
             if (inp_line.size() == 0) {
@@ -92,95 +91,7 @@ namespace parse {
 
             std::istringstream istring(inp_line);
 
-            while (istring.get(t)) {
-                if (t == ' ') {
-                    continue;
-                }
-                if (isdigit(t)) {
-                    istring.unget();
-                    int d;
-                    istring >> d;
-                    line_.push_back(Number{ d });
-                }
-                else if (isprint(t)) {
-                    switch (t) {
-                    case '=': case '!': case '<': case'>': {
-                        if (istring.peek() == '=') {
-                            if (t == '=') {
-                                line_.push_back(Eq({}));
-                            }
-                            else if (t == '!') {
-                                line_.push_back(NotEq({}));
-                            }
-                            else if (t == '<') {
-                                line_.push_back(LessOrEq({}));
-                            }
-                            else {
-                                line_.push_back(GreaterOrEq({}));
-                            }
-                            istring.get();
-                            break;
-                        }
-                        [[fallthrough]];
-                    }
-                    case '*': case '/': case '+':case '-': {
-                        line_.push_back(Char{ t });
-                        break;
-                    }
-                    case '\'': case '\"': {
-                        std::string str;
-                        std::getline(istring, str, t);
-                        line_.push_back(String{ str });
-                        break;
-                    }
-                    default: {
-                        istring.unget();
-                        std::string s;
-                        istring >> s;
-                        if (s == "class") {
-                            line_.push_back(Class({}));
-                        }
-                        else if (s == "return") {
-                            line_.push_back(Return({}));
-                        }
-                        else if (s == "if") {
-                            line_.push_back(If({}));
-                        }
-                        else if (s == "else") {
-                            line_.push_back(Else({}));
-                        }
-                        else if (s == "def") {
-                            line_.push_back(Def({}));
-                        }
-                        else if (s == "print") {
-                            line_.push_back(Print({}));
-                        }
-                        else if (s == "or") {
-                            line_.push_back(Or({}));
-                        }
-                        else if (s == "None") {
-                            line_.push_back(None({}));
-                        }
-                        else if (s == "and") {
-                            line_.push_back(And({}));
-                        }
-                        else if (s == "not") {
-                            line_.push_back(Not({}));
-                        }
-                        else if (s == "True") {
-                            line_.push_back(True({}));
-                        }
-                        else if (s == "False") {
-                            line_.push_back(False({}));
-                        }
-                        else {
-                            line_.push_back(Id{ s });
-                        }
-                    }
-                    }
-                }
-            }
-            line_.push_back(Newline{});
+            ReadLine(istring);            
         }
         SetIndentLevel(0);
         line_.push_back(Eof{});
@@ -223,5 +134,107 @@ namespace parse {
         if (indent_level_ != new_level) {
             indent_level_ = new_level;
         }
+    }
+
+    void Lexer::ReadLine(std::istream& istring) {
+        using namespace parse::token_type;
+        char t;
+        while (istring.get(t)) {
+            if (t == ' ') {
+                continue;
+            }
+            if (isdigit(t)) {
+                istring.unget();
+                int d;
+                istring >> d;
+                line_.push_back(Number{ d });
+            }
+            else if (isprint(t)) {
+                switch (t) {
+                case '=': case '!': case '<': case'>': {
+                    if (istring.peek() == '=') {
+                        if (t == '=') {
+                            line_.push_back(Eq({}));
+                        }
+                        else if (t == '!') {
+                            line_.push_back(NotEq({}));
+                        }
+                        else if (t == '<') {
+                            line_.push_back(LessOrEq({}));
+                        }
+                        else {
+                            line_.push_back(GreaterOrEq({}));
+                        }
+                        istring.get();
+                        break;
+                    }
+                    [[fallthrough]];
+                }
+                case '*': case '/': case '+':case '-': {
+                    line_.push_back(Char{ t });
+                    break;
+                }
+                case '\'': case '\"': {
+                    std::string str;
+                    std::getline(istring, str, t);
+                    line_.push_back(String{ str });
+                    break;
+                }
+                default: {
+                    istring.unget();
+                    std::string s;
+                    istring >> s;
+                    if (s == "class") {
+                        line_.push_back(Class({}));
+                        //ReadLine(istring);
+                    }
+                    else if (s == "return") {
+                        line_.push_back(Return({}));
+                    }
+                    else if (s == "if") {
+                        line_.push_back(If({}));
+                    }
+                    else if (s == "else") {
+                        line_.push_back(Else({}));
+                    }
+                    else if (s == "def") {
+                        line_.push_back(Def({}));
+                    }
+                    else if (s == "print") {
+                        line_.push_back(Print({}));
+                    }
+                    else if (s == "or") {
+                        line_.push_back(Or({}));
+                    }
+                    else if (s == "None") {
+                        line_.push_back(None({}));
+                    }
+                    else if (s == "and") {
+                        line_.push_back(And({}));
+                    }
+                    else if (s == "not") {
+                        line_.push_back(Not({}));
+                    }
+                    else if (s == "True") {
+                        line_.push_back(True({}));
+                    }
+                    else if (s == "False") {
+                        line_.push_back(False({}));
+                    }
+                    else {
+                        if (s[s.size() - 1] == ':') {
+                            s = s.substr(0, s.size() - 1);
+                            line_.push_back(Id{ s });
+                            line_.push_back(Char{ ':' });
+                        }
+                        else {
+                            line_.push_back(Id{ s });
+                        }
+                    }
+                }
+                }
+            }
+        }
+        line_.push_back(Newline{});
     }
 }  // namespace parse
