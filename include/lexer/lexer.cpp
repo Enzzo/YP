@@ -136,7 +136,7 @@ namespace parse {
         }
     }
 
-    void Lexer::ReadLine(std::istream& istring) {
+    void Lexer::ReadLine(std::istringstream& istring) {
         using namespace parse::token_type;
         char t;
         while (istring.get(t)) {
@@ -151,6 +151,27 @@ namespace parse {
             }
             else if (isprint(t)) {
                 switch (t) {
+                case '_': {
+                    if (istring.peek() == '_') {
+                        istring.get();
+                        std::string id;
+                        id += "__";
+                        while (istring.get(t)) {
+                            id += t;
+                            if (t == '_' && istring.peek() == '_') {
+                                istring.get(t);
+                                id += t;
+                                line_.push_back(Id({ id }));
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        istring.unget();
+                        ReadId(istring);
+                    }
+                    break;
+                }
                 case '=': case '!': case '<': case'>': {
                     if (istring.peek() == '=') {
                         if (t == '=') {
@@ -170,7 +191,7 @@ namespace parse {
                     }
                     [[fallthrough]];
                 }
-                case '*': case '/': case '+':case '-': {
+                case '*': case '/': case '+':case '-': case '(': case ')': case ',': case ':': case '.':{
                     line_.push_back(Char{ t });
                     break;
                 }
@@ -182,59 +203,61 @@ namespace parse {
                 }
                 default: {
                     istring.unget();
-                    std::string s;
-                    istring >> s;
-                    if (s == "class") {
-                        line_.push_back(Class({}));
-                        //ReadLine(istring);
-                    }
-                    else if (s == "return") {
-                        line_.push_back(Return({}));
-                    }
-                    else if (s == "if") {
-                        line_.push_back(If({}));
-                    }
-                    else if (s == "else") {
-                        line_.push_back(Else({}));
-                    }
-                    else if (s == "def") {
-                        line_.push_back(Def({}));
-                    }
-                    else if (s == "print") {
-                        line_.push_back(Print({}));
-                    }
-                    else if (s == "or") {
-                        line_.push_back(Or({}));
-                    }
-                    else if (s == "None") {
-                        line_.push_back(None({}));
-                    }
-                    else if (s == "and") {
-                        line_.push_back(And({}));
-                    }
-                    else if (s == "not") {
-                        line_.push_back(Not({}));
-                    }
-                    else if (s == "True") {
-                        line_.push_back(True({}));
-                    }
-                    else if (s == "False") {
-                        line_.push_back(False({}));
-                    }
-                    else {
-                        if (s[s.size() - 1] == ':') {
-                            s = s.substr(0, s.size() - 1);
-                            line_.push_back(Id{ s });
-                            line_.push_back(Char{ ':' });
-                        }
-                        else {
-                            line_.push_back(Id{ s });
-                        }
-                    }
+                    ReadId(istring);
                 }
                 }
             }
         }
         line_.push_back(Newline{});
+    }
+
+    void Lexer::ReadId(std::istringstream& istring) {
+        using namespace parse::token_type;
+        std::string s;
+        istring >> s;
+        if (s == "class") {
+            line_.push_back(Class({}));
+        }
+        else if (s == "return") {
+            line_.push_back(Return({}));
+        }
+        else if (s == "if") {
+            line_.push_back(If({}));
+        }
+        else if (s == "else") {
+            line_.push_back(Else({}));
+        }
+        else if (s == "def") {
+            line_.push_back(Def({}));
+        }
+        else if (s == "print") {
+            line_.push_back(Print({}));
+        }
+        else if (s == "or") {
+            line_.push_back(Or({}));
+        }
+        else if (s == "None") {
+            line_.push_back(None({}));
+        }
+        else if (s == "and") {
+            line_.push_back(And({}));
+        }
+        else if (s == "not") {
+            line_.push_back(Not({}));
+        }
+        else if (s == "True") {
+            line_.push_back(True({}));
+        }
+        else if (s == "False") {
+            line_.push_back(False({}));
+        }
+        else if (ispunct(*(s.end() - 1))) {
+            s = s.substr(0, s.size() - 1);
+            line_.push_back(Id({ s }));
+            line_.push_back(Char({ *(s.end() - 1) }));
+        }
+        else {
+            line_.push_back(Id({ s }));
+        }
     }
 }  // namespace parse

@@ -107,6 +107,8 @@ public:
     template <typename T>
     const T& Expect() const {
         using namespace std::literals;
+        if (line_[head_].Is<T>())
+            return line_[head_].As<T>();
         // Заглушка. Реализуйте метод самостоятельно
         throw LexerError("Not implemented"s);
     }
@@ -114,10 +116,12 @@ public:
     // Метод проверяет, что текущий токен имеет тип T, а сам токен содержит значение value.
     // В противном случае метод выбрасывает исключение LexerError
     template <typename T, typename U>
-    void Expect(const U& /*value*/) const {
+    void Expect(const U& value) const {
         using namespace std::literals;
-        // Заглушка. Реализуйте метод самостоятельно
-        throw LexerError("Not implemented"s);
+        if (!line_[head_].Is<T>() || line_[head_].As<U>().value != value) {
+            throw LexerError("Not implemented"s);
+        }
+        // Заглушка. Реализуйте метод самостоятельно                
     }
 
     // Если следующий токен имеет тип T, метод возвращает ссылку на него.
@@ -141,7 +145,8 @@ public:
 private:
     size_t CheckAndCutLine(std::string&) const;
     void SetIndentLevel(const int);
-    void ReadLine(std::istream&);
+    void ReadLine(std::istringstream&);
+    void ReadId(std::istringstream&);
 };
 
 }  // namespace parse
