@@ -118,7 +118,7 @@ public:
     template <typename T, typename U>
     void Expect(const U& value) const {
         using namespace std::literals;
-        if (!line_[head_].Is<T>() || line_[head_].As<U>().value != value) {
+        if (!line_[head_].Is<T>() || line_[head_].As<T>().value != value) {
             throw LexerError("Not implemented"s);
         }
         // Заглушка. Реализуйте метод самостоятельно                
@@ -128,18 +128,20 @@ public:
     // В противном случае метод выбрасывает исключение LexerError
     template <typename T>
     const T& ExpectNext() {
-        using namespace std::literals;
-        // Заглушка. Реализуйте метод самостоятельно
-        throw LexerError("Not implemented"s);
+        if ((head_ + 1) < line_.size()) {
+            head_++;
+        }
+        return Expect<T>();
     }
 
     // Метод проверяет, что следующий токен имеет тип T, а сам токен содержит значение value.
     // В противном случае метод выбрасывает исключение LexerError
     template <typename T, typename U>
-    void ExpectNext(const U& /*value*/) {
-        using namespace std::literals;
-        // Заглушка. Реализуйте метод самостоятельно
-        throw LexerError("Not implemented"s);
+    void ExpectNext(const U& value) {
+        if ((head_ + 1) < line_.size()) {
+            head_++;
+        }
+        return Expect<T>(value);
     }
 
 private:

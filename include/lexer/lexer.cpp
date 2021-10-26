@@ -102,7 +102,7 @@ namespace parse {
         if (head_ < line_.size()) {
             return line_[head_];
         }
-        //throw std::logic_error("Not implemented"s);
+        throw std::logic_error("Not implemented"s);
     }
 
     Token Lexer::NextToken() {
@@ -214,6 +214,10 @@ namespace parse {
     void Lexer::ReadId(std::istringstream& istring) {
         using namespace parse::token_type;
         std::string s;
+        char c;
+        while (istring.get(c)) {
+            if()
+        }
         istring >> s;
         if (s == "class") {
             line_.push_back(Class({}));
@@ -251,13 +255,42 @@ namespace parse {
         else if (s == "False") {
             line_.push_back(False({}));
         }
-        else if (ispunct(*(s.end() - 1))) {
-            s = s.substr(0, s.size() - 1);
-            line_.push_back(Id({ s }));
-            line_.push_back(Char({ *(s.end() - 1) }));
-        }
+        //else if (ispunct(*(s.end() - 1))) {
+        //    char ch = *(s.end() - 1);
+        //    s = s.substr(0, s.size() - 1);
+        //    line_.push_back(Id({ s }));
+        //    line_.push_back(Char({ ch }));
+        //}
         else {
-            line_.push_back(Id({ s }));
+            std::string id;
+            std::string punct;
+            for (const char ch : s) {
+                if (isdigit(ch)) {
+
+                }
+                else if (ispunct(ch) && ch != '_') {
+                    if (id.size() > 0) {
+                        line_.push_back(Id({ id }));                        
+                        id.erase();
+                    }
+                    punct += ch;
+                }
+                else {
+                    if (punct.size() > 0) {
+                        for (const char ch : punct) {
+                            line_.push_back(Char({ ch }));
+                        }
+                        punct.erase();
+                    }
+                    id += ch;
+                }                
+            }
+            if (id.size() > 0) {
+                line_.push_back(Id({ id }));
+            }
+            for (const char ch : punct) {
+                line_.push_back(Char({ ch }));
+            }            
         }
     }
 }  // namespace parse
