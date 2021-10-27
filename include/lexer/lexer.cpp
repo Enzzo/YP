@@ -82,12 +82,11 @@ namespace parse {
         std::string inp_line;
 
         while (getline(in, inp_line)) {
-            if (inp_line.size() == 0) {
+            if (EmptyLine(inp_line)) {
                 continue;
             }
-            size_t next_indent = CheckAndCutLine(inp_line);
 
-            SetIndentLevel(next_indent);
+            SetIndentLevel(CheckAndCutLine(inp_line));
 
             std::istringstream istring(inp_line);
 
@@ -123,7 +122,7 @@ namespace parse {
         return result;
     }
 
-    void Lexer::SetIndentLevel(const int new_level) {
+    void Lexer::SetIndentLevel(const size_t new_level) {
         using namespace parse::token_type;
         for (size_t i = indent_level_; i < new_level; ++i) {
                 line_.push_back(Indent({}));
@@ -139,39 +138,22 @@ namespace parse {
     void Lexer::ReadLine(std::istringstream& istring) {
         using namespace parse::token_type;
         char t;
+        bool new_line = false;
         while (istring.get(t)) {
             if (t == ' ') {
                 continue;
             }
-            if (isdigit(t)) {
-                istring.unget();
-                int d;
-                istring >> d;
-                line_.push_back(Number{ d });
+            if (t == '#') {
+                ReadComment(istring);
+                continue;
             }
+
+            new_line = true;
+            if (isdigit(t)) {
+                ReadNumber(istring);
+            }           
             else if (isprint(t)) {
                 switch (t) {
-                case '_': {
-                    if (istring.peek() == '_') {
-                        istring.get();
-                        std::string id;
-                        id += "__";
-                        while (istring.get(t)) {
-                            id += t;
-                            if (t == '_' && istring.peek() == '_') {
-                                istring.get(t);
-                                id += t;
-                                line_.push_back(Id({ id }));
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        istring.unget();
-                        ReadId(istring);
-                    }
-                    break;
-                }
                 case '=': case '!': case '<': case'>': {
                     if (istring.peek() == '=') {
                         if (t == '=') {
@@ -196,10 +178,8 @@ namespace parse {
                     break;
                 }
                 case '\'': case '\"': {
-                    std::string str;
-                    std::getline(istring, str, t);
-                    line_.push_back(String{ str });
-                    break;
+                    ReadString(istring, t);
+                    continue;
                 }
                 default: {
                     istring.unget();
@@ -208,7 +188,9 @@ namespace parse {
                 }
             }
         }
-        line_.push_back(Newline{});
+        if (new_line) {
+            line_.push_back(Newline{});
+        }
     }
 
     void Lexer::ReadId(std::istringstream& istring) {
@@ -216,9 +198,14 @@ namespace parse {
         std::string s;
         char c;
         while (istring.get(c)) {
-            if()
+            if ((isspace(c) || c == ' ') || (ispunct(c) && c != '_')) {
+                if (ispunct(c) && c != '_') {
+                    istring.unget();
+                }
+                break;
+            }
+            s += c;
         }
-        istring >> s;
         if (s == "class") {
             line_.push_back(Class({}));
         }
@@ -255,42 +242,40 @@ namespace parse {
         else if (s == "False") {
             line_.push_back(False({}));
         }
-        //else if (ispunct(*(s.end() - 1))) {
-        //    char ch = *(s.end() - 1);
-        //    s = s.substr(0, s.size() - 1);
-        //    line_.push_back(Id({ s }));
-        //    line_.push_back(Char({ ch }));
-        //}
         else {
-            std::string id;
-            std::string punct;
-            for (const char ch : s) {
-                if (isdigit(ch)) {
-
-                }
-                else if (ispunct(ch) && ch != '_') {
-                    if (id.size() > 0) {
-                        line_.push_back(Id({ id }));                        
-                        id.erase();
-                    }
-                    punct += ch;
-                }
-                else {
-                    if (punct.size() > 0) {
-                        for (const char ch : punct) {
-                            line_.push_back(Char({ ch }));
-                        }
-                        punct.erase();
-                    }
-                    id += ch;
-                }                
-            }
-            if (id.size() > 0) {
-                line_.push_back(Id({ id }));
-            }
-            for (const char ch : punct) {
-                line_.push_back(Char({ ch }));
-            }            
+            line_.push_back(Id({ s }));
         }
+    }
+
+    void Lexer::ReadString(std::istringstream& in, const char d) {
+        std::string str;
+        std::getline(in, str, d);
+        line_.push_back(parse::token_type::String{ str });
+    }
+
+    void Lexer::ReadNumber(std::istringstream& in) {
+        in.unget();
+        int d;
+        in >> d;
+        line_.push_back(parse::token_type::Number{ d });
+    }
+
+    void Lexer::ReadComment(std::istringstream& in) {
+        in.unget();
+        std::string comment;
+        std::getline(in, comment);
+    }
+
+    bool Lexer::EmptyLine(const std::string_view line) const {
+        if (line.size() == 0) {
+            return true;
+        }
+        int p = line.find_first_not_of(' ');
+        if (p >= 0) {
+            if (line[p] == '#') {
+                return true;
+            }
+        }
+        return false;
     }
 }  // namespace parse
