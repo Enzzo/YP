@@ -80,12 +80,17 @@ namespace parse {
         using namespace parse;
         using namespace token_type;
         std::string inp_line;
-
-        while (getline(in, inp_line)) {
-            if (EmptyLine(inp_line)) {
+        char ch;
+        //while (getline(in, inp_line)) {            
+        while(in.get(ch)){
+            if (ch != '\n') {
+                inp_line += ch;
                 continue;
             }
-
+            if (EmptyLine(inp_line)) {
+                continue;
+            }            
+            
             SetIndentLevel(CheckAndCutLine(inp_line));
 
             std::istringstream istring(inp_line);
@@ -140,6 +145,9 @@ namespace parse {
         char t;
         bool new_line = false;
         while (istring.get(t)) {
+            if (t == '\n' || t == '\t') {
+                int x = 2;
+            }
             if (t == ' ') {
                 continue;
             }
@@ -152,7 +160,7 @@ namespace parse {
             if (isdigit(t)) {
                 ReadNumber(istring);
             }           
-            else if (isprint(t)) {
+            else if (isprint(t) || isspace(t)) {
                 switch (t) {
                 case '=': case '!': case '<': case'>': {
                     if (istring.peek() == '=') {
@@ -173,7 +181,9 @@ namespace parse {
                     }
                     [[fallthrough]];
                 }
-                case '*': case '/': case '+':case '-': case '(': case ')': case ',': case '.': case ':': case ';': {
+                
+                case '*': case '/': case '+':case '-': case '(': case ')': case ',': case '.': case ':': case ';': case '\t': case '\n': {
+                    
                     line_.push_back(Char{ t });
                     break;
                 }
@@ -249,7 +259,27 @@ namespace parse {
 
     void Lexer::ReadString(std::istringstream& in, const char d) {
         std::string str;
-        std::getline(in, str, d);
+        char ch;
+        while (in.get(ch)) {
+            if (ch == d) {
+                break;
+            }            
+            if (ch == '\\') {
+                in.get(ch);
+                switch (ch) {
+                case 'n':
+                    ch = '\n';
+                    break;
+                case 't':
+                    ch = '\t';
+                }
+                str += ch;
+            }
+            else {
+                str += ch;
+            }
+
+        }
         line_.push_back(parse::token_type::String{ str });
     }
 
