@@ -11,7 +11,7 @@ void RunOpenLexerTests(TestRunner& tr);
 int main() {
     try {
         TestRunner tr;
-        //parse::RunOpenLexerTests(tr);
+        parse::RunOpenLexerTests(tr);
         
         parse::Token t;
         parse::Token test;

@@ -79,24 +79,22 @@ namespace parse {
         // Реализуйте конструктор самостоятельно
         using namespace parse;
         using namespace token_type;
+
         std::string inp_line;
-        char ch;
-        //while (getline(in, inp_line)) {            
-        while(in.get(ch)){
-            if (ch != '\n') {
-                inp_line += ch;
-                continue;
-            }
+       
+        while (getline(in, inp_line)) {            
+
             if (EmptyLine(inp_line)) {
                 continue;
             }            
-            
+             
             SetIndentLevel(CheckAndCutLine(inp_line));
 
             std::istringstream istring(inp_line);
 
             ReadLine(istring);            
         }
+
         SetIndentLevel(0);
         line_.push_back(Eof{});
     }
@@ -145,9 +143,6 @@ namespace parse {
         char t;
         bool new_line = false;
         while (istring.get(t)) {
-            if (t == '\n' || t == '\t') {
-                int x = 2;
-            }
             if (t == ' ') {
                 continue;
             }
@@ -182,7 +177,8 @@ namespace parse {
                     [[fallthrough]];
                 }
                 
-                case '*': case '/': case '+':case '-': case '(': case ')': case ',': case '.': case ':': case ';': case '\t': case '\n': {
+                case '*': case '/': case '+': case '-': case '(': case ')': 
+                case ',': case '.': case ':': case ';': case '\t': case '\n': {
                     
                     line_.push_back(Char{ t });
                     break;
@@ -197,8 +193,12 @@ namespace parse {
                 }
                 }
             }
-        }
+        }        
         if (new_line) {
+            if (!line_[line_.size() - 1].Is<Char>()
+                && !line_[line_.size() - 1].Is<String>()) {
+                line_.push_back(Char{ '\n' });
+            }
             line_.push_back(Newline{});
         }
     }
