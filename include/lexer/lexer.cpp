@@ -173,7 +173,7 @@ namespace parse {
                     }
                     [[fallthrough]];
                 }
-                case '*': case '/': case '+':case '-': case '(': case ')': case ',': case ':': case '.':{
+                case '*': case '/': case '+':case '-': case '(': case ')': case ',': case '.': case ':': case ';': {
                     line_.push_back(Char{ t });
                     break;
                 }

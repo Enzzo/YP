@@ -11,7 +11,7 @@ void RunOpenLexerTests(TestRunner& tr);
 int main() {
     try {
         TestRunner tr;
-        parse::RunOpenLexerTests(tr);
+        //parse::RunOpenLexerTests(tr);
         
         parse::Token t;
         parse::Token test;
@@ -22,13 +22,21 @@ y = #;l;k"hello"
 
     #indented comment   
 
-class Point:
+class Point;;;:
   def __init__(self, x, y):
     self.x = x
       self.y = y
-
+        ""
         def __str__(self):
     return str(x) + ' ' + str(y)
+"hello"
+'world'
+'long string with a double quote " inside'
+"another long string with a single quote ' inside"
+
+"string with a double quote \" inside" # ÊÎÑßÊÈ Â İÒÈÕ ÄÂÓÕ ÑÒĞÎ×ÊÀÕ
+'string with a single quote \' inside'
+'', ""
 
 p = Point(1, 2)
 print str(p)
