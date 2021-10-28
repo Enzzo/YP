@@ -146,6 +146,7 @@ public:
 
 private:
     size_t CheckAndCutLine(std::string&) const;
+    int IndentLevelOfLine(const std::string_view)const;
     void SetIndentLevel(const size_t);
     void ScanIndent(std::istringstream&);
     void ReadId(std::istringstream&);                   //чтение идентификаторов

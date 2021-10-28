@@ -199,10 +199,25 @@ namespace parse {
         }
     }*/
 
-    void Lexer::ScanIndent(std::istringstream& line) {
+    void Lexer::ScanIndent(std::istringstream& inp_line) {
+        using namespace parse::token_type;
         // сканируем блок Indent построчно
         // если находим вложенный блок, то рекурсивно вызываем ScanIndent
         // если обнаружили конец блока, то выходим из функции
+        // IF INDENT{
+        // line_.push_back(Indent{});
+        // ScanIndent(line)
+        // line_.push_back(Dedent{});
+        //}
+        size_t new_level = IndentLevelOfLine(inp_line.str());
+        while (inp_line.get()) {
+            if (indent_level_ < new_level) {
+                indent_level_ = new_level;
+                line_.push_back(Indent{});
+                ScanIndent();
+                line_.push_back(Dedent{});
+            }
+        }
     }
     void Lexer::ReadId(std::istringstream& istring) {
         using namespace parse::token_type;
@@ -308,5 +323,13 @@ namespace parse {
             }
         }
         return false;
+    }
+
+    int Lexer::IndentLevelOfLine(const std::string_view line)const {
+        size_t result = line.find_first_not_of(' ', 0);
+        if (result >= 2) {
+            result /= 2;
+        }
+        return result;
     }
 }  // namespace parse
