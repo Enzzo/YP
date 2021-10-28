@@ -188,16 +188,12 @@ namespace parse {
                 }
                 default: {
                     istring.unget();
-                    ReadId(istring);
-                    
+                    ReadId(istring);                    
                 }
                 }
             }
         }        
         if (new_line) {
-            if (!line_[line_.size() - 1].Is<String>() && !line_[line_.size() - 1].Is<Char>()) {
-                line_.push_back(Char{'\n'});
-            }
             line_.push_back(Newline{});
         }
     }

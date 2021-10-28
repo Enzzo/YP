@@ -10,6 +10,18 @@ void RunOpenLexerTests(TestRunner& tr);
 
 int main() {
     try {
+        //std::string test1{ "long string with a double quote \" inside" };
+        //std::istringstream In(test1);
+        //parse::Lexer lex(In);
+        //auto first = lex.CurrentToken();
+        //std::cout << first << '\n';
+        //std::cout << lex.NextToken() << '\n';
+        //std::cout << lex.NextToken() << '\n';
+        //std::cout << lex.NextToken() << '\n';
+        //std::cout << lex.NextToken() << '\n';
+        //std::cout << lex.NextToken() << '\n';
+        //std::cout << lex.NextToken() << '\n';
+
         TestRunner tr;
         parse::RunOpenLexerTests(tr);
         
