@@ -18,6 +18,8 @@ int main() {
         
         std::istringstream input(R"(
 print x, x + 6, 'Hello, ' + w 
+print x
+print y
 class GCD:
   def calc(a, b):
     if a == 0 or b == 0:

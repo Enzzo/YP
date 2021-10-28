@@ -147,7 +147,7 @@ public:
 private:
     size_t CheckAndCutLine(std::string&) const;
     void SetIndentLevel(const size_t);
-    void ReadLine(std::istringstream&);
+    void ScanIndent(std::istringstream&);
     void ReadId(std::istringstream&);                   //чтение идентификаторов
     void ReadNumber(std::istringstream&);               //чтение чисел
     void ReadString(std::istringstream&, const char);   //чтение строк в кавычках
