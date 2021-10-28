@@ -81,17 +81,15 @@ namespace parse {
         using namespace token_type;
 
         std::string inp_line;
-        char ch;
         while (getline(in, inp_line)) {            
 
             if (EmptyLine(inp_line)) {
                 continue;
             }            
              
-            //SetIndentLevel(CheckAndCutLine(inp_line));
+            SetIndentLevel(CheckAndCutLine(inp_line));
             std::istringstream istring(inp_line);
-            ScanIndent(istring);
-            //ReadLine(istring);
+            ReadLine(istring);
         }
 
         SetIndentLevel(0);
@@ -138,7 +136,7 @@ namespace parse {
         }
     }
 
-    /*void Lexer::ReadLine(std::istringstream& istring) {
+    void Lexer::ReadLine(std::istringstream& istring) {
         using namespace parse::token_type;
         char t;
         bool new_line = false;
@@ -147,8 +145,9 @@ namespace parse {
                 continue;
             }
             if (t == '#') {
-                ReadComment(istring);
-                continue;
+                getline(istring, string());
+                line_.push_back(Newline{});
+                return;
             }
 
             new_line = true;
@@ -185,40 +184,24 @@ namespace parse {
                 }
                 case '\'': case '\"': {
                     ReadString(istring, t);
-                    continue;
+                    break;
                 }
                 default: {
                     istring.unget();
                     ReadId(istring);
+                    
                 }
                 }
             }
         }        
         if (new_line) {
+            if (!line_[line_.size() - 1].Is<String>() && !line_[line_.size() - 1].Is<Char>()) {
+                line_.push_back(Char{'\n'});
+            }
             line_.push_back(Newline{});
         }
-    }*/
-
-    void Lexer::ScanIndent(std::istringstream& inp_line) {
-        using namespace parse::token_type;
-        // сканируем блок Indent построчно
-        // если находим вложенный блок, то рекурсивно вызываем ScanIndent
-        // если обнаружили конец блока, то выходим из функции
-        // IF INDENT{
-        // line_.push_back(Indent{});
-        // ScanIndent(line)
-        // line_.push_back(Dedent{});
-        //}
-        size_t new_level = IndentLevelOfLine(inp_line.str());
-        while (inp_line.get()) {
-            if (indent_level_ < new_level) {
-                indent_level_ = new_level;
-                line_.push_back(Indent{});
-                ScanIndent();
-                line_.push_back(Dedent{});
-            }
-        }
     }
+
     void Lexer::ReadId(std::istringstream& istring) {
         using namespace parse::token_type;
         std::string s;
@@ -304,12 +287,6 @@ namespace parse {
         int d;
         in >> d;
         line_.push_back(parse::token_type::Number{ d });
-    }
-
-    void Lexer::ReadComment(std::istringstream& in) {
-        in.unget();
-        std::string comment;
-        std::getline(in, comment);
     }
 
     bool Lexer::EmptyLine(const std::string_view line) const {

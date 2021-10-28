@@ -16,9 +16,14 @@ int main() {
         parse::Token t;
         parse::Token test;
         
+//        std::istringstream input(R"(
+//print
+//print:
+//)");
+
         std::istringstream input(R"(
-print x, x + 6, 'Hello, ' + w 
-print x
+print x, x + 6, 'Hello, ' + w
+print x                     
 print y
 class GCD:
   def calc(a, b):
@@ -119,6 +124,7 @@ class Point;;;:
 
 p = Point(1, 2)
 print str(p)
+#asdf \n sdf  
 )"s);
         parse::Lexer test_lexer(input);
         while ((t = test_lexer.CurrentToken()) != parse::token_type::Eof{}) {

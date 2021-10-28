@@ -147,12 +147,11 @@ public:
 private:
     size_t CheckAndCutLine(std::string&) const;
     int IndentLevelOfLine(const std::string_view)const;
+    void ReadLine(std::istringstream&);
     void SetIndentLevel(const size_t);
-    void ScanIndent(std::istringstream&);
     void ReadId(std::istringstream&);                   //чтение идентификаторов
     void ReadNumber(std::istringstream&);               //чтение чисел
     void ReadString(std::istringstream&, const char);   //чтение строк в кавычках
-    void ReadComment(std::istringstream&);              //комментарий
     [[nodiscard]] bool EmptyLine(const std::string_view) const;   //проверка, если строка пустая, либо содержит только комментарий
 };
 

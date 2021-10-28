@@ -1,0 +1,104 @@
+
+print x, x + 6, 'Hello, ' + w				CHAR 1 после ID	
+print x                     				CHAR 2 после ID
+print y										CHAR 3 после ID
+class GCD:
+  def calc(a, b):
+    if a == 0 or b == 0:
+      return a + b							CHAR 4 после ID
+    else:
+      if a < b:
+        return self.calc(b, a)
+      else:
+        # В Mython нет операции нахождения остатка от деления,
+        # поэтому эмулируем её через имеющиеся операции
+        # a - a / b * b == a % b
+        return self.calc(b, a - a / b * b)
+
+  def is_coprime(a, b):
+    return self.calc(a, b) == 1				CHAR 5 после NUM
+
+coprime = False								CHAR 6
+
+gcd = None									CHAR 7
+gcd = GCD()
+
+x = 4										CHAR 8 после NUM
+y = 13										CHAR 9 после NUM
+coprime = gcd.is_coprime(x, y)
+if coprime:
+  print x, 'and', y, 'are coprime'
+else:
+  print x, 'and', y, 'are not coprime'
+
+" quote \" inside" # comment # 1
+" quote \' inside" # comment # 2
+" quote \n inside" # comment # 1
+" quote \t inside" # comment # 2
+' quote \" inside' # comment # 1
+' quote \' inside' # comment # 2
+' quote \n inside' # comment # 1
+' quote \t inside' # comment # 2
+" string 'string' string"
+' string "string" string'
+int2str										CHAR 10 после ID
+True False == != <> <= >=
+
+s = 'hello, ' + 'world' and or not			CHAR 11 после ID
+
+hashtag = "#hash";
+
+class Fire:
+  def __init__(obj):
+    self.obj = obj							CHAR 12 после ID
+
+  def __str__():
+    return "Burnt " + str(self.obj)
+
+class Tree:
+  def __str__():
+    return "tree"
+
+if x > 0:
+  if y > 0:
+    print "Эта строка выведется, если x и y положительные"
+else:
+  print "Эта строка выведется, если x <= 0" 
+
+x = 4										CHAR 13 после ID
+w = 'world'
+print x, x + 6, 'Hello, ' + w 				CHAR 14 после ID
+
+class Matches: # Спички
+  # операция сложения спичек с другими объектами превращает их в огонь
+  def __add__(smth):
+    return Fire(smth)
+
+result = Matches() + Tree()
+print result             # Выведет Burnt tree
+print Matches() + result # Выведет Burnt Burnt tree
+
+x = 4#asdf
+y = #;l;k"hello"
+
+    #indented comment   
+
+class Point;;;:
+  def __init__(self, x, y):
+    self.x = x								CHAR 15	после ID
+      self.y = y							CHAR 16 после ID
+        ""
+        def __str__(self):
+    return str(x) + ' ' + str(y)
+"hello"
+'world'
+'long string with a double quote " inside'
+"another long string with a single quote ' inside"
+
+"string with a double quote \" inside"
+'string with a single quote \' inside'
+'', ""
+
+p = Point(1, 2)
+print str(p)
+#asdf \n sdf  
