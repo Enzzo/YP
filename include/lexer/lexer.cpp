@@ -81,12 +81,12 @@ namespace parse {
         using namespace token_type;
 
         std::string inp_line;
-        while (getline(in, inp_line)) {            
+        while (getline(in, inp_line)) {
 
             if (EmptyLine(inp_line)) {
                 continue;
-            }            
-             
+            }
+
             SetIndentLevel(CheckAndCutLine(inp_line));
             std::istringstream istring(inp_line);
             ReadLine(istring);
@@ -109,9 +109,9 @@ namespace parse {
         // Заглушка. Реализуйте метод самостоятельно
         if ((head_ + 1) < line_.size()) {
             head_++;
-        }        
+        }
         return CurrentToken();
-        
+
         //throw std::logic_error("Not implemented"s);
     }
     size_t Lexer::CheckAndCutLine(std::string& in) const {
@@ -126,8 +126,8 @@ namespace parse {
     void Lexer::SetIndentLevel(const size_t new_level) {
         using namespace parse::token_type;
         for (size_t i = indent_level_; i < new_level; ++i) {
-                line_.push_back(Indent({}));
-            }
+            line_.push_back(Indent({}));
+        }
         for (size_t i = indent_level_; i > new_level; --i) {
             line_.push_back(Dedent({}));
         }
@@ -145,7 +145,8 @@ namespace parse {
                 continue;
             }
             if (t == '#') {
-                getline(istring, string());
+                std::string skip;
+                getline(istring, skip);
                 line_.push_back(Newline{});
                 return;
             }
@@ -153,7 +154,7 @@ namespace parse {
             new_line = true;
             if (isdigit(t)) {
                 ReadNumber(istring);
-            }           
+            }
             else if (isprint(t) || isspace(t)) {
                 switch (t) {
                 case '=': case '!': case '<': case'>': {
@@ -175,10 +176,10 @@ namespace parse {
                     }
                     [[fallthrough]];
                 }
-                
-                case '*': case '/': case '+': case '-': case '(': case ')': 
+
+                case '*': case '/': case '+': case '-': case '(': case ')':
                 case ',': case '.': case ':': case ';': case '\t': case '\n': {
-                    
+
                     line_.push_back(Char{ t });
                     break;
                 }
@@ -188,11 +189,11 @@ namespace parse {
                 }
                 default: {
                     istring.unget();
-                    ReadId(istring);                    
+                    ReadId(istring);
                 }
                 }
             }
-        }        
+        }
         if (new_line) {
             line_.push_back(Newline{});
         }
@@ -258,7 +259,7 @@ namespace parse {
         while (in.get(ch)) {
             if (ch == d) {
                 break;
-            }            
+            }
             if (ch == '\\') {
                 in.get(ch);
                 switch (ch) {
