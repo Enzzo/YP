@@ -10,7 +10,7 @@ void RunOpenLexerTests(TestRunner& tr);
 
 int main() {
     try {
-        std::string test1{ "long string with a double quote \" inside" };
+        /*std::string test1{ "long string with a double quote \" inside" };
         std::istringstream In(test1);
         parse::Lexer lex(In);
         auto first = lex.CurrentToken();
@@ -20,7 +20,7 @@ int main() {
         std::cout << lex.NextToken() << '\n';
         std::cout << lex.NextToken() << '\n';
         std::cout << lex.NextToken() << '\n';
-        std::cout << lex.NextToken() << '\n';
+        std::cout << lex.NextToken() << '\n';*/
 
         TestRunner tr;
         parse::RunOpenLexerTests(tr);
@@ -32,7 +32,7 @@ int main() {
 //print
 //print:
 //)");
-
+        
         std::istringstream input(R"(
 print x, x + 6, 'Hello, ' + w
 print x                     
@@ -49,7 +49,8 @@ class GCD:
         # поэтому эмулируем её через имеющиеся операции
         # a - a / b * b == a % b
         return self.calc(b, a - a / b * b)
-
+        y >= x
+        yy > = xx
   def is_coprime(a, b):
     return self.calc(a, b) == 1
 
