@@ -97,7 +97,7 @@ namespace parse {
         explicit Lexer(std::istream& input);
 
         // Возвращает ссылку на текущий токен или token_type::Eof, если поток токенов закончился
-        [[nodiscard]] const Token& CurrentToken() const;
+        const Token& CurrentToken() const;
 
         // Возвращает следующий токен, либо token_type::Eof, если поток токенов закончился
         Token NextToken();
@@ -109,7 +109,6 @@ namespace parse {
             using namespace std::literals;
             if (line_[head_].Is<T>())
                 return line_[head_].As<T>();
-            // Заглушка. Реализуйте метод самостоятельно
             throw LexerError("Not implemented"s);
         }
 

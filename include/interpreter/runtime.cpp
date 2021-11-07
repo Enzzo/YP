@@ -68,7 +68,7 @@ void ClassInstance::Print(std::ostream& os, Context& context) {
 
 bool ClassInstance::HasMethod(const std::string& method, size_t argument_count) const {
      //Заглушка, реализуйте метод самостоятельно
-    const Method* str = class_.GetMethod(method);    
+    const Method* str = cls_.GetMethod(method);    
     if (str != nullptr) {
         if (str->formal_params.size() == argument_count) {
             return true;
@@ -89,7 +89,7 @@ const Closure& ClassInstance::Fields() const {
     //throw std::logic_error("Not implemented"s);
 }
 
-ClassInstance::ClassInstance(const Class& cls) : class_(cls){
+ClassInstance::ClassInstance(const Class& cls) : cls_(cls){
     // Реализуйте метод самостоятельно
 }
 
@@ -101,7 +101,7 @@ ObjectHolder ClassInstance::Call(const std::string& method,
         Closure args;
         args["self"s] = ObjectHolder::Share(*this);
 
-        const Method* method_ptr = class_.GetMethod(method);
+        const Method* method_ptr = cls_.GetMethod(method);
         for (size_t i = 0; i < actual_args.size(); ++i) {
             args[method_ptr->formal_params[i]] = actual_args[i];
         }
@@ -114,23 +114,24 @@ ObjectHolder ClassInstance::Call(const std::string& method,
 Class::Class(std::string name, std::vector<Method> methods, const Class* parent)
     : name_(std::move(name))
     , methods_(std::move(methods))
+    , parent_(parent)
 {
-    parent_ = (parent) ? parent : this;
-}
-
-const Method* Class::GetMethod(const std::string& name) const {
-    // Заглушка. Реализуйте метод самостоятельно
-    for (size_t i = 0; i < methods_.size(); ++i) {
-        if (methods_[i].name == name) {
-            return &methods_[i];
+    if (parent_ != nullptr) {
+        for (const auto& method : parent_->methods_) {
+            name_to_method_[method.name] = &method;
         }
     }
 
-    const std::vector<Method>& p_methods = parent_->methods_;
-    for (size_t i = 0; i < p_methods.size(); ++i) {
-        if (p_methods[i].name == name) {
-            return &p_methods[i];
-        }
+    for (const auto& method : methods_) {
+        name_to_method_[method.name] = &method;
+    }
+}
+
+const Method* Class::GetMethod(const std::string& name) const {
+    auto it = name_to_method_.find(name);
+
+    if (it != name_to_method_.end()) {
+        return it->second;
     }
 
     return nullptr;

@@ -91,8 +91,6 @@ else:
     runtime::Closure closure;
     auto tree = ParseProgramFromString(program);
     tree->Execute(closure, context);
-    
-    auto test = context.output.str();
 
     ASSERT_EQUAL(context.output.str(), "x <= y\ny >= 0\n"s);
 }

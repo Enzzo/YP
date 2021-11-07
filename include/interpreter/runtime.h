@@ -8,11 +8,8 @@
 
 namespace runtime
 {
-
-    // Контекст исполнения инструкций Mython
     class Context{
     public:
-        // Возвращает поток вывода для команд print
         virtual std::ostream& GetOutputStream() = 0;
 
     protected:
@@ -23,7 +20,6 @@ namespace runtime
     class Object {
     public:
         virtual ~Object() = default;
-        // выводит в os своё представление в виде строки
         virtual void Print(std::ostream& os, Context& context) = 0;
     };
 
@@ -136,6 +132,8 @@ namespace runtime
         std::vector<Method> methods_;
         const Class* parent_;
 
+        std::unordered_map<std::string_view, const Method*> name_to_method_;
+
     public:
         // Создаёт класс с именем name и набором методов methods, унаследованный от класса parent
         // Если parent равен nullptr, то создаётся базовый класс
@@ -153,7 +151,7 @@ namespace runtime
 
     // Экземпляр класса
     class ClassInstance : public Object {
-        const Class& class_;
+        const Class& cls_;
         Closure fields_;
 
     public:
