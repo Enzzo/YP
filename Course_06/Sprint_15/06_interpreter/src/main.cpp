@@ -132,7 +132,7 @@ void TestAll() {
 int main() {
     try {
         //TestAll();
-        std::istringstream ifs("You hardcode tests, right ? \n"s);
+        std::ifstream ifs("in.txt");
 
         RunMythonProgram(ifs, cout);
     } catch (const std::exception& e) {

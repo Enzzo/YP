@@ -176,7 +176,7 @@ namespace parse {
                     [[fallthrough]];
                 }
 
-                case '*': case '/': case '+': case '-': case '(': case ')':
+                case '*': case '/': case '+': case '-': case '(': case ')': case '?':
                 case ',': case '.': case ':': case ';': case '\t': case '\n': {
 
                     line_.push_back(Char{ t });
