@@ -36,36 +36,42 @@ namespace ast {
     x = circle.center.x
     */
     class VariableValue : public Statement {
-        std::vector<std::string> dotted_ids_;
 
     public:
         explicit VariableValue(const std::string& var_name);
         explicit VariableValue(std::vector<std::string> dotted_ids);
 
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        std::vector<std::string> dotted_ids_;
     };
 
     // Присваивает переменной, имя которой задано в параметре var, значение выражения rv
     class Assignment : public Statement {
-        std::string var_;
-        std::unique_ptr<Statement> rv_;
 
     public:
         Assignment(std::string var, std::unique_ptr<Statement> rv);
 
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        std::string var_;
+        std::unique_ptr<Statement> rv_;
     };
 
     // Присваивает полю object.field_name значение выражения rv
-    class FieldAssignment : public Statement {
-        VariableValue object_;
-        std::string field_name_;
-        std::unique_ptr<Statement> rv_;
+    class FieldAssignment : public Statement {        
 
     public:
         FieldAssignment(VariableValue object, std::string field_name, std::unique_ptr<Statement> rv);
 
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        VariableValue object_;
+        std::string field_name_;
+        std::unique_ptr<Statement> rv_;
     };
 
     // Значение None
@@ -78,8 +84,7 @@ namespace ast {
     };
 
     // Команда print
-    class Print : public Statement {
-        std::vector<std::unique_ptr<Statement>> args_;
+    class Print : public Statement {        
 
     public:
         // Инициализирует команду print для вывода значения выражения argument
@@ -93,19 +98,24 @@ namespace ast {
         // Во время выполнения команды print вывод должен осуществляться в поток, возвращаемый из
         // context.GetOutputStream()
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        std::vector<std::unique_ptr<Statement>> args_;
     };
 
     // Вызывает метод object.method со списком параметров args
-    class MethodCall : public Statement {
-        std::unique_ptr<Statement> object_;
-        std::string method_;
-        std::vector<std::unique_ptr<Statement>> args_;
+    class MethodCall : public Statement {        
 
     public:
         MethodCall(std::unique_ptr<Statement> object, std::string method,
             std::vector<std::unique_ptr<Statement>> args);
 
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        std::unique_ptr<Statement> object_;
+        std::string method_;
+        std::vector<std::unique_ptr<Statement>> args_;
     };
 
     /*
@@ -121,20 +131,21 @@ namespace ast {
     # Поле name будет иметь значение только после вызова метода set_name
     p.set_name("Ivan")
     */
-    class NewInstance : public Statement {
-        const runtime::Class& class__;
-        std::vector<std::unique_ptr<Statement>> args_;
+    class NewInstance : public Statement {        
 
     public:
         explicit NewInstance(const runtime::Class& class_);
         NewInstance(const runtime::Class& class_, std::vector<std::unique_ptr<Statement>> args);
         // Возвращает объект, содержащий значение типа ClassInstance
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        const runtime::Class& class__;
+        std::vector<std::unique_ptr<Statement>> args_;
     };
 
     // Базовый класс для унарных операций
     class UnaryOperation : public Statement {
-        std::unique_ptr<Statement> argument_;
 
     public:
         explicit UnaryOperation(std::unique_ptr<Statement> argument)
@@ -144,6 +155,10 @@ namespace ast {
         const std::unique_ptr<Statement>& GetArg() const {
             return argument_;
         }
+
+    private:
+        std::unique_ptr<Statement> argument_;
+
     };
 
     // Операция str, возвращающая строковое значение своего аргумента
@@ -155,9 +170,7 @@ namespace ast {
 
     // Родительский класс Бинарная операция с аргументами lhs и rhs
     class BinaryOperation : public Statement {
-    protected:
-        std::unique_ptr<Statement> lhs_;
-        std::unique_ptr<Statement> rhs_;
+    protected:        
 
     public:
         BinaryOperation(std::unique_ptr<Statement> lhs, std::unique_ptr<Statement> rhs)
@@ -174,6 +187,11 @@ namespace ast {
         const std::unique_ptr<Statement>& GetRhs() const {
             return rhs_;
         }
+
+    private:
+        std::unique_ptr<Statement> lhs_;
+        std::unique_ptr<Statement> rhs_;
+
     };
 
     // Возвращает результат операции + над аргументами lhs и rhs
@@ -296,8 +314,7 @@ namespace ast {
     };
 
     // Тело метода. Как правило, содержит составную инструкцию
-    class MethodBody : public Statement {
-        std::unique_ptr<Statement> body_;
+    class MethodBody : public Statement {        
 
     public:
         explicit MethodBody(std::unique_ptr<Statement>&& body);
@@ -306,11 +323,13 @@ namespace ast {
         // Если внутри body была выполнена инструкция return, возвращает результат return
         // В противном случае возвращает None
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        std::unique_ptr<Statement> body_;
     };
 
     // Выполняет инструкцию return с выражением statement
-    class Return : public Statement {
-        std::unique_ptr<Statement> statement_;
+    class Return : public Statement {        
 
     public:
         explicit Return(std::unique_ptr<Statement> statement)
@@ -321,11 +340,13 @@ namespace ast {
         // Останавливает выполнение текущего метода. После выполнения инструкции return метод,
         // внутри которого она была исполнена, должен вернуть результат вычисления выражения statement.
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        std::unique_ptr<Statement> statement_;
     };
 
     // Объявляет класс
-    class ClassDefinition : public Statement {
-        runtime::ObjectHolder cls_;
+    class ClassDefinition : public Statement {        
 
     public:
         // Гарантируется, что ObjectHolder содержит объект типа runtime::Class
@@ -334,13 +355,13 @@ namespace ast {
         // Создаёт внутри closure новый объект, совпадающий с именем класса и значением, переданным в
         // конструктор
         runtime::ObjectHolder Execute(runtime::Closure& closure, runtime::Context& context) override;
+
+    private:
+        runtime::ObjectHolder cls_;
     };
 
     // Инструкция if <condition> <if_body> else <else_body>
-    class IfElse : public Statement {
-        std::unique_ptr<Statement> condition_;
-        std::unique_ptr<Statement> if_body_;
-        std::unique_ptr<Statement> else_body_;
+    class IfElse : public Statement {        
 
     public:
         // Параметр else_body может быть равен nullptr
@@ -360,6 +381,11 @@ namespace ast {
             }
             return runtime::ObjectHolder::None();
         }
+
+    private:
+        std::unique_ptr<Statement> condition_;
+        std::unique_ptr<Statement> if_body_;
+        std::unique_ptr<Statement> else_body_;
     };
 
     // Операция сравнения

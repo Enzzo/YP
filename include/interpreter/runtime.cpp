@@ -59,7 +59,6 @@ bool IsTrue(const ObjectHolder& object) {
 }
 
 void ClassInstance::Print(std::ostream& os, Context& context) {
-    // Заглушка, реализуйте метод самостоятельно
     if (HasMethod("__str__", 0))
         Call("__str__", {}, context).Get()->Print(os, context);
     else
@@ -67,7 +66,6 @@ void ClassInstance::Print(std::ostream& os, Context& context) {
 }
 
 bool ClassInstance::HasMethod(const std::string& method, size_t argument_count) const {
-     //Заглушка, реализуйте метод самостоятельно
     const Method* str = cls_.GetMethod(method);    
     if (str != nullptr) {
         if (str->formal_params.size() == argument_count) {
@@ -78,25 +76,20 @@ bool ClassInstance::HasMethod(const std::string& method, size_t argument_count) 
 }
 
 Closure& ClassInstance::Fields() {
-    // Заглушка. Реализуйте метод самостоятельно
     return fields_;
-    //throw std::logic_error("Not implemented"s);
 }
 
 const Closure& ClassInstance::Fields() const {
-    // Заглушка. Реализуйте метод самостоятельно
     return fields_;
-    //throw std::logic_error("Not implemented"s);
 }
 
-ClassInstance::ClassInstance(const Class& cls) : cls_(cls){
-    // Реализуйте метод самостоятельно
-}
+ClassInstance::ClassInstance(const Class& cls) 
+    : cls_(cls)
+{}
 
 ObjectHolder ClassInstance::Call(const std::string& method,
                                  const std::vector<ObjectHolder>& actual_args,
                                  Context& context) {
-    // Заглушка. Реализуйте метод самостоятельно.
     if (HasMethod(method, actual_args.size())) {
         Closure args;
         args["self"s] = ObjectHolder::Share(*this);
@@ -150,7 +143,6 @@ void Bool::Print(std::ostream& os, [[maybe_unused]] Context& context) {
 }
 
 bool Equal(const ObjectHolder& lhs, const ObjectHolder& rhs, Context& context) {
-    // Заглушка. Реализуйте функцию самостоятельно
     if (lhs.TryAs<Number>() && rhs.TryAs<Number>()) {
         return lhs.TryAs<Number>()->GetValue() == rhs.TryAs<Number>()->GetValue();
     }
@@ -170,7 +162,6 @@ bool Equal(const ObjectHolder& lhs, const ObjectHolder& rhs, Context& context) {
 }
 
 bool Less(const ObjectHolder& lhs, const ObjectHolder& rhs, Context& context) {
-    // Заглушка. Реализуйте функцию самостоятельно
     if (lhs.TryAs<Number>() && rhs.TryAs<Number>()) {
         return lhs.TryAs<Number>()->GetValue() < rhs.TryAs<Number>()->GetValue();
     }
@@ -187,12 +178,10 @@ bool Less(const ObjectHolder& lhs, const ObjectHolder& rhs, Context& context) {
 }
 
 bool NotEqual(const ObjectHolder& lhs, const ObjectHolder& rhs, Context& context) {
-    // Заглушка. Реализуйте функцию самостоятельно
     return !Equal(lhs, rhs, context);
 }
 
 bool Greater(const ObjectHolder& lhs, const ObjectHolder& rhs, Context& context) {
-    // Заглушка. Реализуйте функцию самостоятельно
     return !Less(lhs, rhs, context) && !Equal(lhs, rhs, context);
 }
 

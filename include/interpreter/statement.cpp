@@ -147,12 +147,12 @@ namespace ast {
     }
 
     ObjectHolder Add::Execute(Closure& closure, Context& context) {
-        if (!rhs_ || !lhs_) {
+        if (!GetRhs() || !GetLhs()) {
             throw std::runtime_error("null operands are not supported"s);
         }
 
-        auto obj_lhs = lhs_->Execute(closure, context);
-        auto obj_rhs = rhs_->Execute(closure, context);
+        auto obj_lhs = GetLhs()->Execute(closure, context);
+        auto obj_rhs = GetRhs()->Execute(closure, context);
 
         auto ptr_lhs_n = obj_lhs.TryAs<runtime::Number>();
         auto ptr_rhs_n = obj_rhs.TryAs<runtime::Number>();
@@ -188,12 +188,12 @@ namespace ast {
     }
 
     ObjectHolder Sub::Execute(Closure& closure, Context& context) {
-        if (!rhs_ || !lhs_) {
+        if (!GetRhs() || !GetLhs()) {
             throw std::runtime_error("null operands are not supported"s);
         }
 
-        auto obj_lhs = lhs_->Execute(closure, context);
-        auto obj_rhs = rhs_->Execute(closure, context);
+        auto obj_lhs = GetLhs()->Execute(closure, context);
+        auto obj_rhs = GetRhs()->Execute(closure, context);
 
         auto ptr_lhs_n = obj_lhs.TryAs<runtime::Number>();
         auto ptr_rhs_n = obj_rhs.TryAs<runtime::Number>();
@@ -209,12 +209,12 @@ namespace ast {
     }
 
     ObjectHolder Mult::Execute(Closure& closure, Context& context) {
-        if (!rhs_ || !lhs_) {
+        if (!GetRhs() || !GetLhs()) {
             throw std::runtime_error("null operands are not supported"s);
         }
 
-        auto obj_lhs = lhs_->Execute(closure, context);
-        auto obj_rhs = rhs_->Execute(closure, context);
+        auto obj_lhs = GetLhs()->Execute(closure, context);
+        auto obj_rhs = GetRhs()->Execute(closure, context);
 
         auto ptr_lhs_n = obj_lhs.TryAs<runtime::Number>();
         auto ptr_rhs_n = obj_rhs.TryAs<runtime::Number>();
@@ -230,12 +230,12 @@ namespace ast {
     }
 
     ObjectHolder Div::Execute(Closure& closure, Context& context) {
-        if (!rhs_ || !lhs_) {
+        if (!GetRhs() || !GetLhs()) {
             throw std::runtime_error("null operands are not supported"s);
         }
 
-        auto obj_lhs = lhs_->Execute(closure, context);
-        auto obj_rhs = rhs_->Execute(closure, context);
+        auto obj_lhs = GetLhs()->Execute(closure, context);
+        auto obj_rhs = GetRhs()->Execute(closure, context);
 
         auto ptr_lhs_n = obj_lhs.TryAs<runtime::Number>();
         auto ptr_rhs_n = obj_rhs.TryAs<runtime::Number>();

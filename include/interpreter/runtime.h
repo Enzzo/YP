@@ -127,12 +127,7 @@ namespace runtime
     };
 
     // Класс
-    class Class : public Object {
-        std::string name_;
-        std::vector<Method> methods_;
-        const Class* parent_;
-
-        std::unordered_map<std::string_view, const Method*> name_to_method_;
+    class Class : public Object {        
 
     public:
         // Создаёт класс с именем name и набором методов methods, унаследованный от класса parent
@@ -147,13 +142,16 @@ namespace runtime
 
         // Выводит в os строку "Class <имя класса>", например "Class cat"
         void Print(std::ostream& os, Context& context) override;
+
+    private:
+        std::string name_;
+        std::vector<Method> methods_;
+        const Class* parent_;
+        std::unordered_map<std::string_view, const Method*> name_to_method_;
     };
 
     // Экземпляр класса
     class ClassInstance : public Object {
-        const Class& cls_;
-        Closure fields_;
-
     public:
         explicit ClassInstance(const Class& cls);
 
@@ -178,6 +176,10 @@ namespace runtime
         [[nodiscard]] Closure& Fields();
         // Возвращает константную ссылку на Closure, содержащую поля объекта
         [[nodiscard]] const Closure& Fields() const;
+
+    private:
+        const Class& cls_;
+        Closure fields_;
 
     };
 

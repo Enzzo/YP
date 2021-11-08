@@ -131,7 +131,7 @@ void TestAll() {
 
 int main() {
     try {
-        //TestAll();
+        TestAll();
         std::ifstream ifs("in.txt");
 
         RunMythonProgram(ifs, cout);
