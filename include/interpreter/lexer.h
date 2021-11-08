@@ -6,113 +6,52 @@
 #include <stdexcept>
 #include <string>
 #include <variant>
+
 #include <vector>
-#include <unordered_set>
-#include <unordered_map>
 
-namespace parse
-{
+namespace parse {
 
-    namespace token_type
-    {
-        struct Number {              // Лексема «число»
-            int value; // число
+    namespace token_type {
+        struct Number {  // Лексема «число»
+            int value;   // число
         };
 
-        struct Id {                      // Лексема «идентификатор»
-            std::string value; // Имя идентификатора
+        struct Id {             // Лексема «идентификатор»
+            std::string value;  // Имя идентификатора
         };
 
-        struct Char {               // Лексема «символ»
-            char value; // код символа
+        struct Char {    // Лексема «символ»
+            char value;  // код символа
         };
 
-        struct String { // Лексема «строковая константа»
+        struct String {  // Лексема «строковая константа»
             std::string value;
         };
 
-        struct Class
-        {
-        }; // Лексема «class»
+        struct Class {};    // Лексема «class»
+        struct Return {};   // Лексема «return»
+        struct If {};       // Лексема «if»
+        struct Else {};     // Лексема «else»
+        struct Def {};      // Лексема «def»
+        struct Newline {};  // Лексема «конец строки»
+        struct Print {};    // Лексема «print»
+        struct Indent {};  // Лексема «увеличение отступа», соответствует двум пробелам
+        struct Dedent {};  // Лексема «уменьшение отступа»
+        struct Eof {};     // Лексема «конец файла»
+        struct And {};     // Лексема «and»
+        struct Or {};      // Лексема «or»
+        struct Not {};     // Лексема «not»
+        struct Eq {};      // Лексема «==»
+        struct NotEq {};   // Лексема «!=»
+        struct LessOrEq {};     // Лексема «<=»
+        struct GreaterOrEq {};  // Лексема «>=»
+        struct None {};         // Лексема «None»
+        struct True {};         // Лексема «True»
+        struct False {};        // Лексема «False»
+    }  // namespace token_type
 
-        struct Return
-        {
-        }; // Лексема «return»
-
-        struct If
-        {
-        }; // Лексема «if»
-
-        struct Else
-        {
-        }; // Лексема «else»
-
-        struct Def
-        {
-        }; // Лексема «def»
-
-        struct Newline
-        {
-        }; // Лексема «конец строки»
-
-        struct Print
-        {
-        }; // Лексема «print»
-
-        struct Indent
-        {
-        }; // Лексема «увеличение отступа», соответствует двум пробелам
-
-        struct Dedent
-        {
-        }; // Лексема «уменьшение отступа»
-
-        struct Eof
-        {
-        }; // Лексема «конец файла»
-
-        struct And
-        {
-        }; // Лексема «and»
-
-        struct Or
-        {
-        }; // Лексема «or»
-
-        struct Not
-        {
-        }; // Лексема «not»
-
-        struct Eq
-        {
-        }; // Лексема «==»
-
-        struct NotEq
-        {
-        }; // Лексема «!=»
-
-        struct LessOrEq
-        {
-        }; // Лексема «<=»
-
-        struct GreaterOrEq
-        {
-        }; // Лексема «>=»
-
-        struct None
-        {
-        }; // Лексема «None»
-
-        struct True
-        {
-        }; // Лексема «True»
-
-        struct False
-        {
-        }; // Лексема «False»
-    }      // namespace token_type
-
-    using TokenBase = std::variant<token_type::Number, token_type::Id, token_type::Char, token_type::String,
+    using TokenBase
+        = std::variant<token_type::Number, token_type::Id, token_type::Char, token_type::String,
         token_type::Class, token_type::Return, token_type::If, token_type::Else,
         token_type::Def, token_type::Newline, token_type::Print, token_type::Indent,
         token_type::Dedent, token_type::And, token_type::Or, token_type::Not,
@@ -123,20 +62,17 @@ namespace parse
         using TokenBase::TokenBase;
 
         template <typename T>
-        [[nodiscard]] bool Is() const
-        {
+        [[nodiscard]] bool Is() const {
             return std::holds_alternative<T>(*this);
         }
 
         template <typename T>
-        [[nodiscard]] const T& As() const
-        {
+        [[nodiscard]] const T& As() const {
             return std::get<T>(*this);
         }
 
         template <typename T>
-        [[nodiscard]] const T* TryAs() const
-        {
+        [[nodiscard]] const T* TryAs() const {
             return std::get_if<T>(this);
         }
     };
@@ -151,13 +87,19 @@ namespace parse
         using std::runtime_error::runtime_error;
     };
 
-    class Lexer
-    {
+    class Lexer {
+    private:
+        std::vector<Token> line_;
+        size_t head_ = 0;
+        size_t indent_level_ = 0;
+
     public:
         explicit Lexer(std::istream& input);
 
-        [[nodiscard]] const Token& CurrentToken() const;
+        // Возвращает ссылку на текущий токен или token_type::Eof, если поток токенов закончился
+        const Token& CurrentToken() const;
 
+        // Возвращает следующий токен, либо token_type::Eof, если поток токенов закончился
         Token NextToken();
 
         // Если текущий токен имеет тип T, метод возвращает ссылку на него.
@@ -165,10 +107,9 @@ namespace parse
         template <typename T>
         const T& Expect() const {
             using namespace std::literals;
-            if (!CurrentToken().Is<T>()) {
-                throw LexerError("ERROR:The token type does not match the declared one"s);
-            }
-            return CurrentToken().As<T>();
+            if (line_[head_].Is<T>())
+                return line_[head_].As<T>();
+            throw LexerError("Not implemented"s);
         }
 
         // Метод проверяет, что текущий токен имеет тип T, а сам токен содержит значение value.
@@ -176,57 +117,41 @@ namespace parse
         template <typename T, typename U>
         void Expect(const U& value) const {
             using namespace std::literals;
-            if (Expect<T>().value != value) {
-                throw LexerError("ERROR: The token type does not match the declared one or the values do not match"s);
+            if (!line_[head_].Is<T>() || line_[head_].As<T>().value != value) {
+                throw LexerError("Not implemented"s);
             }
+            // Заглушка. Реализуйте метод самостоятельно                
         }
 
         // Если следующий токен имеет тип T, метод возвращает ссылку на него.
         // В противном случае метод выбрасывает исключение LexerError
         template <typename T>
         const T& ExpectNext() {
-            using namespace std::literals;
-            if (!NextToken().Is<T>()) {
-                throw LexerError("Not implemented"s);
+            if ((head_ + 1) < line_.size()) {
+                head_++;
             }
-            return CurrentToken().As<T>();
+            return Expect<T>();
         }
 
         // Метод проверяет, что следующий токен имеет тип T, а сам токен содержит значение value.
         // В противном случае метод выбрасывает исключение LexerError
         template <typename T, typename U>
         void ExpectNext(const U& value) {
-            using namespace std::literals;
-            if (ExpectNext<T>().value != value) {
-                throw LexerError("Not implemented"s);
+            if ((head_ + 1) < line_.size()) {
+                head_++;
             }
+            Expect<T>(value);
         }
 
     private:
-        //        const std::unordered_set<char> MARKS{'(', ')', ',', '.', ':', '+', '-', '*', '/', '=', '<', '>', '!', '?'};
-        //        const std::unordered_map<std::string, Token> KEY_WORDS{
-        //            {"class",token_type::Class{}},
-        //            {"return",token_type::Return{}},
-        //            {"if",token_type::If{}},
-        //            {"else",token_type::Else{}},
-        //            {"def",token_type::Def{}},
-        //            {"print",token_type::Print{}},
-        //            {"or",token_type::Or{}},
-        //            {"None",token_type::None{}},
-        //            {"and",token_type::And{}},
-        //            {"not",token_type::Not{}},
-        //            {"True",token_type::True{}},
-        //            {"False",token_type::False{}}
-        //        };
-        std::vector<Token> token_base_;
-        size_t current_token_ = 0;
-        size_t dend_number_ = 0;
-
-        void ParseTokens(std::istream& input);
-        void ParseString(std::istream& input);
-        void ParseNumber(std::istream& input);
-        void ParseWords(std::istream& input);
-        void ParseDend(std::istream& input);
-        void ParseOperation(std::istream& input);
+        size_t CheckAndCutLine(std::string&) const;
+        int IndentLevelOfLine(const std::string_view)const;
+        void ReadLine(std::istringstream&);
+        void SetIndentLevel(const size_t);
+        void ReadId(std::istringstream&);                   //чтение идентификаторов
+        void ReadNumber(std::istringstream&);               //чтение чисел
+        void ReadString(std::istringstream&, const char);   //чтение строк в кавычках
+        [[nodiscard]] bool EmptyLine(const std::string_view) const;   //проверка, если строка пустая, либо содержит только комментарий
     };
-} // namespace parse
+
+}  // namespace parse

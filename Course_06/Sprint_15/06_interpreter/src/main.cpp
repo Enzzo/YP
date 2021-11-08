@@ -5,6 +5,8 @@
 #include "test_runner_p.h"
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -129,9 +131,10 @@ void TestAll() {
 
 int main() {
     try {
-        TestAll();
+        //TestAll();
+        std::istringstream ifs("You hardcode tests, right ? \n"s);
 
-        //RunMythonProgram(cin, cout);
+        RunMythonProgram(ifs, cout);
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
 		return 1;
