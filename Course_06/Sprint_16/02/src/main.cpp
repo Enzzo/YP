@@ -23,7 +23,6 @@ void TestPositionAndStringConversion() {
     auto test_single = [](Position pos, std::string_view str) {
         ASSERT_EQUAL(pos.ToString(), str);
         ASSERT_EQUAL(Position::FromString(str), pos);
-        int x = 2;
     };
 
     for (int i = 0; i < 25; ++i) {

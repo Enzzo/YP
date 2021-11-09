@@ -32,11 +32,12 @@ std::string Position::ToString() const {
 	std::string result;
 	int c = col;
 
-	while (c >= 0) {
+	while(c > 0){
 		int p = c % 26;
-		result.insert(result.begin(),char(p + 65));
-		c -= (26 + p);
-	}
+		c /= 26;
+		result.insert(result.begin(),char(p + 65));	
+	};
+
 	std::stringstream ss;
 	ss << (row + 1);
 	result += ss.str();
@@ -55,9 +56,10 @@ Position Position::FromString(std::string_view str) {
 		Position result;
 
 		//конвертируем столбцы
-		for (size_t pos = 0; pos < std::distance(str.begin(), mid); ++pos) {
-			const char& ch = *(str.rbegin() + pos);
-			result.col += (ch - 64) * pow(26, pos);
+		size_t part = std::distance(str.begin(), mid);
+		for (size_t i = 0; i < part; ++i) {
+			const char& ch = *(str.begin() + (part - 1 - i));
+			result.col += (ch - 64) * pow(26, i);
 		}
 		--result.col;
 
