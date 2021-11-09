@@ -2,7 +2,6 @@
 
 #include <cctype>
 #include <sstream>
-#include <ranges>
 
 const int LETTERS = 26;
 const int MAX_POSITION_LENGTH = 17;
@@ -28,12 +27,17 @@ std::string Position::ToString() const {
 }
 
 Position Position::FromString(std::string_view str) {
-	static std::regex r_template("([A-Z]{1,3})([0-9]{1,5})");
+	static std::regex r_template("([A-Z]{1,3})([1-9]{1,5})");
+
 	if (std::regex_match(std::string(str), r_template)) {
-		auto mid = std::find(str.begin(), str.end(), [](const char ch) {
+		auto mid = std::find_if(str.begin(), str.end(), [](const char ch) {
 			return isdigit(ch);
 			});
-		
+
+		Position result;
+		std::istringstream ist(std::string(mid, str.end()));
+		ist >> result.row;
+		--result.row;
 	}
-	return {};
+	return Position::NONE;
 }
