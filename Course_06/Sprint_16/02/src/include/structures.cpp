@@ -11,33 +11,65 @@ const Position Position::NONE = {-1, -1};
 
 // Реализуйте методы:
 bool Position::operator==(const Position rhs) const {
-	return false;
+	return this->row == rhs.row 
+		&& this->col == rhs.col;
 }
 
 bool Position::operator<(const Position rhs) const {
+
 	return false;
 }
 
 bool Position::IsValid() const {
-	return false;
+	return 0 <= col && col < MAX_COLS
+		&& 0 <= row && row < MAX_ROWS;
 }
 
 std::string Position::ToString() const {
-	return {};
+	if (!IsValid()) {
+		return "";
+	}
+	std::string result;
+	int c = col;
+
+	while (c >= 0) {
+		int p = c % 26;
+		result.insert(result.begin(),char(p + 65));
+		c -= (26 + p);
+	}
+	std::stringstream ss;
+	ss << (row + 1);
+	result += ss.str();
+	return result;
 }
 
 Position Position::FromString(std::string_view str) {
-	static std::regex r_template("([A-Z]{1,3})([1-9]{1,5})");
+	static std::regex r_template("([A-Z]{1,3})([0-9]{1,5})");
 
 	if (std::regex_match(std::string(str), r_template)) {
+
 		auto mid = std::find_if(str.begin(), str.end(), [](const char ch) {
 			return isdigit(ch);
 			});
 
 		Position result;
+
+		//конвертируем столбцы
+		for (size_t pos = 0; pos < std::distance(str.begin(), mid); ++pos) {
+			const char& ch = *(str.rbegin() + pos);
+			result.col += (ch - 64) * pow(26, pos);
+		}
+		--result.col;
+
+		//конвертируем ряды		
 		std::istringstream ist(std::string(mid, str.end()));
 		ist >> result.row;
 		--result.row;
+
+		//возвращаем результат
+		if (result.IsValid()) {
+			return result;
+		}
 	}
 	return Position::NONE;
 }
