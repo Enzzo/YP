@@ -7,7 +7,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <regex>
 
 // Позиция ячейки. Индексация с нуля.
 struct Position {

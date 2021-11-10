@@ -2,6 +2,8 @@
 
 #include <cctype>
 #include <sstream>
+#include <regex>
+#include <cmath>
 
 const int LETTERS = 26;
 const int MAX_POSITION_LENGTH = 17;
@@ -16,8 +18,9 @@ bool Position::operator==(const Position rhs) const {
 }
 
 bool Position::operator<(const Position rhs) const {
-
-	return false;
+	
+	return col < rhs.col
+			&& row < rhs.row;
 }
 
 bool Position::IsValid() const {
@@ -32,10 +35,14 @@ std::string Position::ToString() const {
 	std::string result;
 	int c = col;
 
-	while(c > 0){
+	while(true){
 		int p = c % 26;
 		c /= 26;
 		result.insert(result.begin(),char(p + 65));	
+		if (c == 0) {
+			break;
+		}
+		--c;
 	};
 
 	std::stringstream ss;
@@ -45,7 +52,7 @@ std::string Position::ToString() const {
 }
 
 Position Position::FromString(std::string_view str) {
-	static std::regex r_template("([A-Z]{1,3})([0-9]{1,5})");
+	std::regex r_template("([A-Z]{1,3})([0-9]{1,5})");
 
 	if (std::regex_match(std::string(str), r_template)) {
 
