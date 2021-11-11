@@ -145,6 +145,20 @@ public:
 // Реализуйте метод Evaluate() для бинарных операций.
 // При делении на 0 выбрасывайте ошибку вычисления FormulaError
     double Evaluate() const override {
+        switch (type_) {
+        case Add:
+            return lhs_->Evaluate() + rhs_->Evaluate();
+        case Subtract:
+            return lhs_->Evaluate() - rhs_->Evaluate();
+        case Multiply:
+            return lhs_->Evaluate() * rhs_->Evaluate();
+        case Divide:
+            if (rhs_->Evaluate() == 0.0) {
+                throw FormulaError("DIV/0");
+            }
+            return lhs_->Evaluate() / rhs_->Evaluate();
+        }
+        return 0.0;
     }
 
 private:
@@ -183,6 +197,10 @@ public:
 
 // Реализуйте метод Evaluate() для унарных операций.
     double Evaluate() const override {
+        if (type_ == Type::UnaryMinus) {
+            return -1 * operand_->Evaluate();
+        }
+        return operand_->Evaluate();
     }
 
 private:
