@@ -17,11 +17,11 @@ int main() {
     ASSERT_EQUAL(ExecuteASTFormula("1--"), 1.0);
     ASSERT_EQUAL(ExecuteASTFormula("1+2*((3-4))/5"), 0.6);
     try {
-        ASSERT_EQUAL(ExecuteASTFormula("1+-20"), -19.0);
+        ASSERT_EQUAL(ExecuteASTFormula("1+--20"), 21.0);
     } catch (const FormulaError& fe) {
         std::cout << fe.what() << std::endl;
     }
 
-    std::cout << "Tests Passed" << std::endl;
+    std::cout << "\nTests Passed" << std::endl;
     return 0;
 }

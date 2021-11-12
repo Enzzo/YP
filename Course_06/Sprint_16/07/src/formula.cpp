@@ -43,7 +43,6 @@ namespace {
 }  // namespace
 
 std::unique_ptr<FormulaInterface> ParseFormula(std::string expression) {
-    //TODO: если строка expression содержит синтаксически некорректную формулу, то метод должен кинуть исключение FormulaException
     try {
         return std::make_unique<Formula>(std::move(expression));
     }
