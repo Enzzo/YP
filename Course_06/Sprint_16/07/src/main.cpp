@@ -14,7 +14,7 @@ std::unique_ptr<CellInterface> CreateCell(const std::string& str) {
     return cell;
 }
 
-int main(){
+int main() {
     auto simple_text = CreateCell("simple_text");
     ASSERT_EQUAL(simple_text->GetText(), "simple_text");
     ASSERT_EQUAL(std::get<std::string>(simple_text->GetValue()), "simple_text");

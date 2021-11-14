@@ -24,8 +24,7 @@ namespace {
         }
         Value Evaluate() const override {
             try {
-                double a = ast_.Execute();
-                return a;
+                return ast_.Execute();
             }
             catch (FormulaError& e) {
                 return e;
@@ -44,7 +43,10 @@ namespace {
 
 std::unique_ptr<FormulaInterface> ParseFormula(std::string expression) {
     try {
-        return std::make_unique<Formula>(std::move(expression));
+
+        std::unique_ptr<FormulaInterface> test = std::make_unique<Formula>(std::move(expression));
+
+        return test;
     }
     catch (...) {
         throw FormulaException("");
