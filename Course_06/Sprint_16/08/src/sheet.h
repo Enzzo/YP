@@ -9,7 +9,6 @@
 class Sheet : public SheetInterface {
 public:
     using Table = std::unordered_map<Position, Cell, CellHasher, CellComparator>;
-    //using Table = std::map<Position, Cell>;
 
     ~Sheet();
 
