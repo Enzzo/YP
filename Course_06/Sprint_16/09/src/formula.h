@@ -21,7 +21,7 @@ public:
     // возвращается именно эта ошибка. Если таких ошибок несколько, возвращается
     // любая.
     virtual Value Evaluate(const SheetInterface& sheet) const = 0;
-
+    
     // Возвращает выражение, которое описывает формулу.
     // Не содержит пробелов и лишних скобок.
     virtual std::string GetExpression() const = 0;

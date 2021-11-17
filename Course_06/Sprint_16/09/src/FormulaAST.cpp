@@ -143,7 +143,20 @@ ExprPrecedence GetPrecedence() const override {
 }
 
 double Evaluate(const SheetInterface& args) const override {
-      // Скопируйте ваше решение из предыдущих уроков.
+    switch (type_) {
+    case Add:
+        return lhs_->Evaluate() + rhs_->Evaluate();
+    case Subtract:
+        return lhs_->Evaluate() - rhs_->Evaluate();
+    case Multiply:
+        return lhs_->Evaluate() * rhs_->Evaluate();
+    case Divide:
+        if (rhs_->Evaluate() == 0.0) {
+            throw FormulaError("DIV/0");
+        }
+        return lhs_->Evaluate() / rhs_->Evaluate();
+    }
+    return 0.0;
 }
 
 private:
@@ -181,7 +194,10 @@ ExprPrecedence GetPrecedence() const override {
 }
 
 double Evaluate(const SheetInterface& args) const override {
-  // Скопируйте ваше решение из предыдущих уроков.
+    if (type_ == Type::UnaryMinus) {
+        return -1 * operand_->Evaluate();
+    }
+    return operand_->Evaluate();
 }
 
 private:

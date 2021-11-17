@@ -31,6 +31,11 @@ namespace {
                 return e;
             }
         }
+
+        double Evaluate() const override{
+            //TODO: Это временный метод. Удалить!!!
+            return 0.0;
+        }
         std::string GetExpression() const override {
             std::ostringstream result;
             ast_.PrintFormula(result);
