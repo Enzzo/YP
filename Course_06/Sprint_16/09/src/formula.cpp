@@ -22,9 +22,9 @@ namespace {
         {
             
         }
-        Value Evaluate() const override {
+        Value Evaluate(const SheetInterface& args) const override {
             try {
-                double a = ast_.Execute();
+                double a = ast_.Execute(args);
                 return a;
             }
             catch (FormulaError& e) {

@@ -7,7 +7,7 @@
 
 
 // Реализуйте следующие методы
-Cell::Cell()
+Cell::Cell(Sheet& sheet)
 {
 	impl_ = std::make_unique<EmptyImpl>();
 }
