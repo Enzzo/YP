@@ -407,8 +407,8 @@ void FormulaAST::PrintFormula(std::ostream& out) const {
 root_expr_->PrintFormula(out, ASTImpl::EP_ATOM);
 }
 
-double FormulaAST::Execute(const SheetInterface& args) const {
-return root_expr_->Evaluate(args);
+double FormulaAST::Execute(const std::function<double(Position)>& access) const {
+return root_expr_->Evaluate(access);
 }
 
 FormulaAST::FormulaAST(std::unique_ptr<ASTImpl::Expr> root_expr, std::forward_list<Position> cells)
