@@ -8,8 +8,10 @@
 
 // Реализуйте следующие методы
 Cell::Cell(Sheet& sheet)
+	:impl_(std::make_unique<EmptyImpl>())
+	,sheet_(sheet)
 {
-	impl_ = std::make_unique<EmptyImpl>();
+	
 }
 
 Cell::~Cell() {

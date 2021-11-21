@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <unordered_set>
+#include <optional>
 
 class Sheet;
 
@@ -19,8 +20,6 @@ public:
     Value GetValue() const override;
     std::string GetText() const override;
     std::vector<Position> GetReferencedCells() const override;
-
-    bool IsReferenced() const;
 
 private:
     class Impl {
@@ -65,16 +64,22 @@ private:
     };
     class FormulaImpl : public Impl {
         std::unique_ptr<FormulaInterface> formula_ptr_;
+        const SheetInterface& sheet_;
+        mutable std::optional<FormulaInterface::Value> cache_;
 
     public:
-        FormulaImpl(std::string_view expression) {
+        FormulaImpl(std::string_view expression, const SheetInterface& sheet)
+        : sheet_(sheet){
+            if (expression.empty() || expression[0] != FORMULA_SIGN) {
+                throw std::logic_error("");
+            }
             expression = expression.substr(1);
             value_ = std::string(expression);
             formula_ptr_ = ParseFormula(std::move(std::string(expression)));
-            text_ = "=" + formula_ptr_->GetExpression();
+            //text_ = "=" + formula_ptr_->GetExpression();
         }
         Value GetValue() const override {
-            auto value = formula_ptr_->Evaluate();
+            auto value = formula_ptr_->Evaluate(sheet_);
             if (std::holds_alternative<double>(value)) {
                 return std::get<double>(value);
             }
@@ -84,9 +89,10 @@ private:
             return text_;
         }
     };
-
     std::unique_ptr<Impl> impl_;
-
+    Sheet& sheet_;
+    std::unordered_set<Cell*> l_nodes_;
+    std::unordered_set<Cell*> r_nodes_;
     // Добавьте поля и методы для связи с таблицей, проверки циклических 
     // зависимостей, графа зависимостей и т. д.
 };
