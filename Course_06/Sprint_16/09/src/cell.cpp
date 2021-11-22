@@ -44,10 +44,10 @@ void Cell::Set(std::string text) {
     }
 
     r_nodes_.clear();
-
+    
     for (const auto& pos : impl_->GetReferencedCells()) {
         Cell* outgoing = sheet_.GetCellPtr(pos);
-
+        
         if (!outgoing) {
             sheet_.SetCell(pos, "");
             outgoing = sheet_.GetCellPtr(pos);

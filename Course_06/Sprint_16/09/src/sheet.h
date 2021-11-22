@@ -39,7 +39,6 @@ public:
     void PrintTexts(std::ostream& output) const override;
 
     const Cell* GetCellPtr(Position pos) const;
-
     Cell* GetCellPtr(Position pos);
 
 	// Можете дополнить ваш класс нужными полями и методами

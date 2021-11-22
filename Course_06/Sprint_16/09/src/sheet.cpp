@@ -29,7 +29,7 @@ const CellInterface* Sheet::GetCell(Position pos) const {
         return nullptr;
     }
 
-    const Cell* c = &(cells_.at(p));
+    const Cell* c = cells_.at(p).get();
     if (c->GetText().size() == 0) {
         return nullptr;
     }
@@ -44,7 +44,7 @@ CellInterface* Sheet::GetCell(Position pos) {
     if (it == cells_.end()) {
         return nullptr;
     }
-    Cell* c = &(cells_.at(p));
+    Cell* c = cells_.at(p).get();
     if (c->GetText().size() == 0) {
         return nullptr;
     }
@@ -125,7 +125,13 @@ const Cell* Sheet::GetCellPtr(Position pos) const {
         throw InvalidPositionException("Invalid pos");
     }
 
-    if (pos.row >= static_cast<int>(cells_.size()) || pos.col >= static_cast<int>(cells_[pos.row].size())) {
+    int row_size = 0;
+    for (auto it = cells_.begin(); it != cells_.end(); ++it) {
+        int r = it->first.row;
+        if (row_size < r) row_size = r;
+    }
+
+    if (pos.row >= static_cast<int>(cells_.size()) || pos.col >= static_cast<int>(row_size)) {
         return nullptr;
     }
 
@@ -133,8 +139,21 @@ const Cell* Sheet::GetCellPtr(Position pos) const {
 }
 
 Cell* Sheet::GetCellPtr(Position pos) {
-    return const_cast<Cell*>(
-        static_cast<const Sheet&>(*this).GetCellPtr(pos));
+    if (!pos.IsValid()) {
+        throw InvalidPositionException("Invalid pos");
+    }
+
+    int row_size = 0;
+    for (auto it = cells_.begin(); it != cells_.end(); ++it) {
+        int r = it->first.row;
+        if (row_size < r) row_size = r;
+    }
+
+    if (pos.row >= static_cast<int>(cells_.size()) || pos.col >= static_cast<int>(row_size)) {
+        return nullptr;
+    }
+
+    return cells_.at({ pos.row, pos.col }).get();
 }
 
 std::unique_ptr<SheetInterface> CreateSheet() {
