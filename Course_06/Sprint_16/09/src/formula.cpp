@@ -17,10 +17,10 @@ namespace {
     class Formula : public FormulaInterface {
     public:
         // Реализуйте следующие методы:
-        explicit Formula(std::string expression)        
-            :ast_(ParseFormulaAST(std::move(expression)))
-        {
-            
+        explicit Formula(std::string expression) try : ast_(ParseFormulaAST(expression)) {
+        }
+        catch (const std::exception& e) {
+            std::throw_with_nested(FormulaException(e.what()));
         }
         Value Evaluate(const SheetInterface& sheet) const override {
             const SheetArgs args = [&sheet](const Position p) -> double {
@@ -31,7 +31,7 @@ namespace {
                 if (!cell) {
                     return 0;
                 }
-                                if (std::holds_alternative<double>(cell->GetValue())) {
+                if (std::holds_alternative<double>(cell->GetValue())) {
                     return std::get<double>(cell->GetValue());
                 }
 
@@ -56,6 +56,17 @@ namespace {
                 return e;
             }
         }
+        std::vector<Position> GetReferencedCells() const override {
+            std::vector<Position> cells;
+            for (auto cell : ast_.GetCells()) {
+                if (cell.IsValid()) {
+                    cells.push_back(cell);
+                }
+            }
+            cells.resize(std::unique(cells.begin(), cells.end()) - cells.begin());
+            return cells;
+        }
+
         std::string GetExpression() const override {
             std::ostringstream result;
             ast_.PrintFormula(result);

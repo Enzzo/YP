@@ -22,41 +22,49 @@ public:
     std::vector<Position> GetReferencedCells() const override;
 
 private:
+    class Impl;
+
+    bool WouldIntroduceCircularDependency(const Impl& impl) const;
+
+    // void UpdateRefs();
+
+    void InvalidateCacheRecursive(bool force = false);
+
     class Impl {
     public:
         virtual Value GetValue() const = 0;
         virtual std::string GetText() const = 0;
-
+        virtual std::vector<Position> GetReferencedCells() const { return {}; }
+        virtual void InvalidateCache() {}
     protected:
-        Value value_;
-        std::string text_;
+        //Value value_;
+        //std::string text_;
     };
 
     class EmptyImpl : public Impl {
     public:
-        EmptyImpl() {
-            value_ = text_ = "";
-        }
         Value GetValue() const override {
-            return value_;
+            return "";
         }
 
         std::string GetText() const override {
-            return text_;
+            return "";
         }
     };
     class TextImpl : public Impl {
+        std::string text_;
     public:
-        TextImpl(std::string_view text) {
-            text_ = text;
-            if (text[0] == '\'') {
-                text = text.substr(1);
+        TextImpl(std::string_view text) : text_(text) {
+            if (text.empty()) {
+                throw std::logic_error("");
             }
-            value_ = std::string(text);
         }
 
         Value GetValue() const override {
-            return value_;
+            if (text_[0] == ESCAPE_SIGN) {
+                return text_.substr(1);
+            }
+            return text_;
         }
         std::string GetText() const override {
             return text_;
@@ -68,26 +76,32 @@ private:
         mutable std::optional<FormulaInterface::Value> cache_;
 
     public:
-        FormulaImpl(std::string_view expression, const SheetInterface& sheet)
+        explicit FormulaImpl(std::string_view expression, const SheetInterface& sheet)
         : sheet_(sheet){
             if (expression.empty() || expression[0] != FORMULA_SIGN) {
                 throw std::logic_error("");
             }
-            expression = expression.substr(1);
-            value_ = std::string(expression);
-            formula_ptr_ = ParseFormula(std::move(std::string(expression)));
+            //expression = expression.substr(1);
+            //value_ = std::string(expression);
+            formula_ptr_ = ParseFormula(std::move(std::string(expression.substr(1))));
             //text_ = "=" + formula_ptr_->GetExpression();
         }
         Value GetValue() const override {
-            auto value = formula_ptr_->Evaluate(sheet_);
+            if (!cache_) {
+                cache_ = formula_ptr_->Evaluate(sheet_);
+            }
+
+            return std::visit([](const auto& x) { return Value(x); }, *cache_);
+            /*auto value = formula_ptr_->Evaluate(sheet_);
             if (std::holds_alternative<double>(value)) {
                 return std::get<double>(value);
             }
-            return std::get<FormulaError>(value);
+            return std::get<FormulaError>(value);*/
         }
         std::string GetText() const override {
-            return text_;
+            return FORMULA_SIGN + formula_ptr_->GetExpression();
         }
+        void InvalidateCache() override { cache_.reset(); }
     };
     std::unique_ptr<Impl> impl_;
     Sheet& sheet_;

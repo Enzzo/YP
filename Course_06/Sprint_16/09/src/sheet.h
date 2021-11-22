@@ -22,7 +22,7 @@ public:
 
 class Sheet : public SheetInterface {
 public:
-    using Table = std::unordered_map<Position, Cell, CellHasher, CellComparator>;
+    using Table = std::unordered_map<Position, std::unique_ptr<Cell>, CellHasher, CellComparator>;
 
     ~Sheet();
 
@@ -37,6 +37,10 @@ public:
 
     void PrintValues(std::ostream& output) const override;
     void PrintTexts(std::ostream& output) const override;
+
+    const Cell* GetCellPtr(Position pos) const;
+
+    Cell* GetCellPtr(Position pos);
 
 	// Можете дополнить ваш класс нужными полями и методами
 private:

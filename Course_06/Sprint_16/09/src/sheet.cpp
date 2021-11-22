@@ -16,7 +16,7 @@ void Sheet::SetCell(Position pos, std::string text) {
     if (!pos.IsValid()) {
         throw InvalidPositionException("invalid position");
     }
-    cells_[pos].Set(text);
+    cells_[pos]->Set(text);
 }
 
 const CellInterface* Sheet::GetCell(Position pos) const {
@@ -56,7 +56,7 @@ void Sheet::ClearCell(Position pos) {
     if (!p.IsValid()) {
         throw InvalidPositionException("invalid position");
     }
-    cells_[pos].Clear();
+    cells_[pos]->Clear();
 }
 
 Size Sheet::GetPrintableSize() const {
@@ -66,7 +66,7 @@ Size Sheet::GetPrintableSize() const {
     Size result{ 0, 0 };
     
     for (auto it = cells_.begin(); it != cells_.end(); ++it) {
-        if (it->second.GetText().size() == 0) continue;
+        if (it->second->GetText().size() == 0) continue;
         const int c = it->first.col;
         const int r = it->first.row;
         
@@ -93,7 +93,7 @@ void Sheet::PrintValues(std::ostream& output) const {
             Position pos = { r, c };
             auto it = cells_.find(pos);
             if (it != cells_.end()) {
-                auto v = cells_.at(pos).GetValue();
+                auto v = cells_.at(pos)->GetValue();
                 std::visit([&output](auto&& arg) {output << arg; }, v);
             }
         }
@@ -113,11 +113,28 @@ void Sheet::PrintTexts(std::ostream& output) const {
             Position pos = { r, c };
             auto it = cells_.find(pos);
             if (it != cells_.end()) {
-                output << cells_.at(pos).GetText();
+                output << cells_.at(pos)->GetText();
             }
         }
         output << "\n";
     }
+}
+
+const Cell* Sheet::GetCellPtr(Position pos) const {
+    if (!pos.IsValid()) {
+        throw InvalidPositionException("Invalid pos");
+    }
+
+    if (pos.row >= static_cast<int>(cells_.size()) || pos.col >= static_cast<int>(cells_[pos.row].size())) {
+        return nullptr;
+    }
+
+    return cells_.at({ pos.row, pos.col }).get();
+}
+
+Cell* Sheet::GetCellPtr(Position pos) {
+    return const_cast<Cell*>(
+        static_cast<const Sheet&>(*this).GetCellPtr(pos));
 }
 
 std::unique_ptr<SheetInterface> CreateSheet() {
