@@ -9,8 +9,26 @@
 
 using namespace std::literals;
 
+FormulaError::FormulaError(Category category) : category_(category) {}
+
+FormulaError::Category FormulaError::GetCategory() const { return category_; }
+
+bool FormulaError::operator==(FormulaError rhs) const { return category_ == rhs.category_; }
+
+std::string_view FormulaError::ToString() const {
+    switch (category_) {
+    case Category::Ref:
+        return "#REF!";
+    case Category::Value:
+        return "#VALUE!";
+    case Category::Div0:
+        return "#DIV/0!";
+    }
+    return "";
+}
+
 std::ostream& operator<<(std::ostream& output, FormulaError fe) {
-    return output << "#DIV/0!";
+    return output << fe.ToString();
 }
 
 namespace {
