@@ -34,7 +34,7 @@ class Cell::TextImpl : public Impl {
     std::string text_;
 public:
     TextImpl(std::string text) : text_(std::move(text)) {
-        if (text.empty()) {
+        if (text_.empty()) {
             throw std::logic_error("");
         }
     }
@@ -89,13 +89,9 @@ std::vector<Position> Cell::GetReferencedCells() const { return impl_->GetRefere
 Cell::Cell(Sheet& sheet)
     :impl_(std::make_unique<EmptyImpl>())
     , sheet_(sheet)
-{
-    int x = 2;
-}
+{}
 
-Cell::~Cell() {
-
-}
+Cell::~Cell() {}
 
 void Cell::Set(std::string text) {
     std::unique_ptr<Impl> impl;
@@ -111,9 +107,8 @@ void Cell::Set(std::string text) {
     }
 
     if (WouldIntroduceCircularDependency(*impl)) {
-        throw CircularDependencyException("Setting this formula would introduce circular dependency!");
+        throw CircularDependencyException("");
     }
-
     impl_ = std::move(impl);
 
     for (Cell* outgoing : r_nodes_) {

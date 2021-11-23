@@ -29,6 +29,18 @@ namespace {
     //    return std::string(FormulaError(category).ToString());
     //}
 
+    void checkCell(Position pos, std::string text, std::unique_ptr<SheetInterface>& s) {
+        s->SetCell(pos, text);
+        CellInterface* cell = s->GetCell(pos);
+        ASSERT(cell != nullptr);
+        ASSERT_EQUAL(cell->GetText(), text);
+        ASSERT_EQUAL(std::get<std::string>(cell->GetValue()), text);
+    };
+
+    double evaluate(std::string expr, std::unique_ptr<SheetInterface>& s) {
+        return std::get<double>(ParseFormula(std::move(expr))->Evaluate(*s));
+    };
+
     void TestPositionAndStringConversion() {
         auto testSingle = [](Position pos, std::string_view str) {
             ASSERT_EQUAL(pos.ToString(), str);
@@ -103,19 +115,10 @@ namespace {
 
     void TestSetCellPlainText() {
         auto sheet = CreateSheet();
-
-        auto checkCell = [&](Position pos, std::string text) {
-            sheet->SetCell(pos, text);
-            CellInterface* cell = sheet->GetCell(pos);
-            ASSERT(cell != nullptr);
-            ASSERT_EQUAL(cell->GetText(), text);
-            ASSERT_EQUAL(std::get<std::string>(cell->GetValue()), text);
-        };
-
-        checkCell("A1"_pos, "Hello");
-        checkCell("A1"_pos, "World");
-        checkCell("B2"_pos, "Purr");
-        checkCell("A3"_pos, "Meow");
+        checkCell("A1"_pos, "Hello", sheet);
+        checkCell("A1"_pos, "World", sheet);
+        checkCell("B2"_pos, "Purr", sheet);
+        checkCell("A3"_pos, "Meow", sheet);
 
         const SheetInterface& constSheet = *sheet;
         ASSERT_EQUAL(constSheet.GetCell("B2"_pos)->GetText(), "Purr");
@@ -139,17 +142,17 @@ namespace {
 
     void TestFormulaArithmetic() {
         auto sheet = CreateSheet();
-        auto evaluate = [&](std::string expr) {
+        /*auto evaluate = [&](std::string expr) {
             return std::get<double>(ParseFormula(std::move(expr))->Evaluate(*sheet));
-        };
+        };*/        
 
-        ASSERT_EQUAL(evaluate("1"), 1);
-        ASSERT_EQUAL(evaluate("42"), 42);
-        ASSERT_EQUAL(evaluate("2 + 2"), 4);
-        ASSERT_EQUAL(evaluate("2 + 2*2"), 6);
-        ASSERT_EQUAL(evaluate("4/2 + 6/3"), 4);
-        ASSERT_EQUAL(evaluate("(2+3)*4 + (3-4)*5"), 15);
-        ASSERT_EQUAL(evaluate("(12+13) * (14+(13-24/(1+1))*55-46)"), 575);
+        ASSERT_EQUAL(evaluate("1", sheet), 1);
+        ASSERT_EQUAL(evaluate("42", sheet), 42);
+        ASSERT_EQUAL(evaluate("2 + 2", sheet), 4);
+        ASSERT_EQUAL(evaluate("2 + 2*2", sheet), 6);
+        ASSERT_EQUAL(evaluate("4/2 + 6/3", sheet), 4);
+        ASSERT_EQUAL(evaluate("(2+3)*4 + (3-4)*5", sheet), 15);
+        ASSERT_EQUAL(evaluate("(12+13) * (14+(13-24/(1+1))*55-46)", sheet), 575);
     }
 
     void TestFormulaReferences() {

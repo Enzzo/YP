@@ -29,8 +29,8 @@ private:
     bool WouldIntroduceCircularDependency(const Impl& impl) const;
     // void UpdateRefs();
     void InvalidateCacheRecursive(bool force = false);
-
     
+private:
     std::unique_ptr<Impl> impl_;
     Sheet& sheet_;
     std::unordered_set<Cell*> l_nodes_;

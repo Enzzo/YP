@@ -43,18 +43,12 @@ public:
 
 	// Можете дополнить ваш класс нужными полями и методами
 private:
-    void PrintableArea(Position pos) {
-        int r = 0; 
-        int c = 0; 
-        for (auto it = cells_.begin(); it != cells_.end(); ++it) {
-            int rm = it->first.row + 1;
-            int cm = it->first.col + 1;
-            if (r < rm) r = rm;
-            if (c < cm) c = cm;
-        }
-        cells_[{r, c}];
+    void SetPrintableArea(Position pos) {
+        cells_.resize(std::max(pos.row + 1, static_cast<int>(cells_.size())));
+        cells_[pos.row].resize(std::max(pos.col + 1, static_cast<int>(cells_[pos.row].size())));
     }
 
 private:
-    Table cells_;
+    //Table cells_;
+    std::vector<std::vector<std::unique_ptr<Cell>>> cells_;
 };
