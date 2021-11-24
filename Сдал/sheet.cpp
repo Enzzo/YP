@@ -16,7 +16,9 @@ void Sheet::SetCell(Position pos, std::string text) {
     if (!pos.IsValid()) {
         throw InvalidPositionException("invalid position");
     }
-    auto& cell = cells_.at(pos);
+    SetPrintableArea(pos);
+    //cells_[pos]->Set(text);
+    auto& cell = cells_[pos.row][pos.col];
     if (!cell) {
         cell = std::make_unique<Cell>(*this);
     }
