@@ -55,14 +55,14 @@ class Cell::FormulaImpl : public Impl {
     mutable std::optional<FormulaInterface::Value> cache_;
 
 public:
-    explicit FormulaImpl(std::string_view expression, const SheetInterface& sheet)
+    explicit FormulaImpl(std::string expression, const SheetInterface& sheet)
         : sheet_(sheet) {
         if (expression.empty() || expression[0] != FORMULA_SIGN) {
             throw std::logic_error("");
         }
         //expression = expression.substr(1);
         //value_ = std::string(expression);
-        formula_ptr_ = ParseFormula(std::move(std::string(expression.substr(1))));
+        formula_ptr_ = ParseFormula(expression.substr(1));
         //text_ = "=" + formula_ptr_->GetExpression();
     }
     Value GetValue() const override {
@@ -71,20 +71,20 @@ public:
         }
 
         return std::visit([](const auto& x) { return Value(x); }, *cache_);
-        auto value = formula_ptr_->Evaluate(sheet_);
-        if (std::holds_alternative<double>(value)) {
-            return std::get<double>(value);
-        }
-        return std::get<FormulaError>(value);
+        //auto value = formula_ptr_->Evaluate(sheet_);
+        //if (std::holds_alternative<double>(value)) {
+        //    return std::get<double>(value);
+        //}
+        //return std::get<FormulaError>(value);
     }
     std::string GetText() const override {
         return FORMULA_SIGN + formula_ptr_->GetExpression();
     }
-    void InvalidateCache() override { cache_.reset(); }
+    void InvalidateCache() override { cache_.reset(); }  
+    std::vector<Position> GetReferencedCells() const { return formula_ptr_->GetReferencedCells(); }
 };
 
 std::vector<Position> Cell::GetReferencedCells() const { return impl_->GetReferencedCells(); }
-
 // Реализуйте следующие методы
 Cell::Cell(Sheet& sheet)
     :impl_(std::make_unique<EmptyImpl>())
@@ -147,7 +147,7 @@ bool Cell::WouldIntroduceCircularDependency(const Impl& new_impl) const {
 
     std::unordered_set<const Cell*> referenced;
     for (const auto& pos : new_impl.GetReferencedCells()) {
-        //referenced.insert(sheet_.GetCellPtr(pos));
+        referenced.insert(sheet_.GetCellPtr(pos));
     }
 
     std::unordered_set<const Cell*> visited;

@@ -5,24 +5,24 @@
 
 #include <functional>
 #include <unordered_map>
-
-class CellHasher {
-public:
-    size_t operator()(const Position p) const {
-        return std::hash<std::string>()(p.ToString());
-    }
-};
-
-class CellComparator {
-public:
-    bool operator()(const Position& lhs, const Position& rhs) const {
-        return lhs == rhs;
-    }
-};
+//
+//class CellHasher {
+//public:
+//    size_t operator()(const Position p) const {
+//        return std::hash<std::string>()(p.ToString());
+//    }
+//};
+//
+//class CellComparator {
+//public:
+//    bool operator()(const Position& lhs, const Position& rhs) const {
+//        return lhs == rhs;
+//    }
+//};
 
 class Sheet : public SheetInterface {
 public:
-    using Table = std::unordered_map<Position, std::unique_ptr<Cell>, CellHasher, CellComparator>;
+    //using Table = std::unordered_map<Position, std::unique_ptr<Cell>, CellHasher, CellComparator>;
 
     ~Sheet();
 
@@ -47,7 +47,8 @@ private:
         cells_.resize(std::max(pos.row + 1, static_cast<int>(cells_.size())));
         cells_[pos.row].resize(std::max(pos.col + 1, static_cast<int>(cells_[pos.row].size())));
     }
-
+    void Print(std::ostream& output,
+        const std::function<void(const CellInterface&)>& PrintCellFunction) const;
 private:
     //Table cells_;
     std::vector<std::vector<std::unique_ptr<Cell>>> cells_;

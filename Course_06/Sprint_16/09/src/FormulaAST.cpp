@@ -143,21 +143,25 @@ namespace ASTImpl {
 			}
 
 			double Evaluate(const SheetArgs& args) const override {
+				double result = 0.0;
 				switch (type_) {
 				case Add:
-					return lhs_->Evaluate(args) + rhs_->Evaluate(args);
+					result = lhs_->Evaluate(args) + rhs_->Evaluate(args);
+					break;
 				case Subtract:
-					return lhs_->Evaluate(args) - rhs_->Evaluate(args);
+					result = lhs_->Evaluate(args) - rhs_->Evaluate(args);
+					break;
 				case Multiply:
-					return lhs_->Evaluate(args) * rhs_->Evaluate(args);
+					result = lhs_->Evaluate(args) * rhs_->Evaluate(args);
+					break;
 				case Divide:
-					double result = lhs_->Evaluate(args) / rhs_->Evaluate(args);
-					if (std::isfinite(result)) {
+					double div = lhs_->Evaluate(args) / rhs_->Evaluate(args);
+					if (!std::isfinite(div)) {
 						throw FormulaError(FormulaError::Category::Div0);
 					}
-					return result;
+					result = div;
 				}
-				return 0.0;
+				return result;
 			}
 
 		private:
@@ -214,7 +218,7 @@ namespace ASTImpl {
 
 			void Print(std::ostream& out) const override {
 				if (!cell_->IsValid()) {
-					out << FormulaError::Category::Ref;
+					out << FormulaError(FormulaError::Category::Ref);
 				}
 				else {
 					out << cell_->ToString();
@@ -230,7 +234,7 @@ namespace ASTImpl {
 			}
 
 			double Evaluate(const SheetArgs& args) const override {
-				return 0.0;
+				return args(*cell_);
 			}
 
 		private:
