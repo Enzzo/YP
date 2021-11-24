@@ -69,13 +69,11 @@ public:
         if (!cache_) {
             cache_ = formula_ptr_->Evaluate(sheet_);
         }
-
-        return std::visit([](const auto& x) { return Value(x); }, *cache_);
-        //auto value = formula_ptr_->Evaluate(sheet_);
-        //if (std::holds_alternative<double>(value)) {
-        //    return std::get<double>(value);
-        //}
-        //return std::get<FormulaError>(value);
+        auto value = formula_ptr_->Evaluate(sheet_);
+        if (std::holds_alternative<double>(value)) {
+            return std::get<double>(value);
+        }
+        return std::get<FormulaError>(value);
     }
     std::string GetText() const override {
         return FORMULA_SIGN + formula_ptr_->GetExpression();
@@ -85,7 +83,7 @@ public:
 };
 
 std::vector<Position> Cell::GetReferencedCells() const { return impl_->GetReferencedCells(); }
-// Реализуйте следующие методы
+
 Cell::Cell(Sheet& sheet)
     :impl_(std::make_unique<EmptyImpl>())
     , sheet_(sheet)

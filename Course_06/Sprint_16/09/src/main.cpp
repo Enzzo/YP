@@ -232,30 +232,6 @@ namespace {
         sheet->SetCell("A1"_pos, "=0/0");
         ASSERT_EQUAL(sheet->GetCell("A1"_pos)->GetValue(),
             CellInterface::Value(FormulaError::Category::Div0));
-
-        //{
-        //    std::ostringstream formula;
-        //    formula << '=' << max << '+' << max;
-        //    sheet->SetCell("A1"_pos, formula.str());
-        //    ASSERT_EQUAL(sheet->GetCell("A1"_pos)->GetValue(),
-        //        CellInterface::Value(FormulaError::Category::Div0));
-        //}
-
-        //{
-        //    std::ostringstream formula;
-        //    formula << '=' << -max << '-' << max;
-        //    sheet->SetCell("A1"_pos, formula.str());
-        //    ASSERT_EQUAL(sheet->GetCell("A1"_pos)->GetValue(),
-        //        CellInterface::Value(FormulaError::Category::Div0));
-        //}
-
-        //{
-        //    std::ostringstream formula;
-        //    formula << '=' << max << '*' << max;
-        //    sheet->SetCell("A1"_pos, formula.str());
-        //    ASSERT_EQUAL(sheet->GetCell("A1"_pos)->GetValue(),
-        //        CellInterface::Value(FormulaError::Category::Div0));
-        //}
     }
 
     void TestEmptyCellTreatedAsZero() {
@@ -361,6 +337,19 @@ namespace {
         ASSERT(caught);
         ASSERT_EQUAL(sheet->GetCell("M6"_pos)->GetText(), "Ready");
     }
+
+    void TestClearPrint() {
+        auto sheet = CreateSheet();
+        for (int i = 0; i <= 5; ++i) {
+            sheet->SetCell(Position{ i, i }, std::to_string(i));
+            Size s = sheet->GetPrintableSize();
+        }
+        sheet->ClearCell(Position{ 3, 3 });
+        for (int i = 5; i >= 0; --i) {
+            sheet->ClearCell(Position{ i, i });
+            Size s = sheet->GetPrintableSize();
+        }
+    }
 }  // namespace
 
 int main() {
@@ -384,5 +373,6 @@ int main() {
     RUN_TEST(tr, TestCellReferences);
     RUN_TEST(tr, TestFormulaIncorrect);
     RUN_TEST(tr, TestCellCircularReferences);
+    RUN_TEST(tr, TestClearPrint);
     return 0;
 }

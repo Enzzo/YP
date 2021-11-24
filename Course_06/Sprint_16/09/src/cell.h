@@ -27,7 +27,6 @@ private:
     class TextImpl;
     class FormulaImpl;
     bool WouldIntroduceCircularDependency(const Impl& impl) const;
-    // void UpdateRefs();
     void InvalidateCacheRecursive(bool force = false);
     
 private:

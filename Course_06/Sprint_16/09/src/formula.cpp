@@ -34,7 +34,7 @@ std::ostream& operator<<(std::ostream& output, FormulaError fe) {
 namespace {
     class Formula : public FormulaInterface {
     public:
-        // Реализуйте следующие методы:
+
         explicit Formula(std::string expression) try : ast_(ParseFormulaAST(expression)) {
         }
         catch (const std::exception& e) {
@@ -97,7 +97,6 @@ namespace {
 }  // namespace
 
 std::unique_ptr<FormulaInterface> ParseFormula(std::string expression) {
-    //TODO: если строка expression содержит синтаксически некорректную формулу, то метод должен кинуть исключение FormulaException
     try {
         return std::make_unique<Formula>(std::move(expression));
     }

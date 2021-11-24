@@ -424,7 +424,7 @@ double FormulaAST::Execute(const SheetArgs& args) const {
 FormulaAST::FormulaAST(std::unique_ptr<ASTImpl::Expr> root_expr, std::forward_list<Position> cells)
 	: root_expr_(std::move(root_expr))
 	, cells_(std::move(cells)) {
-	cells_.sort();  // to avoid sorting in GetReferencedCells
+	cells_.sort();
 }
 
 FormulaAST::~FormulaAST() = default;

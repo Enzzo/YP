@@ -38,7 +38,7 @@ void Sheet::ClearCell(Position pos) {
         throw InvalidPositionException("invalid position");
     }
     const auto& cell = cells_.find(pos);
-    if (cell != cells_.end()) {
+    if (cell != cells_.end() && cell->second != nullptr) {
         cell->second->Clear();
         cell->second.reset();
     }
@@ -59,25 +59,6 @@ Size Sheet::GetPrintableSize() const {
     }
     return { result.rows, result.cols};
 }
-
-//void Sheet::Print(std::ostream& output,
-//    const std::function<void(const CellInterface&)>& PrintCellFunction) const {
-//
-//    Size size = GetPrintableSize();
-//    for (int r = 0; r < size.rows; ++r) {
-//
-//        for (int c = 0; c < size.cols; ++c) {
-//            if (c > 0) {
-//                output << "\t";
-//            }
-//            const auto& it = cells_.find({ r, c });
-//            if (it != cells_.end() && it->second != nullptr) {
-//                PrintCellFunction(*(it->second));
-//            }
-//        }
-//        output << "\n";
-//    }
-//}
 
 void Sheet::PrintValues(std::ostream& output) const {
     Size size = GetPrintableSize();
