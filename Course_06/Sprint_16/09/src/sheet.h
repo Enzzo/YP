@@ -6,14 +6,16 @@
 #include <functional>
 #include <unordered_map>
 
-class CellHasher {
+//CellHasher уже есть, поэтому назвал CHasher
+class CHasher {
 public:
     size_t operator()(const Position p) const {
         return std::hash<std::string>()(p.ToString());
     }
 };
 
-class CellComparator {
+//CellComparator уже есть, поэтому назвал CComparator
+class CComparator {
 public:
     bool operator()(const Position& lhs, const Position& rhs) const {
         return lhs == rhs;
@@ -22,7 +24,7 @@ public:
 
 class Sheet : public SheetInterface {
 public:
-    using Table = std::unordered_map<Position, std::unique_ptr<Cell>, CellHasher, CellComparator>;
+    using Table = std::unordered_map<Position, std::unique_ptr<Cell>, CHasher, CComparator>;
 
     ~Sheet();
 
@@ -41,15 +43,6 @@ public:
     const Cell* GetCellPtr(Position pos) const;
     Cell* GetCellPtr(Position pos);
 
-	// Можете дополнить ваш класс нужными полями и методами
-private:
-    //void SetPrintableArea(Position pos) {
-    //    cells_.resize(std::max(pos.row + 1, static_cast<int>(cells_.size())));
-    //    cells_[pos.row].resize(std::max(pos.col + 1, static_cast<int>(cells_[pos.row].size())));
-    //}
-    void Print(std::ostream& output,
-        const std::function<void(const CellInterface&)>& PrintCellFunction) const;
 private:
     Table cells_;
-    //std::vector<std::vector<std::unique_ptr<Cell>>> cells_;
 };

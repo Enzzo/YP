@@ -133,11 +133,15 @@ namespace {
         auto sheet = CreateSheet();
 
         sheet->SetCell("C2"_pos, "Me gusta");
+        Size s = sheet->GetPrintableSize();
         sheet->ClearCell("C2"_pos);
+        s = sheet->GetPrintableSize();
         ASSERT(sheet->GetCell("C2"_pos) == nullptr);
 
         sheet->ClearCell("A1"_pos);
         sheet->ClearCell("J10"_pos);
+        s = sheet->GetPrintableSize();
+        int x = 2;
     }
 
     void TestFormulaArithmetic() {
