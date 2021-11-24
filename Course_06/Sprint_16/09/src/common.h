@@ -30,7 +30,7 @@ struct Size {
     int rows = 0;
     int cols = 0;
 
-    Size operator=(const Size other);
+    //Size operator=(const Size other);
     bool operator==(Size rhs) const;
 };
 

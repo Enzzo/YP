@@ -46,7 +46,7 @@ void Sheet::ClearCell(Position pos) {
 }
 
 Size Sheet::GetPrintableSize() const {
-    Size size;
+    Size size{ 0, 0 };
     for (int row = 0; row < static_cast<int>(cells_.size()); ++row) {
         for (int col = static_cast<int>(cells_[row].size()) - 1; col >= 0; --col) {
             if (const auto& cell = cells_[row][col]) {

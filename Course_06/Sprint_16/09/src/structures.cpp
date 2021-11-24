@@ -73,9 +73,9 @@ Position Position::FromString(std::string_view str) {
     return {row - 1, col - 1};
 }
 
-Size Size::operator=(const Size other) {
-    return { other.rows, other.cols };
-}
+//Size Size::operator=(const Size other) {
+//    return { other.rows, other.cols };
+//}
 
 bool Size::operator==(Size rhs) const {
     return cols == rhs.cols && rows == rhs.rows;
