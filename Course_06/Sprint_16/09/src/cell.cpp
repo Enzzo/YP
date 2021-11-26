@@ -1,4 +1,5 @@
 #include "cell.h"
+#include "sheet.h"
 
 #include <cassert>
 #include <iostream>
@@ -6,7 +7,7 @@
 #include <optional>
 #include <stack>
 
-#include "sheet.h"
+using namespace std::literals;
 
 class Cell::Impl {
 public:
@@ -35,7 +36,7 @@ class Cell::TextImpl : public Impl {
 public:
     TextImpl(std::string text) : text_(std::move(text)) {
         if (text_.empty()) {
-            throw std::logic_error("");
+            throw std::logic_error("Should be EmptyImpl instead");
         }
     }
 
@@ -58,7 +59,7 @@ public:
     explicit FormulaImpl(std::string expression, const SheetInterface& sheet)
         : sheet_(sheet) {
         if (expression.empty() || expression[0] != FORMULA_SIGN) {
-            throw std::logic_error("");
+            throw std::logic_error("A formula should start with"s + FORMULA_SIGN + "sign"s);
         }
         //expression = expression.substr(1);
         //value_ = std::string(expression);
@@ -79,10 +80,15 @@ public:
         return FORMULA_SIGN + formula_ptr_->GetExpression();
     }
     void InvalidateCache() override { cache_.reset(); }  
-    std::vector<Position> GetReferencedCells() const { return formula_ptr_->GetReferencedCells(); }
+    
+    std::vector<Position> GetReferencedCells() const { 
+        return formula_ptr_->GetReferencedCells(); 
+    }
 };
 
-std::vector<Position> Cell::GetReferencedCells() const { return impl_->GetReferencedCells(); }
+std::vector<Position> Cell::GetReferencedCells() const { 
+    return impl_->GetReferencedCells(); 
+}
 
 Cell::Cell(Sheet& sheet)
     :impl_(std::make_unique<EmptyImpl>())
@@ -105,7 +111,7 @@ void Cell::Set(std::string text) {
     }
 
     if (WouldIntroduceCircularDependency(*impl)) {
-        throw CircularDependencyException("");
+        throw CircularDependencyException("Circular dependency");
     }
     impl_ = std::move(impl);
 

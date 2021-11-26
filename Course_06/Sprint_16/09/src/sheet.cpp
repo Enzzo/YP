@@ -14,7 +14,7 @@ Sheet::~Sheet() {}
 
 void Sheet::SetCell(Position pos, std::string text) {
     if (!pos.IsValid()) {
-        throw InvalidPositionException("invalid position");
+        throw InvalidPositionException("Invalid position");
     }
     const auto& cell = cells_.find(pos);
 
@@ -35,7 +35,7 @@ CellInterface* Sheet::GetCell(Position pos) {
 
 void Sheet::ClearCell(Position pos) {
     if (!pos.IsValid()) {
-        throw InvalidPositionException("invalid position");
+        throw InvalidPositionException("Invalid position");
     }
     const auto& cell = cells_.find(pos);
     if (cell != cells_.end() && cell->second != nullptr) {
