@@ -7,6 +7,8 @@
 #include <unordered_set>
 #include <optional>
 
+#define SOME_DEFINE 8;
+
 class Sheet;
 
 class Cell : public CellInterface {
