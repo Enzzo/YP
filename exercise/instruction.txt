@@ -1,0 +1,28 @@
+#1. Создание пакета protobuf:
+//Исходник находится в D:\dev\protobuf
+//Собираем в D:\GitHub\yp\exercise\package
+
+cd D:/dev/protobuf/cmake
+
+cmake -Dprotobuf_BUILD_TESTS=OFF       -DCMAKE_INSTALL_PREFIX=D:/GitHub/yp/exercise/package       -Dprotobuf_MSVC_STATIC_RUNTIME=OFF
+
+cmake --build . --config Debug
+
+cmake --install . --config Debug
+
+
+#2. Компиляция файла *.proto:
+//Поместим файлы *.proto в папку D:/GitHub/yp/exercise/Address:
+//D:/GitHub/yp/exercise/package/bin
+
+cd D:/GitHub/yp/exercise/package/bin
+
+protoc --cpp_out ../../Address --proto_path ../../Address contact.proto
+
+
+#3. Собираем проект для VS19 с protobuf
+//Создадим папку D:/GitHub/yp/exercise/build и перейдём в неё.
+
+cmake ../Address
+cmake . -DCMAKE_PREFIX_PATH=D:/GitHub/yp/exercise/package
+cmake --build . --config Debug
